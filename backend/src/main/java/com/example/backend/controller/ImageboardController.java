@@ -37,25 +37,32 @@ public class ImageboardController {
 	public Map<String, Object> imageboardWrite(ImageboardDTO dto,
 			@RequestParam(value="img", required=false) MultipartFile uploadFile) {
 		System.out.println(dto.toString());
-		// 1. 데이터 처리
-		// 저장 폴더 만들기
+		
 		File folder = new File(uploadpath);
 		if(!folder.exists()) {
 			folder.mkdirs();
 		}
 		// 파일이 있으면 저장
-		if(uploadFile != null) {
+		if(uploadFile != null && !uploadFile.isEmpty()) {
 			String fileName = uploadFile.getOriginalFilename();
 			File file = new File(uploadpath, fileName);
 			try {
 				uploadFile.transferTo(file);
+				// dto에 파일명 저장
+				dto.setImage1(fileName);
 			} catch (IllegalStateException e) {
 				e.printStackTrace();
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("rt", "FAIL");
+				map.put("msg", "파일 저장 중 오류가 발생했습니다.");
+				return map;
 			} catch (IOException e) {
 				e.printStackTrace();
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("rt", "FAIL");
+				map.put("msg", "파일 저장 중 오류가 발생했습니다.");
+				return map;
 			}
-			// dto에 파일명 저장
-			dto.setImage1(fileName);
 		}
 		// dto에 등록일 저장
 		dto.setLogtime(new Date());
@@ -64,8 +71,12 @@ public class ImageboardController {
 		
 		// 2. 결과 응답
 		Map<String, Object> map = new HashMap<String, Object>();
-		if(imageboard != null) map.put("rt", "OK");
-		else map.put("rt", "FAIL");
+		if(imageboard != null) {
+			map.put("rt", "OK");
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "글 저장에 실패했습니다.");
+		}
 		return map;
 	}
 	// 2. 목록
@@ -96,7 +107,6 @@ public class ImageboardController {
 	// 3. 상세보기
 	@GetMapping("/imageboard/imageboardView")
 	public Map<String, Object> imageboardView(@RequestParam("seq") int seq) {
-		// 1. 데이터 처리
 		Imageboard imageboard = service.imageboardView(seq);
 		// 2. 결과 응답
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -106,20 +116,75 @@ public class ImageboardController {
 			map.put("item", imageboard);
 		} else {
 			map.put("rt", "FAIL");
+			map.put("msg", "해당 게시글이 존재하지 않습니다.");
 		}
 		return map;
 	}
 	// 4. 삭제
 	@GetMapping("/imageboard/imageboardDelete")
 	public Map<String, Object> imageboardDelete(@RequestParam("seq") int seq) {
-		// 1. 데이터 처리
 		boolean result = service.imageboardDelete(seq);
-		// 2. 결과 응답
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(result) {
 			map.put("rt", "OK");
 		} else {
 			map.put("rt", "FAIL");
+			map.put("msg", "삭제에 실패했습니다.");
+		}
+		return map;
+	}
+	// 5. 수정
+	@PostMapping("/imageboard/imageboardModify")
+	public Map<String, Object> imageboardModify(ImageboardDTO dto,
+			@RequestParam(value="img", required=false) MultipartFile uploadFile) {
+		System.out.println(dto.toString());
+		
+		Imageboard existingBoard = service.imageboardView(dto.getSeq());
+		if(existingBoard == null) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("rt", "FAIL");
+			map.put("msg", "해당 게시글이 존재하지 않습니다.");
+			return map;
+		}
+		
+		dto.setLogtime(existingBoard.getLogtime());
+		
+		File folder = new File(uploadpath);
+		if(!folder.exists()) {
+			folder.mkdirs();
+		}
+		
+		if(uploadFile != null && !uploadFile.isEmpty()) {
+			String fileName = uploadFile.getOriginalFilename();
+			File file = new File(uploadpath, fileName);
+			try {
+				uploadFile.transferTo(file);
+				dto.setImage1(fileName);
+			} catch (IllegalStateException e) {
+				e.printStackTrace();
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("rt", "FAIL");
+				map.put("msg", "파일 저장 중 오류가 발생했습니다.");
+				return map;
+			} catch (IOException e) {
+				e.printStackTrace();
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("rt", "FAIL");
+				map.put("msg", "파일 저장 중 오류가 발생했습니다.");
+				return map;
+			}
+		} else {
+			dto.setImage1(existingBoard.getImage1());
+		}
+		
+		Imageboard imageboard = service.imageboardModify(dto);
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(imageboard != null) {
+			map.put("rt", "OK");
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "글 수정에 실패했습니다.");
 		}
 		return map;
 	}

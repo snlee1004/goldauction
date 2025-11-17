@@ -42,4 +42,12 @@ public class ImageboardDAO {
 		}
 		return false;
 	}
+	// 6. 수정
+	public Imageboard imageboardModify(ImageboardDTO dto) {
+		Imageboard imageboard = imageboardRepository.findById(dto.getSeq()).orElse(null);
+		if(imageboard != null) {
+			return imageboardRepository.save(dto.toEntity());
+		}
+		return null;
+	}
 }

@@ -36,12 +36,16 @@ function ImageboardView() {
     const handleList = () => {
         navigate(`/imageboard/imageboardList?pg=${pg}`);
     };
+    const handleModify = () => {
+        navigate(`/imageboard/imageboardModifyForm?seq=${seq}`);
+    };
+
     const handleDelete = async () => {
         if(window.confirm("삭제할까요?")) {
             try {
                 const response = await fetch(`http://localhost:8080/imageboard/imageboardDelete?seq=${seq}`);
                 const data = await response.json();
-                if(response.ok) {  // 200 코드이면
+                if(response.ok) {
                     if(data.rt === "OK") {
                         alert("삭제 성공");
                         navigate(`/imageboard/imageboardList?pg=${pg}`);
@@ -84,9 +88,17 @@ function ImageboardView() {
                     </tr>
                     <tr align="center">                        
                         <td colSpan="3" >
-                            <input type="button" value="목록" onClick={handleList}/>&nbsp;
-                            <input type="button" value="수정" />&nbsp;
-                            <input type="button" value="삭제" onClick={handleDelete}/>
+                            <button className="btn btn-secondary" onClick={handleList}>
+                                <i className="bi bi-list"></i> 목록
+                            </button>
+                            &nbsp;
+                            <button className="btn btn-primary" onClick={handleModify}>
+                                <i className="bi bi-pencil-square"></i> 수정
+                            </button>
+                            &nbsp;
+                            <button className="btn btn-danger" onClick={handleDelete}>
+                                <i className="bi bi-trash"></i> 삭제
+                            </button>
                         </td>
                     </tr>
                 </tbody>

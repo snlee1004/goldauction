@@ -35,4 +35,8 @@ public class ImageboardService {
 	public boolean imageboardDelete(int seq) {
 		return dao.imageboardDelete(seq); 
 	}
+	// 6. 수정
+	public Imageboard imageboardModify(ImageboardDTO dto) {
+		return dao.imageboardModify(dto);
+	}
 }

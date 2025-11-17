@@ -1,11 +1,15 @@
 # CODING_GUIDELINES
-- **프로젝트명**: 플랜잇
+- **프로젝트명**: 골드옥션
+- 골드에 관련된 경매사이트 
+
+
 - **기술 스택**: react : frontend -> React + Vite
                 springboot : backend
                 db : oreacle 
                 Java 17+
 
 ## 🏗️ 프로젝트 구조
+backend controller 에  항목체크는 frontend 쪽에서  javascript로 간략하게 처리 해주고 javascript는  script 폴더쪽에서 처리하게 해줘
 
 project-root/
  ├── backend/        # Spring Boot
@@ -15,6 +19,8 @@ project-root/
  ├── frontend/       # React
  │     ├── src/
  │     ├── package.json
+ │     └── script   #javascript 
+ │     └── css
  │     └── ...
  ├── README.md
 
@@ -29,15 +35,7 @@ root/
 ### 1. 기존 코드 활용
 - **기존 코드를 적극 반영**하여 일관성 유지
 - **비슷한 기능이 있다면 참고**하여 구현
-
-### 2. 기능 구현 순서
-1. **DTO 클래스** 생성
-2. **엔티티 클래스** 생성
-3. **Repository 인터페이스** 생성  
-4. **DAO 클래스** 생성
-5. **Service 클래스** 생성
-6. **Controller 클래스** 생성
-
+- **Bootstrap Icons** 적극 활용
 
 ### 3. 테스트
 - **기능 구현 후 순차적으로 다음 지시사항** 확인

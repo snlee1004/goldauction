@@ -1,142 +1,109 @@
 package com.example.backend.controller;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.dto.MemberDTO;
 import com.example.backend.entity.Member;
 import com.example.backend.service.MemberService;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-
-@Controller
+@RestController
+@CrossOrigin(origins = "http://localhost:5173")
 public class MemberController {
 	@Autowired
 	MemberService service;
 	
-	// http://localhost:8080/index
-	@GetMapping("/index")
-	public String index() {
-		// 1. 데이터 처리
-		// 2. 데이터 공유
-		// 3. view 파일명 리턴
-		return "/main/index";  // /main/index.html
-	}
-	
-	// http://localhost:8080/member/loginForm
-	@GetMapping("/member/loginForm")
-	public String loginForm() {
-		// 1. 데이터 처리
-		// 2. 데이터 공유
-		// 3. view 파일명 리턴
-		return "/member/loginForm";  // /member/loginForm.html
-	}
-	
-	// http://localhost:8080/member/login
 	@PostMapping("/member/login")
-	public String login(HttpServletRequest request, 
-						HttpSession session) {
-		// 1. 데이터 처리
-		String id = request.getParameter("id");
-		String pwd = request.getParameter("pwd");
-		// db 작업
+	public Map<String, Object> login(@RequestBody Map<String, String> params) {
+		String id = params.get("id");
+		String pwd = params.get("pwd");
+		
 		String name = service.login(id, pwd);
 		
-		// 2. 데이터 공유
-		// 3. view 파일명 리턴
-		if(name != null) { // 로그인 성공
-			// 세션에 공유데이터 저장하기
-			session.setAttribute("memName", name);
-			session.setAttribute("memId", id);
-			return "/member/loginOK";	 // /member/loginOK.html		
-		} else {		   // 로그인 실패
-			return "/member/loginFail";  // /member/loginFail.html
-		}		
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(name != null) {
+			map.put("rt", "OK");
+			map.put("name", name);
+			map.put("id", id);
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "아이디 또는 비밀번호가 일치하지 않습니다.");
+		}
+		return map;
 	}
 	
-	// http://localhost:8080/member/logout
-	@GetMapping("/member/logout")
-	public String logout(HttpSession session) {
-		// 1. 데이터 처리
-		// 세션 삭제
-		session.removeAttribute("memName");
-		session.removeAttribute("memId");
-		// 2. 데이터 공유
-		// 3. view 파일명 리턴
-		return "/member/logout";  // /member/logout.html
-	}
-	
-	// http://localhost:8080/member/writeForm
-	@GetMapping("/member/writeForm")
-	public String writeForm() {
-		// 1. 데이터 처리
-		// 2. 데이터 공유
-		// 3. view 파일명 리턴
-		return "/member/writeForm";  // /member/writeForm.html
-	}
-	
-	// http://localhost:8080/member/write
 	@PostMapping("/member/write")
-	public String write(MemberDTO dto, Model model) {
-		// 1. 데이터 처리
-		System.out.println("dto = " + dto);		
+	public Map<String, Object> write(@RequestBody MemberDTO dto) {
+		System.out.println("dto = " + dto);
+		
 		dto.setLogtime(new Date());
-		// db 저장
 		int result = service.write(dto);
 		
-		// 2. 데이터 공유
-		model.addAttribute("result", result);
-		// 3. view 파일명 리턴
-		return "/member/write";  // /member/write.html
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(result == 1) {
+			map.put("rt", "OK");
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "이미 존재하는 아이디입니다.");
+		}
+		return map;
 	}
 	
-	// http://localhost:8080/member/checkId
 	@GetMapping("/member/checkId")
-	public String checkId(HttpServletRequest request, Model model) {
-		// 1. 데이터 처리
-		String id = request.getParameter("id");
-		// db 작업
+	public Map<String, Object> checkId(@RequestParam("id") String id) {
 		boolean isExist = service.isExistId(id);
-		// 2. 데이터 공유
-		model.addAttribute("id", id);
-		model.addAttribute("isExist", isExist);
-		// 3. view 파일명 리턴
-		return "/member/checkId";  // /member/checkId.html
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("id", id);
+		map.put("isExist", isExist);
+		return map;
 	}
 	
-	// http://localhost:8080/member/modifyForm
-	@GetMapping("/member/modifyForm")
-	public String modifyForm(Model model, HttpSession session) {
-		// 1. 데이터 처리
-		String id = (String) session.getAttribute("memId");
-		// db
+	@GetMapping("/member/getMember")
+	public Map<String, Object> getMember(@RequestParam("id") String id) {
 		Member member = service.getMember(id);
-		// 2. 데이터 공유
-		model.addAttribute("member", member);
-		// 3. view 파일명 리턴
-		return "/member/modifyForm";  // /member/modifyForm.html
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(member != null) {
+			map.put("rt", "OK");
+			map.put("member", member);
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "회원정보를 찾을 수 없습니다.");
+		}
+		return map;
 	}
 	
-	// http://localhost:8080/member/modify
 	@PostMapping("/member/modify")
-	public String modify(MemberDTO dto, Model model) {
-		// 1. 데이터 처리		
-		System.out.println("dto = " + dto);		
-		// db
+	public Map<String, Object> modify(@RequestBody MemberDTO dto) {
+		System.out.println("dto = " + dto);
+		
 		int result = service.modify(dto);
 		
-		// 2. 데이터 공유
-		model.addAttribute("result", result);
-		// 3. view 파일명 리턴
-		return "/member/modify";  // /member/modify.html
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(result == 1) {
+			map.put("rt", "OK");
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "회원정보 수정에 실패했습니다.");
+		}
+		return map;
+	}
+	
+	@GetMapping("/member/logout")
+	public Map<String, Object> logout() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("rt", "OK");
+		return map;
 	}
 }
-// 1. 데이터 처리
-// 2. 데이터 공유
-// 3. view 파일명 리턴
+
