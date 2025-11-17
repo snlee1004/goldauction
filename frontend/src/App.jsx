@@ -19,7 +19,7 @@ function App() {
 
                     <div style={{height: "550px"}}>
                         <Routes>
-                            <Route path="/" element={<ImageboardList/>} />
+                            <Route path="/" element={<LoginForm/>} />
                             <Route path="/imageboard/imageboardWriteForm" 
                                 element={<ImageboardWriteForm/>} />
                             <Route path="/imageboard/imageboardModifyForm" 

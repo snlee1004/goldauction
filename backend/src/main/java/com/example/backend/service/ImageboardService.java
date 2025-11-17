@@ -23,9 +23,17 @@ public class ImageboardService {
 	public List<Imageboard> imageboardList(int startNum, int endNum) {
 		return dao.imageboardList(startNum, endNum);
 	}
+	// 2-1. 검색 목록
+	public List<Imageboard> imageboardListByKeyword(String keyword, int startNum, int endNum) {
+		return dao.imageboardListByKeyword(keyword, startNum, endNum);
+	}
 	// 3. 총글수
 	public int getCount() {
 		return dao.getCount();
+	}
+	// 3-1. 검색어가 포함된 총글수
+	public int getCountByKeyword(String keyword) {
+		return dao.getCountByKeyword(keyword);
 	}
 	// 4. 상세보기
 	public Imageboard imageboardView(int seq) {

@@ -34,7 +34,7 @@ const NavbarComponent = () => {
         <>
             <nav className="navbar navbar-expand-lg bg-body-tertiary">
                 <div className="container-fluid">
-                    <Link className="navbar-brand" to="/">
+                    <Link className="navbar-brand" to="/imageboard/imageboardList">
                         <i className="bi bi-gem"></i> 골드옥션
                     </Link>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,14 +59,9 @@ const NavbarComponent = () => {
                             {isLoggedIn ? (
                                 <>
                                     <li className="nav-item">
-                                        <span className="nav-link">
-                                            <i className="bi bi-person-circle"></i> {memName}님
-                                        </span>
-                                    </li>
-                                    <li className="nav-item">
                                         <Link className={`nav-link ${location.pathname === "/member/modifyForm" ? "active" : ""}`} 
                                               to="/member/modifyForm">
-                                            <i className="bi bi-gear"></i> 회원정보
+                                            <i className="bi bi-person-circle"></i> {memName}님
                                         </Link>
                                     </li>
                                     <li className="nav-item">

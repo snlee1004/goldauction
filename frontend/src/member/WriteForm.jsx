@@ -133,7 +133,7 @@ function WriteForm() {
     };
 
     return (
-        <div className="container">
+        <div className="container" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
             <h3 align="center">
                 <i className="bi bi-person-plus"></i> 회원가입
             </h3>
@@ -141,7 +141,7 @@ function WriteForm() {
                 <table className="table" style={{width:"600px", margin:"auto"}}>
                     <tbody>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-person"></i> 이름
                             </td>
                             <td>
@@ -152,29 +152,31 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-person-badge"></i> 아이디
                             </td>
                             <td>
-                                <input type="text" value={id} size="30"
-                                        ref={idRef} 
-                                        onChange={(e) => {
-                                            setId(e.target.value);
-                                            setIdCheckMsg("");
-                                        }}
-                                        placeholder="아이디를 입력하세요"/>
-                                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={checkId}>
-                                    <i className="bi bi-check-circle"></i> 중복확인
-                                </button>
+                                <div>
+                                    <input type="text" value={id} size="30"
+                                            ref={idRef} 
+                                            onChange={(e) => {
+                                                setId(e.target.value);
+                                                setIdCheckMsg("");
+                                            }}
+                                            placeholder="아이디를 입력하세요"/>
+                                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={checkId}>
+                                        <i className="bi bi-check-circle"></i> 중복확인
+                                    </button>
+                                </div>
                                 {idCheckMsg && (
-                                    <span style={{color: idCheckMsg.includes("사용 가능") ? "green" : "red", marginLeft: "10px"}}>
+                                    <div style={{color: idCheckMsg.includes("사용 가능") ? "green" : "red", marginTop: "5px"}}>
                                         {idCheckMsg}
-                                    </span>
+                                    </div>
                                 )}
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
@@ -185,8 +187,8 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
-                                <i className="bi bi-lock-fill"></i> 비밀번호 확인
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                                <i className="bi bi-lock-fill"></i> 비번확인
                             </td>
                             <td>
                                 <input type="password" value={pwdConfirm} size="45"
@@ -196,7 +198,7 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-gender-ambiguous"></i> 성별
                             </td>
                             <td>
@@ -211,7 +213,7 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-envelope"></i> 이메일
                             </td>
                             <td>
@@ -234,7 +236,7 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-telephone"></i> 전화번호
                             </td>
                             <td>
@@ -253,7 +255,7 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-house"></i> 주소
                             </td>
                             <td>

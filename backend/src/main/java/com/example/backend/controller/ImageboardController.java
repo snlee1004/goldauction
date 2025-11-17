@@ -81,14 +81,26 @@ public class ImageboardController {
 	}
 	// 2. 목록
 	@GetMapping("/imageboard/imageboardList")
-	public Map<String, Object> imageboardList(@RequestParam(value="pg", defaultValue="1") int pg) {
+	public Map<String, Object> imageboardList(
+			@RequestParam(value="pg", defaultValue="1") int pg,
+			@RequestParam(value="keyword", required=false) String keyword) {
 		// 1. 데이터 처리
 		// 목록 : 5개
 		int endNum = pg * 5;
 		int startNum = endNum - 4;
-		List<Imageboard> list = service.imageboardList(startNum, endNum);
+		List<Imageboard> list;
+		int totalA;
+		
+		// 검색어가 있으면 검색 목록, 없으면 전체 목록
+		if(keyword != null && !keyword.trim().isEmpty()) {
+			list = service.imageboardListByKeyword(keyword.trim(), startNum, endNum);
+			totalA = service.getCountByKeyword(keyword.trim());
+		} else {
+			list = service.imageboardList(startNum, endNum);
+			totalA = service.getCount();
+		}
+		
 		// 페이징 : 3블럭
-		int totalA = service.getCount();
 		int totalP = (totalA + 4) / 5;
 		int startPage = (pg-1)/3*3 + 1;
 		int endPage = startPage + 2;
