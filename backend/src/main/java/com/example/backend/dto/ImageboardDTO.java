@@ -1,12 +1,13 @@
 package com.example.backend.dto;
 
 import java.util.Date;
-import com.example.backend.entity.board;
+
+import com.example.backend.entity.Imageboard;
+
 import lombok.Data;
 
-
 @Data
-public class boardDTO {
+public class ImageboardDTO {
 	private int seq;
 	private String imageId;
 	private String imageName;
@@ -16,10 +17,7 @@ public class boardDTO {
     private String image1;
     private Date logtime;
     
-    
-	public board toEntity() {
-		return new board(seq, imageId, imageName, imagePrice, 
-				imageQty, imageContent, image1, logtime);
-	}
-
+    public Imageboard toEntity() {
+    	return new Imageboard(seq, imageId, imageName, imagePrice, imageQty, imageContent, image1, logtime);
+    }
 }
