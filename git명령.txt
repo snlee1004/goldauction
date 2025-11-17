@@ -1,0 +1,146 @@
+초기 깃에서 새 저장소를 만드는 방법
+------------------------------
+echo "# project3" >> README.md 
+git init 
+git add README.md 
+git commit -m "first commit" 
+git Branch -M main 
+git remote add origin https://github.com/snlee1004/goldauction.git
+ git push -u origin main
+
+…or push and existing repository from th command line
+git remote add origin https://github.com/snlee1004/goldauction.git
+ git branch -M main 
+git push -u origin main
+
+
+gitbash
+------------------------------
+1. git config --global user.name "snlee"
+
+2. git config --global user.email "elosys1004@gmail.com"
+
+3. git config --list
+
+
+폴더에서 커맨드 창 열기
+------------------------------
+프로젝트 폴더에서 오른쪽마우스클릭후  gitbash  커맨드창 열기
+
+커맨드창을 열면
+elosy@DESKTOP-T300T34 MINGW64 /d/java/react/workspace/auction (main)
+$
+식으로 나타남.
+
+
+ 열기
+------------------------------
+.4 초기화
+git init
+
+5. 추가할 파일 더하기   .(점) 은 모든 파일이라는 뜻,
+git add .
+
+6.상태 확인 (선택사항)
+git status
+
+7. 히스토리 만들기  -m 은 메세지의 준말로 뒤에 
+git commit -m "first commit"
+
+8. Github repository랑 내 로컬 프로젝트랑 연결 (깃허브에 연결할 주소가 있어야 됨.. 깃에서 확인 가능)
+git remote add origin https://github.com/bitnaGithub/firstproject.git
+
+9. 잘 연결됬는지 확인 (선택사항)
+git remote -v
+
+10. Github로 올리기  (branch 는 master, main, 2nd, 3nd 이런식으로 만들수 있음) 
+ master 자리에는 branch이름이 들어가면 됨
+ branch이름이 main라하면 git push origin main 이라고 써야함
+
+git push origin master         ---> 깃에master 로 올리는명령
+
+
+Github에 계속 업데이트 하는법
+---------------------------------------------------------------------
+# 현재 원격 저장소 확인
+git remote -v
+
+# 연결되어 있다면 바로 push (branch 는 master, main, 2nd, 3nd )
+git push origin branch
+
+
+1. 추가할 파일 더하기
+git add .
+
+2. 히스토리 만들기
+git commit -m "first commit"
+또는 
+git commit -m "second commit"
+
+3. Github로 올리기
+git push origin main(브런치이름)
+
+Github에 다운로드 하는법
+---------------------------------------------------------------------
+git clone https://github.com/snlee1004/goldauction.git
+
+--------------------------------------------------------------------
+5. 충돌이 발생하는 경우
+# 원격 저장소의 변경사항 먼저 가져오기
+git pull origin main
+
+# 충돌 해결 후 다시 push
+git push origin main
+
+
+Github로 팀프로젝트 하는법
+---------------------------------------------------------------------
+1. Github에서 소스코드 다운로드
+ => 주소는 깃허브에서 들고와야함
+폴더이름은 선택사항이다 (즉 없어도됨) 폴더이름을 줄경우에는 그 폴더가 새로 생성이 되면서 그 안에 코드들이 다운로드가 되고, 폴더이름을 안줄경우엔 깃허브 프로젝트 이름으로 폴더가 자동으로 생기고 그안에 코드들이 다운로드된다
+
+git clone 주소 폴더이름
+
+2. Github에서 내 브렌치(branch)만들기
+git checkout -b 브렌치이름
+
+3. 내 브렌치에 소스코드 업데이트하기
+git add .
+git commit -m "first commit"
+git push origin 브렌치이름
+
+4. 마스터 브렌치에 소스 가져오기(pull)
+git pull origin master
+
+5. 브렌치끼리 이동하는 법
+git checkout 브렌치이름
+
+
+
+------------------------------------------------------------------
+오류 처리 방법
+1. 커밋할 내용이 있는지 확인합니다
+git status
+
+2, 커밋을 수행합니다:
+git commit -m "Initial commit"
+
+3. 현재 브랜치 이름을 확인합니다
+git branch
+
+4. 확인된 브랜치로 푸시합니다
+git push origin main
+아니면  git push -u origin main
+
+
+5. 마스터 브랜치 이름변경
+git branch -m master main
+# 또는 원하는 이름으로 변경
+# git branch -m [새로운_브랜치_이름]
+
+6. 원격 리포지토리의 기본 브랜치와 로컬 브랜치가 다른 경우:
+원격 리포지토리에는 이미 main 브랜치가 있는데 로컬에는 master 브랜치만 있는 경우, 로컬에서 git pull을 먼저 수행하여 원격의 변경 사항(브랜치 정보 포함)을 가져온 후 다시 push를 시도해 볼 수 있습니다.
+
+git pull origin [원격_브랜치_이름, 예: main]
+# 병합 후
+git push origin [원격_브랜치_이름, 예: main]
