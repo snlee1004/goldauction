@@ -38,6 +38,31 @@ https://www.data.go.kr/data/15094805/openapi.do
 구매자는 자기 상호를 노출 시켜 보이게 할수 잇다.
 
 
+
+
+참고 사이트
+-------------------------------------------
+https://www.allsurplus.com/en/biopharma   -> 기기경매사이트
+https://www.thebranfordgroup.com/ 		  -> 기기경매사이트	
+https://www.bidbuy.co.kr/auctions/yahoo   -> 경매중계사이트 
+
+
+그래프 표시 oz 단위
+https://www.cmegroup.com/markets/metals/precious/1-ounce-gold.html?utm_source=google&utm_medium=paid_search&utm_campaign=one_oz_gold_2025&gclsrc=aw.ds&&utm_source=google&utm_medium=cpc_paid_search&utm_campaign=micro_gold&gad_source=1&gad_campaignid=20605698208&gbraid=0AAAAApmcuzrrnlQxBB67c0Mx5mry3V6Q0&gclid=Cj0KCQiAiebIBhDmARIsAE8PGNLRac7InOAOWYUiVkktyJGnlJTuhniaBZBf1bIWgWHMy8MPpBNmyRAaAiGSEALw_wcB
+
+금괴 경매
+https://www.catawiki.com/en/a/th/4167-bullion-auction-gold-bars?gad_source=1&gad_campaignid=23247640976&gbraid=0AAAABB9Es6YilqLErpEE76HVvY4aKoJRK&gclid=Cj0KCQiAiebIBhDmARIsAE8PGNLIqNoLTWoitb3KV26haR2EmPKSzjLgaf9k6ujQxayJ6rA1zbQRMhoaAjpREALw_wcB
+
+
+
+
+
+
+
+
+
+
+
 -- 인터넷 전당포 --
 사진을 올리면 평가 하여 돈을 빌릴수 있게 하는 
  
