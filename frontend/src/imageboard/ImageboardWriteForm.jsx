@@ -148,4 +148,4 @@ function ImageboardWriteForm() {
     );
 }
 
-export default ImageboardWriteForm;
+export default ImageboardWriteForm; 
