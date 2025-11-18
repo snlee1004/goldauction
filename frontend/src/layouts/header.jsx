@@ -57,7 +57,7 @@ const NavbarComponent = () => {
                             <li className="nav-item">
                                 <Link className={`nav-link ${location.pathname === "/imageboard/imageboardList" || location.pathname === "/" ? "active" : ""}`} 
                                       to="/imageboard/imageboardList">
-                                    경매 GOGO
+                                    <span style={{ fontWeight: "bold", fontSize: "1.25rem" }}>경매 GOGO</span>
                                 </Link>
                             </li>
                         </ul>
