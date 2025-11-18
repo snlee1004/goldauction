@@ -5,6 +5,7 @@ import { validateWrite, validateCheckId } from "../script/memberValidation";
 function WriteForm() {
     const [name, setName] = useState("");
     const [id, setId] = useState("");
+    const [nickname, setNickname] = useState("");
     const [pwd, setPwd] = useState("");
     const [pwdConfirm, setPwdConfirm] = useState("");
     const [gender, setGender] = useState("");
@@ -19,6 +20,7 @@ function WriteForm() {
 
     const nameRef = useRef(null);
     const idRef = useRef(null);
+    const nicknameRef = useRef(null);
     const pwdRef = useRef(null);
     const pwdConfirmRef = useRef(null);
     const genderRef = useRef(null);
@@ -90,10 +92,10 @@ function WriteForm() {
         e.preventDefault();
 
         const formData = {
-            name, id, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr
+            name, id, nickname, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr
         };
         const refs = {
-            nameRef, idRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef
+            nameRef, idRef, nicknameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef
         };
         
         if(!validateWrite(formData, refs, idCheckMsg)) {
@@ -103,6 +105,7 @@ function WriteForm() {
         const memberData = {
             name: name,
             id: id,
+            nickname: nickname,
             pwd: pwd,
             gender: gender,
             email1: email1,
@@ -119,6 +122,7 @@ function WriteForm() {
     const handleReset = () => {
         setName("");
         setId("");
+        setNickname("");
         setPwd("");
         setPwdConfirm("");
         setGender("");
@@ -142,10 +146,21 @@ function WriteForm() {
                     <tbody>
                         <tr>
                             <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                                <i className="bi bi-person-circle"></i> 닉네임
+                            </td>
+                            <td>
+                                <input type="text" value={nickname} size="25"
+                                        ref={nicknameRef} 
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        placeholder="닉네임을 입력하세요"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-person"></i> 이름
                             </td>
                             <td>
-                                <input type="text" value={name} size="45"
+                                <input type="text" value={name} size="25"
                                         ref={nameRef} 
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="이름을 입력하세요"/>
@@ -157,13 +172,14 @@ function WriteForm() {
                             </td>
                             <td>
                                 <div>
-                                    <input type="text" value={id} size="30"
+                                    <input type="text" value={id} size="25"
                                             ref={idRef} 
                                             onChange={(e) => {
                                                 setId(e.target.value);
                                                 setIdCheckMsg("");
                                             }}
                                             placeholder="아이디를 입력하세요"/>
+                                    &nbsp;&nbsp;
                                     <button type="button" className="btn btn-sm btn-outline-secondary" onClick={checkId}>
                                         <i className="bi bi-check-circle"></i> 중복확인
                                     </button>
@@ -180,7 +196,7 @@ function WriteForm() {
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
-                                <input type="password" value={pwd} size="45"
+                                <input type="password" value={pwd} size="25"
                                         ref={pwdRef} 
                                         onChange={(e) => setPwd(e.target.value)}
                                         placeholder="비밀번호를 입력하세요"/>
@@ -191,7 +207,7 @@ function WriteForm() {
                                 <i className="bi bi-lock-fill"></i> 비번확인
                             </td>
                             <td>
-                                <input type="password" value={pwdConfirm} size="45"
+                                <input type="password" value={pwdConfirm} size="25"
                                         ref={pwdConfirmRef} 
                                         onChange={(e) => setPwdConfirm(e.target.value)}
                                         placeholder="비밀번호를 다시 입력하세요"/>
@@ -217,12 +233,12 @@ function WriteForm() {
                                 <i className="bi bi-envelope"></i> 이메일
                             </td>
                             <td>
-                                <input type="text" value={email1} size="15"
+                                <input type="text" value={email1} size="12"
                                         ref={email1Ref} 
                                         onChange={(e) => setEmail1(e.target.value)}
                                         placeholder="이메일"/>
                                 @
-                                <input type="text" value={email2} size="15"
+                                <input type="text" value={email2} size="12"
                                         onChange={(e) => setEmail2(e.target.value)}
                                         placeholder="도메인"
                                         disabled={email2Select !== "직접입력" && email2Select !== ""}/>
@@ -240,16 +256,16 @@ function WriteForm() {
                                 <i className="bi bi-telephone"></i> 전화번호
                             </td>
                             <td>
-                                <input type="text" value={tel1} size="10"
+                                <input type="text" value={tel1} size="8"
                                         ref={tel1Ref} 
                                         onChange={(e) => setTel1(e.target.value)}
                                         placeholder="010"/>
                                 -
-                                <input type="text" value={tel2} size="10"
+                                <input type="text" value={tel2} size="8"
                                         onChange={(e) => setTel2(e.target.value)}
                                         placeholder="1234"/>
                                 -
-                                <input type="text" value={tel3} size="10"
+                                <input type="text" value={tel3} size="8"
                                         onChange={(e) => setTel3(e.target.value)}
                                         placeholder="5678"/>
                             </td>
@@ -259,7 +275,7 @@ function WriteForm() {
                                 <i className="bi bi-house"></i> 주소
                             </td>
                             <td>
-                                <input type="text" value={addr} size="45"
+                                <input type="text" value={addr} size="30"
                                         ref={addrRef} 
                                         onChange={(e) => setAddr(e.target.value)}
                                         placeholder="주소를 입력하세요"/>

@@ -1,5 +1,6 @@
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
 import NavbarComponent from "./layouts/header";
 import FooterComponent from "./layouts/footer";
 import ImageboardWriteForm from "./imageboard/ImageboardWriteForm";
@@ -13,11 +14,11 @@ import ModifyForm from "./member/ModifyForm";
 function App() {
     return (
         <BrowserRouter>
-            <div style={{width: "800px", margin: "auto"}}>
-                <div>
+            <div className="app-container">
+                <div className="app-content">
                     <NavbarComponent />
 
-                    <div style={{height: "550px"}}>
+                    <div className="main-content">
                         <Routes>
                             <Route path="/" element={<LoginForm/>} />
                             <Route path="/imageboard/imageboardWriteForm" 
@@ -36,9 +37,9 @@ function App() {
                                 element={<ModifyForm/>} />
                         </Routes>
                     </div>
-
-                    <FooterComponent />
                 </div>
+
+                <FooterComponent />
             </div>
         </BrowserRouter>
     )

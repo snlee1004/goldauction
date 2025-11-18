@@ -20,9 +20,6 @@ import com.example.backend.dto.ImageboardDTO;
 import com.example.backend.entity.Imageboard;
 import com.example.backend.service.ImageboardService;
 
-
-
-
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
 public class ImageboardController {

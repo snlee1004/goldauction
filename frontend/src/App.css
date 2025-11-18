@@ -1,42 +1,55 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* App 전체 레이아웃 - 반응형 */
+.app-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* 메인 콘텐츠 영역 */
+.app-content {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto; /* 콘텐츠에 맞게만 조정 */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* 콘텐츠 영역 - 콘텐츠에 맞게 자동 조정 */
+.main-content {
+    flex: 0 1 auto; /* 콘텐츠 크기에 맞게만 조정 */
+    padding-bottom: 5px; /* Footer와의 간격 최소화 */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+    .app-container {
+        width: 100%;
+        padding: 0 10px;
+    }
+    
+    .main-content {
+        padding-bottom: 8px;
+    }
 }
 
-.card {
-  padding: 2em;
+/* 반응형 디자인 - 태블릿 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .app-container {
+        max-width: 90%;
+    }
+    
+    .main-content {
+        padding-bottom: 10px;
+    }
 }
 
-.read-the-docs {
-  color: #888;
+/* 반응형 디자인 - 데스크톱 */
+@media (min-width: 1025px) {
+    .app-container {
+        max-width: 800px;
+    }
+    
+    .main-content {
+        padding-bottom: 10px;
+    }
 }

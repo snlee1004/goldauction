@@ -41,17 +41,23 @@ const NavbarComponent = () => {
                         <span className="navbar-toggler-icon"></span>
                     </button>
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0" style={{gap: "20px"}}>
                             <li className="nav-item">
-                                <Link className={`nav-link ${location.pathname === "/" || location.pathname === "/imageboard/imageboardList" ? "active" : ""}`} 
-                                      to="/imageboard/imageboardList">
-                                    <i className="bi bi-list-ul"></i> 목록
+                                <Link className={`nav-link ${location.pathname === "/notice" ? "active" : ""}`} 
+                                      to="/notice">
+                                    공지사항
                                 </Link>
                             </li>
                             <li className="nav-item">
                                 <Link className={`nav-link ${location.pathname === "/imageboard/imageboardWriteForm" ? "active" : ""}`} 
                                       to="/imageboard/imageboardWriteForm">
-                                    <i className="bi bi-pencil-square"></i> 글 작성
+                                    경매등록
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className={`nav-link ${location.pathname === "/imageboard/imageboardList" || location.pathname === "/" ? "active" : ""}`} 
+                                      to="/imageboard/imageboardList">
+                                    경매 GOGO
                                 </Link>
                             </li>
                         </ul>

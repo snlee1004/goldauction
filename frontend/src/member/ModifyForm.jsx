@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { validateModify } from "../script/memberValidation";
 
 function ModifyForm() {
+    const [nickname, setNickname] = useState("");
     const [name, setName] = useState("");
     const [id, setId] = useState("");
     const [pwd, setPwd] = useState("");
@@ -16,6 +17,7 @@ function ModifyForm() {
     const [tel3, setTel3] = useState("");
     const [addr, setAddr] = useState("");
 
+    const nicknameRef = useRef(null);
     const nameRef = useRef(null);
     const pwdRef = useRef(null);
     const pwdConfirmRef = useRef(null);
@@ -43,6 +45,7 @@ function ModifyForm() {
             const data = await response.json();
             if(response.ok && data.rt === "OK") {
                 const member = data.member;
+                setNickname(member.nickname || "");
                 setName(member.name);
                 setId(member.id);
                 setGender(member.gender);
@@ -105,10 +108,10 @@ function ModifyForm() {
         e.preventDefault();
 
         const formData = {
-            name, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr
+            nickname, name, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr
         };
         const refs = {
-            nameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef
+            nicknameRef, nameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef
         };
         
         if(!validateModify(formData, refs)) {
@@ -116,6 +119,7 @@ function ModifyForm() {
         }
         
         const memberData = {
+            nickname: nickname,
             name: name,
             id: id,
             pwd: pwd,
@@ -148,74 +152,85 @@ function ModifyForm() {
                 <table className="table" style={{width:"600px", margin:"auto"}}>
                     <tbody>
                         <tr>
-                            <td align="right">
-                                <i className="bi bi-person"></i> 이름
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                                <i className="bi bi-person-circle"></i> 닉네임
                             </td>
                             <td>
-                                <input type="text" value={name} size="45"
-                                        ref={nameRef} 
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="이름을 입력하세요"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="right">
-                                <i className="bi bi-person-badge"></i> 아이디
-                            </td>
-                            <td>
-                                <input type="text" value={id} size="45"
+                                <input type="text" value={nickname} size="25"
+                                        ref={nicknameRef} 
                                         disabled
                                         style={{backgroundColor: "#e9ecef"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                                <i className="bi bi-person"></i> 이름
+                            </td>
+                            <td>
+                                <input type="text" value={name} size="25"
+                                        ref={nameRef} 
+                                        disabled
+                                        style={{backgroundColor: "#e9ecef"}}/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                                <i className="bi bi-person-badge"></i> 아이디
+                            </td>
+                            <td>
+                                <input type="text" value={id} size="25"
+                                        disabled
+                                        style={{backgroundColor: "#e9ecef"}}/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
-                                <input type="password" value={pwd} size="45"
+                                <input type="password" value={pwd} size="25"
                                         ref={pwdRef} 
                                         onChange={(e) => setPwd(e.target.value)}
                                         placeholder="비밀번호를 입력하세요"/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-lock-fill"></i> 비밀번호 확인
                             </td>
                             <td>
-                                <input type="password" value={pwdConfirm} size="45"
+                                <input type="password" value={pwdConfirm} size="25"
                                         ref={pwdConfirmRef} 
                                         onChange={(e) => setPwdConfirm(e.target.value)}
                                         placeholder="비밀번호를 다시 입력하세요"/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-gender-ambiguous"></i> 성별
                             </td>
                             <td>
                                 <input type="radio" name="gender" value="남" 
                                         ref={genderRef}
                                         checked={gender === "남"}
-                                        onChange={(e) => setGender(e.target.value)}/> 남
+                                        disabled/> 남
                                 &nbsp;
                                 <input type="radio" name="gender" value="여"
                                         checked={gender === "여"}
-                                        onChange={(e) => setGender(e.target.value)}/> 여
+                                        disabled/> 여
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-envelope"></i> 이메일
                             </td>
                             <td>
-                                <input type="text" value={email1} size="15"
+                                <input type="text" value={email1} size="12"
                                         ref={email1Ref} 
                                         onChange={(e) => setEmail1(e.target.value)}
                                         placeholder="이메일"/>
                                 @
-                                <input type="text" value={email2} size="15"
+                                <input type="text" value={email2} size="12"
                                         onChange={(e) => setEmail2(e.target.value)}
                                         placeholder="도메인"
                                         disabled={email2Select !== "직접입력" && email2Select !== ""}/>
@@ -229,30 +244,30 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-telephone"></i> 전화번호
                             </td>
                             <td>
-                                <input type="text" value={tel1} size="10"
+                                <input type="text" value={tel1} size="8"
                                         ref={tel1Ref} 
                                         onChange={(e) => setTel1(e.target.value)}
                                         placeholder="010"/>
                                 -
-                                <input type="text" value={tel2} size="10"
+                                <input type="text" value={tel2} size="8"
                                         onChange={(e) => setTel2(e.target.value)}
                                         placeholder="1234"/>
                                 -
-                                <input type="text" value={tel3} size="10"
+                                <input type="text" value={tel3} size="8"
                                         onChange={(e) => setTel3(e.target.value)}
                                         placeholder="5678"/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="right">
+                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-house"></i> 주소
                             </td>
                             <td>
-                                <input type="text" value={addr} size="45"
+                                <input type="text" value={addr} size="30"
                                         ref={addrRef} 
                                         onChange={(e) => setAddr(e.target.value)}
                                         placeholder="주소를 입력하세요"/>
@@ -268,13 +283,6 @@ function ModifyForm() {
                                     <i className="bi bi-arrow-clockwise"></i> 다시 작성
                                 </button>
                             </td>                            
-                        </tr>
-                        <tr>
-                            <td colSpan="2" align="center">
-                                <Link to="/imageboard/imageboardList">
-                                    <i className="bi bi-list"></i> 목록
-                                </Link>
-                            </td>
                         </tr>
                     </tbody>
                 </table>

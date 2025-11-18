@@ -74,7 +74,7 @@ function LoginForm() {
                                 <i className="bi bi-person"></i> 아이디
                             </td>
                             <td>
-                                <input type="text" value={id} size="45"
+                                <input type="text" value={id} size="25"
                                         ref={idRef} 
                                         onChange={(e) => setId(e.target.value)}
                                         placeholder="아이디를 입력하세요"/>
@@ -85,7 +85,7 @@ function LoginForm() {
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
-                                <input type="password" value={pwd} size="45"
+                                <input type="password" value={pwd} size="25"
                                         ref={pwdRef} 
                                         onChange={(e) => setPwd(e.target.value)}
                                         placeholder="비밀번호를 입력하세요"/>
