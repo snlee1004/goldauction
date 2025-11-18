@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {BrowserRouter, Routes, Route} from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import NavbarComponent from "./layouts/header";
+import FooterComponent from "./layouts/footer";
+import ImageboardWriteForm from "./imageboard/ImageboardWriteForm";
+import ImageboardModifyForm from "./imageboard/ImageboardModifyForm";
+import ImageboardView from "./imageboard/ImageboardView";
+import ImageboardList from "./imageboard/ImageboardList";
+import LoginForm from "./member/LoginForm";
+import WriteForm from "./member/WriteForm";
+import ModifyForm from "./member/ModifyForm";
 
 function App() {
-  const [count, setCount] = useState(0)
+    return (
+        <BrowserRouter>
+            <div style={{width: "800px", margin: "auto"}}>
+                <div>
+                    <NavbarComponent />
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+                    <div style={{height: "550px"}}>
+                        <Routes>
+                            <Route path="/" element={<LoginForm/>} />
+                            <Route path="/imageboard/imageboardWriteForm" 
+                                element={<ImageboardWriteForm/>} />
+                            <Route path="/imageboard/imageboardModifyForm" 
+                                element={<ImageboardModifyForm/>} />
+                            <Route path="/imageboard/imageboardList" 
+                                element={<ImageboardList/>} />
+                            <Route path="/imageboard/imageboardView" 
+                                element={<ImageboardView/>} />
+                            <Route path="/member/loginForm" 
+                                element={<LoginForm/>} />
+                            <Route path="/member/writeForm" 
+                                element={<WriteForm/>} />
+                            <Route path="/member/modifyForm" 
+                                element={<ModifyForm/>} />
+                        </Routes>
+                    </div>
+
+                    <FooterComponent />
+                </div>
+            </div>
+        </BrowserRouter>
+    )
 }
 
 export default App
