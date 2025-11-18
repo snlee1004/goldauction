@@ -24,9 +24,13 @@ function ImageboardModifyForm() {
 
     const navigate = useNavigate();
     const location = useLocation();
+    const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
 
     // 로그인 상태 확인 - 로그인하지 않았으면 로그인 페이지로 리다이렉트
     useEffect(() => {
+        if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
+        loginCheckedRef.current = true;
+        
         const memId = sessionStorage.getItem("memId");
         const memName = sessionStorage.getItem("memName");
         if(!memId || !memName) {
@@ -166,10 +170,13 @@ function ImageboardModifyForm() {
         
         const formData = new FormData();
         formData.append("seq", seq);
-        // 백엔드 호환성을 위해 기존 필드명 사용
-        formData.append("imageName", productName);
-        formData.append("imagePrice", startPrice);
-        formData.append("imageContent", description);
+        // backend API와 일치하는 필드명 사용
+        formData.append("productName", productName);
+        formData.append("category", category);
+        formData.append("startPrice", startPrice);
+        formData.append("auctionPeriod", auctionPeriod);
+        formData.append("transactionMethod", transactionMethod);
+        formData.append("description", description);
         
         // 새 이미지 파일들 추가
         imageFiles.forEach((file) => {
@@ -189,13 +196,13 @@ function ImageboardModifyForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "600px", margin: "auto", padding: "20px"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
             <h3 align="center" style={{marginBottom: "10px"}}>경매 수정</h3>
             <p style={{textAlign: "center", color: "#666", marginBottom: "30px"}}>
                 수정할 정보를 입력해주세요
             </p>
             
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
+            <form onSubmit={handleSubmit} encType="multipart/form-data" style={{margin: 0, padding: 0, width: "100%"}}>
                 {/* 상품 이미지 */}
                 <div style={{marginBottom: "30px"}}>
                     <label style={{display: "block", marginBottom: "10px", fontWeight: "bold"}}>

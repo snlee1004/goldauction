@@ -27,9 +27,13 @@ function ModifyForm() {
     const addrRef = useRef(null);
 
     const navigate = useNavigate();
+    const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
 
     // 회원정보 조회
     useEffect(() => {
+        if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
+        loginCheckedRef.current = true;
+        
         const memId = sessionStorage.getItem("memId");
         if(!memId) {
             alert("로그인이 필요합니다.");
@@ -37,7 +41,7 @@ function ModifyForm() {
             return;
         }
         fetchMemberData(memId);
-    }, []);
+    }, [navigate]);
 
     const fetchMemberData = async (memId) => {
         try {
@@ -144,15 +148,20 @@ function ModifyForm() {
     };
 
     return (
-        <div className="container">
-            <h3 align="center">
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            <h3 align="left" style={{marginBottom: "20px"}}>
                 <i className="bi bi-pencil-square"></i> 회원정보 수정
             </h3>
-            <form onSubmit={handleSubmit}>
-                <table className="table" style={{width:"600px", margin:"auto"}}>
+            <form onSubmit={handleSubmit} style={{display: "flex", justifyContent: "center"}}>
+                <div style={{
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    width: "100%"
+                }}>
+                    <table className="table" style={{margin: "0 auto", width: "100%"}}>
                     <tbody>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-person-circle"></i> 닉네임
                             </td>
                             <td>
@@ -163,7 +172,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-person"></i> 이름
                             </td>
                             <td>
@@ -174,7 +183,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-person-badge"></i> 아이디
                             </td>
                             <td>
@@ -184,7 +193,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
@@ -195,7 +204,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-lock-fill"></i> 비밀번호 확인
                             </td>
                             <td>
@@ -206,7 +215,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-gender-ambiguous"></i> 성별
                             </td>
                             <td>
@@ -221,7 +230,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-envelope"></i> 이메일
                             </td>
                             <td>
@@ -244,7 +253,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-telephone"></i> 전화번호
                             </td>
                             <td>
@@ -263,7 +272,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="right" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
                                 <i className="bi bi-house"></i> 주소
                             </td>
                             <td>
@@ -274,7 +283,7 @@ function ModifyForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="center" colSpan="2">
+                            <td align="left" colSpan="2">
                                 <button type="submit" className="btn btn-primary">
                                     <i className="bi bi-check-circle"></i> 수정
                                 </button>
@@ -285,7 +294,8 @@ function ModifyForm() {
                             </td>                            
                         </tr>
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </form>
         </div>
     );

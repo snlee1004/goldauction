@@ -35,6 +35,14 @@ public class ImageboardDAO {
 	public int getCountByKeyword(String keyword) {
 		return imageboardRepository.getCountByKeyword(keyword);
 	}
+	// 3-2. 카테고리와 검색어가 포함된 목록
+	public List<Imageboard> imageboardListByKeywordAndCategory(String keyword, String category, int startNum, int endNum) {
+		return imageboardRepository.findByKeywordAndCategoryAndStartnumAndEndnum(keyword, category, startNum, endNum);
+	}
+	// 3-3. 카테고리와 검색어가 포함된 총글수
+	public int getCountByKeywordAndCategory(String keyword, String category) {
+		return imageboardRepository.getCountByKeywordAndCategory(keyword, category);
+	}
 	// 4. 상세보기
 	public Imageboard imageboardView(int seq) {
 		return imageboardRepository.findById(seq).orElse(null);
@@ -57,5 +65,44 @@ public class ImageboardDAO {
 			return imageboardRepository.save(dto.toEntity());
 		}
 		return null;
+	}
+	// 7. 경매 포기
+	public Imageboard cancelAuction(int seq) {
+		Imageboard imageboard = imageboardRepository.findById(seq).orElse(null);
+		if(imageboard != null) {
+			ImageboardDTO dto = new ImageboardDTO();
+			dto.setSeq(seq);
+			dto.setImageId(imageboard.getImageid());
+			dto.setImageName(imageboard.getImagename());
+			dto.setImagePrice(imageboard.getImageprice());
+			dto.setImageQty(imageboard.getImageqty());
+			dto.setImageContent(imageboard.getImagecontent());
+			dto.setImage1(imageboard.getImage1());
+			dto.setCategory(imageboard.getCategory());
+			dto.setAuctionPeriod(imageboard.getAuctionPeriod());
+			dto.setTransactionMethod(imageboard.getTransactionMethod());
+			dto.setAuctionStartDate(imageboard.getAuctionStartDate());
+			dto.setAuctionEndDate(imageboard.getAuctionEndDate());
+			dto.setStatus("포기");
+			dto.setLogtime(imageboard.getLogtime());
+			return imageboardRepository.save(dto.toEntity());
+		}
+		return null;
+	}
+	// 8. 포기된 경매 목록 조회
+	public List<Imageboard> getCanceledList(int startNum, int endNum) {
+		return imageboardRepository.findByStatusAndStartnumAndEndnum("포기", startNum, endNum);
+	}
+	// 9. 포기된 경매 총 개수
+	public int getCanceledCount() {
+		return imageboardRepository.countByStatus("포기");
+	}
+	// 10. 회원 ID로 경매 목록 조회
+	public List<Imageboard> getListByMemberId(String memberId) {
+		return imageboardRepository.findByImageid(memberId);
+	}
+	// 11. 회원 ID와 상태로 경매 목록 조회
+	public List<Imageboard> getListByMemberIdAndStatus(String memberId, String status) {
+		return imageboardRepository.findByImageidAndStatus(memberId, status);
 	}
 }

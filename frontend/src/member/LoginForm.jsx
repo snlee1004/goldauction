@@ -22,11 +22,15 @@ function LoginForm() {
                                             body: JSON.stringify(loginData)
                                         });
             const data = await response.json();
+            console.log("로그인 응답:", data); // 디버깅용
             if(response.ok) {
                 if(data.rt === "OK") {
                     // 로그인 성공 - 세션 스토리지에 저장
                     sessionStorage.setItem("memName", data.name);
+                    const nickname = data.nickname || data.name || ""; // 닉네임이 없으면 이름 사용
+                    sessionStorage.setItem("memNickname", nickname);
                     sessionStorage.setItem("memId", data.id);
+                    console.log("저장된 닉네임:", nickname); // 디버깅용
                     alert("로그인 성공");
                     navigate("/imageboard/imageboardList");
                 } else {
@@ -62,12 +66,16 @@ function LoginForm() {
     };
 
     return (
-        <div className="container">
-            <h3 align="center">
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            <h3 align="center" style={{marginBottom: "20px"}}>
                 <i className="bi bi-box-arrow-in-right"></i> 로그인
             </h3>
             <form onSubmit={handleSubmit}>
-                <table className="table" style={{width:"500px", margin:"auto"}}>
+                <div style={{
+                    borderRadius: "8px",
+                    overflow: "hidden"
+                }}>
+                    <table className="table" style={{margin: 0, width: "100%", border: "none"}}>
                     <tbody>
                         <tr>
                             <td align="right">
@@ -110,7 +118,8 @@ function LoginForm() {
                             </td>
                         </tr>
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </form>
         </div>
     );

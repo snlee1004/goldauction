@@ -6,18 +6,21 @@ const NavbarComponent = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [memName, setMemName] = useState("");
+    const [memNickname, setMemNickname] = useState("");
 
     // 로그인 상태 확인
     useEffect(() => {
         const memId = sessionStorage.getItem("memId");
+        const nickname = sessionStorage.getItem("memNickname");
         const name = sessionStorage.getItem("memName");
-        if(memId && name) {
+        console.log("헤더 - 로그인 상태 확인:", { memId, nickname, name }); // 디버깅용
+        if(memId) {
             setIsLoggedIn(true);
-            setMemName(name);
+            // 닉네임이 있으면 닉네임 사용, 없으면 이름 사용
+            setMemNickname(nickname || name || "");
         } else {
             setIsLoggedIn(false);
-            setMemName("");
+            setMemNickname("");
         }
     }, [location]); // location이 변경될 때마다 로그인 상태 확인
 
@@ -25,8 +28,9 @@ const NavbarComponent = () => {
     const handleLogout = () => {
         sessionStorage.removeItem("memId");
         sessionStorage.removeItem("memName");
+        sessionStorage.removeItem("memNickname");
         setIsLoggedIn(false);
-        setMemName("");
+        setMemNickname("");
         navigate("/member/loginForm");
     };
 
@@ -65,9 +69,9 @@ const NavbarComponent = () => {
                             {isLoggedIn ? (
                                 <>
                                     <li className="nav-item">
-                                        <Link className={`nav-link ${location.pathname === "/member/modifyForm" ? "active" : ""}`} 
-                                              to="/member/modifyForm">
-                                            <i className="bi bi-person-circle"></i> {memName}님
+                                        <Link className={`nav-link ${location.pathname === "/member/memberInfo" ? "active" : ""}`} 
+                                              to="/member/memberInfo">
+                                            <i className="bi bi-person-circle"></i> {memNickname}님
                                         </Link>
                                     </li>
                                     <li className="nav-item">

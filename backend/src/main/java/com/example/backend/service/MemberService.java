@@ -13,7 +13,7 @@ public class MemberService {
 	@Autowired
 	MemberDAO dao;
 	
-	public String login(String id, String pwd) {
+	public Member login(String id, String pwd) {
 		return dao.login(id, pwd);
 	}
 	public int write(MemberDTO dto) {

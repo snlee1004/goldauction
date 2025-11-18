@@ -21,9 +21,13 @@ function ImageboardWriteForm() {
     const imgRef = useRef(null);
 
     const navigate = useNavigate();
+    const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
 
     // 로그인 상태 확인 - 로그인하지 않았으면 로그인 페이지로 리다이렉트
     useEffect(() => {
+        if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
+        loginCheckedRef.current = true;
+        
         const memId = sessionStorage.getItem("memId");
         const memName = sessionStorage.getItem("memName");
         if(!memId || !memName) {
@@ -99,6 +103,14 @@ function ImageboardWriteForm() {
             return false;
         }
         
+        // 로그인한 사용자 ID 가져오기
+        const memId = sessionStorage.getItem("memId");
+        if(!memId) {
+            alert("로그인이 필요합니다.");
+            navigate("/member/loginForm");
+            return;
+        }
+        
         const formData = new FormData();
         formData.append("productName", productName);
         formData.append("category", category);
@@ -106,11 +118,24 @@ function ImageboardWriteForm() {
         formData.append("auctionPeriod", auctionPeriod);
         formData.append("transactionMethod", transactionMethod);
         formData.append("description", description);
+        formData.append("imageId", memId);  // 작성자 ID 추가
         
         // 이미지 파일들 추가
+        console.log("업로드할 이미지 개수:", imageFiles.length); // 디버깅용
         imageFiles.forEach((file, index) => {
+            console.log(`이미지 ${index + 1}:`, file.name, file.size); // 디버깅용
             formData.append("images", file);
         });
+        
+        // FormData 내용 확인
+        console.log("FormData 전송 준비 완료");
+        for(let pair of formData.entries()) {
+            if(pair[1] instanceof File) {
+                console.log(pair[0] + ": " + pair[1].name);
+            } else {
+                console.log(pair[0] + ": " + pair[1]);
+            }
+        }
         
         fetchWriteData(formData);
     };
@@ -130,17 +155,17 @@ function ImageboardWriteForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "600px", margin: "auto", padding: "20px"}}>
-            <h3 align="center" style={{marginBottom: "10px"}}>경매 등록</h3>
-            <p style={{textAlign: "center", color: "#666", marginBottom: "30px"}}>
-                정확한 정보를 입력해주시면 더 빠르게 거래할 수 있어요
-            </p>
-            
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            <form onSubmit={handleSubmit} encType="multipart/form-data" style={{margin: 0, padding: 0, width: "100%"}}>
                 {/* 상품 이미지 */}
                 <div style={{marginBottom: "30px"}}>
-                    <label style={{display: "block", marginBottom: "10px", fontWeight: "bold"}}>
-                        <span style={{color: "red"}}>*</span> 상품 이미지
+                    <label style={{display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px", fontWeight: "bold"}}>
+                        <span>
+                            <span style={{color: "red"}}>*</span> 상품 이미지
+                        </span>
+                        <span style={{color: "#5bc0f7", fontSize: "14px", fontWeight: "normal"}}>
+                           &nbsp;&nbsp;&nbsp;&nbsp;자세한 정보를 입력해주시면 더 빠르게 거래할 수 있어요
+                        </span>
                     </label>
                     <div 
                         style={{
@@ -278,7 +303,7 @@ function ImageboardWriteForm() {
                 <div style={{marginBottom: "20px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
                         경매종료일
-                        <span style={{fontSize: "14px", fontWeight: "normal", color: "#ffb3d9", marginLeft: "10px"}}>
+                        <span style={{fontSize: "14px", fontWeight: "normal", color: "#ff1493", marginLeft: "10px"}}>
                             (종료일을 선택해주세요)
                         </span>
                     </label>

@@ -137,12 +137,17 @@ function WriteForm() {
     };
 
     return (
-        <div className="container" style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <h3 align="center">
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            <h3 align="left" style={{marginBottom: "20px"}}>
                 <i className="bi bi-person-plus"></i> 회원가입
             </h3>
-            <form onSubmit={handleSubmit}>
-                <table className="table" style={{width:"600px", margin:"auto"}}>
+            <form onSubmit={handleSubmit} style={{display: "flex", justifyContent: "center"}}>
+                <div style={{
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    width: "100%"
+                }}>
+                    <table className="table" style={{margin: "0 auto", width: "100%"}}>
                     <tbody>
                         <tr>
                             <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
@@ -282,7 +287,7 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="center" colSpan="2">
+                            <td align="left" colSpan="2">
                                 <button type="submit" className="btn btn-primary">
                                     <i className="bi bi-check-circle"></i> 회원가입
                                 </button>
@@ -292,15 +297,9 @@ function WriteForm() {
                                 </button>
                             </td>                            
                         </tr>
-                        <tr>
-                            <td colSpan="2" align="center">
-                                <Link to="/member/loginForm">
-                                    <i className="bi bi-box-arrow-in-right"></i> 로그인
-                                </Link>
-                            </td>
-                        </tr>
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </form>
         </div>
     );

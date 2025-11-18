@@ -9,6 +9,8 @@ function ImageboardList() {
     const [imageboardList, setImageboardList] = useState([]);
     const [searchKeyword, setSearchKeyword] = useState(""); // 검색어 상태
     const [selectedCategory, setSelectedCategory] = useState(""); // 카테고리 상태
+    const [loading, setLoading] = useState(false); // 로딩 상태
+    const [error, setError] = useState(null); // 에러 상태
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,6 +28,8 @@ function ImageboardList() {
 
     // 검색어, 카테고리와 페이지를 포함해서 데이터 가져오기
     const fetchBoardData = async (page, keyword = "", category = "") => {
+        setLoading(true);
+        setError(null);
         try {
             let url = `http://localhost:8080/imageboard/imageboardList?pg=${page}`;
             // 검색어가 있으면 쿼리 파라미터에 추가
@@ -38,15 +42,31 @@ function ImageboardList() {
             }
             
             const response = await fetch(url);
+            if(!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
             
-            setPg(data.pg);
-            setTotalP(data.totalP);
-            setStartPage(data.startPage);
-            setEndPage(data.endPage);
-            setImageboardList(data.items);
+            if(data.rt === "OK") {
+                setPg(data.pg || 1);
+                setTotalP(data.totalP || 0);
+                setStartPage(data.startPage || 1);
+                setEndPage(data.endPage || 1);
+                // 입찰 데이터가 포함된 목록 설정
+                const items = data.items || [];
+                console.log("목록 데이터:", items); // 디버깅용
+                setImageboardList(items);
+            } else {
+                setError("데이터를 불러오는데 실패했습니다.");
+                setImageboardList([]);
+            }
         } catch(err) {
-            console.error(err);
+            console.error("목록 조회 오류:", err);
+            setError("목록을 불러오는 중 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.");
+            setImageboardList([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -135,6 +155,31 @@ function ImageboardList() {
 
     return (
         <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            {/* 에러 메시지 */}
+            {error && (
+                <div style={{
+                    padding: "15px",
+                    backgroundColor: "#f8d7da",
+                    border: "1px solid #f5c6cb",
+                    borderRadius: "4px",
+                    color: "#721c24",
+                    marginBottom: "20px"
+                }}>
+                    {error}
+                </div>
+            )}
+            
+            {/* 로딩 메시지 */}
+            {loading && (
+                <div style={{
+                    padding: "15px",
+                    textAlign: "center",
+                    marginBottom: "20px"
+                }}>
+                    <i className="bi bi-arrow-repeat" style={{animation: "spin 1s linear infinite"}}></i> 로딩 중...
+                </div>
+            )}
+            
             {/* 카테고리 선택 및 검색 입력창 */}
             <div style={{width: "100%", margin: "20px auto", display: "flex", gap: "10px", alignItems: "center"}}>
                 <select
@@ -170,67 +215,128 @@ function ImageboardList() {
                 </button>
             </div>
             
-            {/* 테이블 - 보라색 테두리 */}
+            {/* 테이블 */}
             <div style={{
-                border: "2px solid #8b5cf6",
                 borderRadius: "8px",
                 overflow: "hidden"
             }}>
                 <table className="table" style={{margin: 0, width: "100%"}}>
                     <thead>
                         <tr style={{backgroundColor: "#b3d9ff", textAlign: "center"}}>
-                            <th style={{padding: "12px", fontWeight: "bold"}}>상품코드</th>
-                            <th style={{padding: "12px", fontWeight: "bold"}}>이미지</th>
-                            <th style={{padding: "12px", fontWeight: "bold"}}>상품명</th>
-                            <th style={{padding: "12px", fontWeight: "bold"}}>입찰가</th>
-                            <th style={{padding: "12px", fontWeight: "bold"}}>입찰종료일</th>
-                            <th style={{padding: "12px", fontWeight: "bold"}}>입찰인수</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>상품코드</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>이미지</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>상품명</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>입찰가</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>입찰종료일</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", width: "80px", verticalAlign: "middle"}}>입찰수</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>상태</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {imageboardList.map(dto => (
-                            <tr key={dto.seq} style={{textAlign: "center", backgroundColor: "#fff"}}>
-                                <td style={{padding: "12px"}}>{dto.seq}</td>
-                                <td style={{padding: "12px"}}>
-                                    <Link to={`/imageboard/imageboardView?seq=${dto.seq}&pg=${pg}`}>
-                                        {dto.image1 ? (
-                                            <img 
-                                                src={`http://localhost:8080/storage/${dto.image1}`}
-                                                alt={dto.imagename}
-                                                style={{width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px"}}
-                                            />
-                                        ) : (
-                                            <div style={{
-                                                width: "50px", 
-                                                height: "50px", 
-                                                backgroundColor: "#f0f0f0",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                borderRadius: "4px"
-                                            }}>
-                                                <i className="bi bi-image" style={{color: "#999"}}></i>
-                                            </div>
-                                        )}
-                                    </Link>
-                                </td>
-                                <td style={{padding: "12px"}}>
-                                    <Link 
-                                        to={`/imageboard/imageboardView?seq=${dto.seq}&pg=${pg}`}
-                                        style={{textDecoration: "none", color: "#333"}}
-                                    >
-                                        {dto.imagename}
-                                    </Link>
-                                </td>
-                                <td style={{padding: "12px"}}>{dto.imageprice ? dto.imageprice.toLocaleString() : 0}원</td>
-                                <td style={{padding: "12px"}}>
-                                    {dto.auctionEndDate || dto.endDate || "미설정"}
-                                </td>
-                                <td style={{padding: "12px"}}>
-                                    {dto.bidCount || 0}
+                        {imageboardList.length === 0 && !loading ? (
+                            <tr>
+                                <td colSpan="7" style={{padding: "40px", textAlign: "center", color: "#666"}}>
+                                    등록된 경매 상품이 없습니다.
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            imageboardList.map(dto => {
+                                // 상태에 따른 링크 결정
+                                const status = dto.status || "진행중";
+                                const isCanceled = status === "포기";
+                                const isCompleted = status === "종료" || status === "판매완료";
+                                
+                                // 포기된 경매는 포기된 경매 상세 페이지로, 그 외는 일반 상세 페이지로
+                                const viewPath = isCanceled 
+                                    ? `/imageboard/imageboardCanceledView?seq=${dto.seq}&pg=${pg}`
+                                    : `/imageboard/imageboardView?seq=${dto.seq}&pg=${pg}`;
+                                
+                                // 상태 표시 스타일
+                                const getStatusStyle = () => {
+                                    if(status === "포기") {
+                                        return {color: "#d9534f", fontWeight: "bold"};
+                                    } else if(status === "종료" || status === "판매완료") {
+                                        return {color: "#5cb85c", fontWeight: "bold"};
+                                    } else {
+                                        return {color: "#337ab7", fontWeight: "bold"};
+                                    }
+                                };
+                                
+                                return (
+                                    <tr key={dto.seq} style={{textAlign: "center", backgroundColor: "#fff"}}>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                            <div>{dto.seq}</div>
+                                            {dto.category && (
+                                                <div style={{fontSize: "12px", color: "#666", marginTop: "4px"}}>
+                                                    {dto.category}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                            <Link to={viewPath} style={{display: "inline-block"}}>
+                                                {dto.image1 ? (
+                                                    <img 
+                                                        src={`http://localhost:8080/storage/${dto.image1}`}
+                                                        alt={dto.imagename}
+                                                        style={{width: "120px", height: "120px", objectFit: "cover", borderRadius: "4px"}}
+                                                    />
+                                                ) : (
+                                                    <div style={{
+                                                        width: "120px", 
+                                                        height: "120px", 
+                                                        backgroundColor: "#f0f0f0",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        borderRadius: "4px",
+                                                        margin: "0 auto"
+                                                    }}>
+                                                        <i className="bi bi-image" style={{color: "#999", fontSize: "32px"}}></i>
+                                                    </div>
+                                                )}
+                                            </Link>
+                                        </td>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                            <Link 
+                                                to={viewPath}
+                                                style={{textDecoration: "none", color: "#333"}}
+                                            >
+                                                {dto.imagename}
+                                            </Link>
+                                        </td>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                            {(() => {
+                                                const maxBid = dto.maxBidAmount !== undefined && dto.maxBidAmount !== null ? Number(dto.maxBidAmount) : 0;
+                                                if(maxBid > 0) {
+                                                    return (
+                                                        <span style={{color: "#d9534f", fontWeight: "bold"}}>
+                                                            {maxBid.toLocaleString()}원
+                                                        </span>
+                                                    );
+                                                } else {
+                                                    const startPrice = dto.imageprice !== undefined && dto.imageprice !== null ? Number(dto.imageprice) : 0;
+                                                    return <span>{startPrice.toLocaleString()}원</span>;
+                                                }
+                                            })()}
+                                        </td>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                            {dto.auctionEndDate || dto.endDate || "미설정"}
+                                        </td>
+                                        <td style={{padding: "12px", textAlign: "center", width: "80px", verticalAlign: "middle"}}>
+                                            {(() => {
+                                                const count = dto.bidCount !== undefined && dto.bidCount !== null ? Number(dto.bidCount) : 0;
+                                                return count;
+                                            })()}
+                                        </td>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                            <span style={getStatusStyle()}>
+                                                {status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        )}
                     </tbody>
                 </table>
             </div>
