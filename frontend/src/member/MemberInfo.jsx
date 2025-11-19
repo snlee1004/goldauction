@@ -1,0 +1,327 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+function MemberInfo() {
+    const [memberData, setMemberData] = useState({});
+    const [activeList, setActiveList] = useState([]); // 진행중인 경매
+    const [completedList, setCompletedList] = useState([]); // 판매 완료/종료
+    const [canceledList, setCanceledList] = useState([]); // 포기한 경매
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    
+    const navigate = useNavigate();
+    const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
+
+    useEffect(() => {
+        if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
+        loginCheckedRef.current = true;
+        
+        const memId = sessionStorage.getItem("memId");
+        if(!memId) {
+            alert("로그인이 필요합니다.");
+            navigate("/member/loginForm");
+            return;
+        }
+        fetchMemberData(memId);
+        fetchAuctionList(memId);
+    }, [navigate]);
+
+    // 회원 정보 조회
+    const fetchMemberData = async (memId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/member/getMember?id=${memId}`);
+            const data = await response.json();
+            if(response.ok && data.rt === "OK") {
+                setMemberData(data.member);
+            } else {
+                setError("회원정보를 불러오는데 실패했습니다.");
+            }
+        } catch(err) {
+            console.error("회원정보 조회 오류:", err);
+            setError("회원정보 조회 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 경매 목록 조회
+    const fetchAuctionList = async (memId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`http://localhost:8080/imageboard/listByMember?memberId=${encodeURIComponent(memId)}`);
+            
+            if(!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("경매 목록 조회 응답:", data); // 디버깅용
+            
+            if(data.rt === "OK") {
+                setActiveList(data.activeList || []);
+                setCompletedList(data.completedList || []);
+                setCanceledList(data.canceledList || []);
+            } else {
+                const errorMsg = data.msg || "경매 목록을 불러오는데 실패했습니다.";
+                setError(errorMsg);
+                // 실패해도 빈 배열로 설정하여 UI가 깨지지 않도록 함
+                setActiveList([]);
+                setCompletedList([]);
+                setCanceledList([]);
+            }
+        } catch(err) {
+            console.error("경매 목록 조회 오류:", err);
+            const errorMsg = err.message || "경매 목록 조회 중 오류가 발생했습니다.";
+            setError(errorMsg);
+            // 오류 발생 시에도 빈 배열로 설정
+            setActiveList([]);
+            setCompletedList([]);
+            setCanceledList([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 회원정보 수정 페이지로 이동
+    const handleModify = () => {
+        navigate("/member/modifyForm");
+    };
+
+    // 경매 상세 페이지로 이동
+    const handleViewAuction = (seq, status) => {
+        if(status === "포기") {
+            navigate(`/imageboard/imageboardCanceledView?seq=${seq}`);
+        } else {
+            navigate(`/imageboard/imageboardView?seq=${seq}`);
+        }
+    };
+
+    // 상태별 스타일
+    const getStatusStyle = (status) => {
+        if(status === "포기") {
+            return {color: "#d9534f", fontWeight: "bold"};
+        } else if(status === "종료" || status === "판매완료") {
+            return {color: "#5cb85c", fontWeight: "bold"};
+        } else {
+            return {color: "#337ab7", fontWeight: "bold"};
+        }
+    };
+
+    return (
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            <h3 style={{marginBottom: "20px", textAlign: "center"}}>회원 정보</h3>
+
+            {error && (
+                <div style={{
+                    padding: "15px",
+                    backgroundColor: "#f8d7da",
+                    border: "1px solid #f5c6cb",
+                    borderRadius: "4px",
+                    color: "#721c24",
+                    marginBottom: "20px"
+                }}>
+                    {error}
+                </div>
+            )}
+
+            {/* 회원 정보 섹션 */}
+            <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden", marginBottom: "30px"}}>
+                <table style={{margin: 0, width: "100%"}}>
+                    <thead>
+                        <tr style={{backgroundColor: "#ccc"}}>
+                            <th colSpan="2" style={{padding: "8px", fontWeight: "bold", textAlign: "center"}}>
+                                회원 정보
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", width: "150px"}}>닉네임</td>
+                            <td style={{padding: "6px 12px"}}>{memberData.nickname || "-"}</td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>이름</td>
+                            <td style={{padding: "6px 12px"}}>{memberData.name || "-"}</td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>아이디</td>
+                            <td style={{padding: "6px 12px"}}>{memberData.id || "-"}</td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>성별</td>
+                            <td style={{padding: "6px 12px"}}>{memberData.gender || "-"}</td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>이메일</td>
+                            <td style={{padding: "6px 12px"}}>
+                                {memberData.email1 && memberData.email2 
+                                    ? `${memberData.email1}@${memberData.email2}` 
+                                    : "-"}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>전화번호</td>
+                            <td style={{padding: "6px 12px"}}>
+                                {memberData.tel1 && memberData.tel2 && memberData.tel3
+                                    ? `${memberData.tel1}-${memberData.tel2}-${memberData.tel3}`
+                                    : "-"}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>주소</td>
+                            <td style={{padding: "6px 12px"}}>{memberData.addr || "-"}</td>
+                        </tr>
+                        <tr>
+                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>가입일</td>
+                            <td style={{padding: "6px 12px"}}>
+                                {memberData.logtime 
+                                    ? new Date(memberData.logtime).toLocaleDateString() 
+                                    : "-"}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {/* 회원정보 수정 버튼 */}
+            <div style={{textAlign: "center", marginBottom: "30px"}}>
+                <button className="btn btn-primary" onClick={handleModify}>
+                    <i className="bi bi-pencil-square"></i> 회원정보 수정하기
+                </button>
+            </div>
+
+            {loading && (
+                <div style={{textAlign: "center", padding: "20px"}}>
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            )}
+
+            {/* 진행중인 경매 목록 */}
+            <div style={{marginBottom: "30px"}}>
+                <h4 style={{marginBottom: "15px", color: "#337ab7"}}>진행중인 경매 ({activeList.length}건)</h4>
+                {activeList.length === 0 ? (
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ddd", borderRadius: "4px"}}>
+                        진행중인 경매가 없습니다.
+                    </div>
+                ) : (
+                    <div style={{border: "2px solid #8b5cf6", borderRadius: "8px", overflow: "hidden"}}>
+                        <table style={{margin: 0, width: "100%"}}>
+                            <thead>
+                                <tr style={{backgroundColor: "#b3d9ff"}}>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {activeList.map(item => (
+                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            <span style={getStatusStyle(item.status || "진행중")}>
+                                                {item.status || "진행중"}
+                                            </span>
+                                        </td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* 판매 완료/종료된 경매 목록 */}
+            <div style={{marginBottom: "30px"}}>
+                <h4 style={{marginBottom: "15px", color: "#5cb85c"}}>판매 완료/종료된 경매 ({completedList.length}건)</h4>
+                {completedList.length === 0 ? (
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ddd", borderRadius: "4px"}}>
+                        판매 완료/종료된 경매가 없습니다.
+                    </div>
+                ) : (
+                    <div style={{border: "2px solid #8b5cf6", borderRadius: "8px", overflow: "hidden"}}>
+                        <table style={{margin: 0, width: "100%"}}>
+                            <thead>
+                                <tr style={{backgroundColor: "#b3d9ff"}}>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>종료일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {completedList.map(item => (
+                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            <span style={getStatusStyle(item.status)}>
+                                                {item.status}
+                                            </span>
+                                        </td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* 포기한 경매 목록 */}
+            <div style={{marginBottom: "30px"}}>
+                <h4 style={{marginBottom: "15px", color: "#d9534f"}}>포기한 경매 ({canceledList.length}건)</h4>
+                {canceledList.length === 0 ? (
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ddd", borderRadius: "4px"}}>
+                        포기한 경매가 없습니다.
+                    </div>
+                ) : (
+                    <div style={{border: "2px solid #8b5cf6", borderRadius: "8px", overflow: "hidden"}}>
+                        <table style={{margin: 0, width: "100%"}}>
+                            <thead>
+                                <tr style={{backgroundColor: "#b3d9ff"}}>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {canceledList.map(item => (
+                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            <span style={getStatusStyle(item.status)}>
+                                                {item.status}
+                                            </span>
+                                        </td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default MemberInfo;
+

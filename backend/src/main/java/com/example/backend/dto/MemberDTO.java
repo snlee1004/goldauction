@@ -10,6 +10,7 @@ import lombok.Data;
 public class MemberDTO {
 	private String name;
 	private String id;
+	private String nickname;  // 닉네임 필드 추가
 	private String pwd;
 	private String gender;
 	private String email1;
@@ -21,7 +22,7 @@ public class MemberDTO {
 	private Date logtime;
 	
 	public Member toEntity() {
-		return new Member(name, id, pwd, gender, email1, email2, 
+		return new Member(name, id, nickname, pwd, gender, email1, email2, 
 						  tel1, tel2, tel3, addr, logtime);
 	}
 }

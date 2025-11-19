@@ -13,11 +13,10 @@ public class MemberDAO {
 	@Autowired
 	MemberRepository memberRepository;
 	
-	// 로그인 처리 => 로그인 성공 : 이름 리턴, 로그인 실패 : null 리턴
-	public String login(String id, String pwd) {
+	// 로그인 처리 => 로그인 성공 : Member 엔티티 리턴, 로그인 실패 : null 리턴
+	public Member login(String id, String pwd) {
 		Member member = memberRepository.findByIdAndPwd(id, pwd);
-		if(member != null) return member.getName();
-		return null;
+		return member;
 	}
 	// 회원정보 저장 => 1:저장성공, 0:저장실패
 	public int write(MemberDTO dto) {

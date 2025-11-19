@@ -27,12 +27,13 @@ public class MemberController {
 		String id = params.get("id");
 		String pwd = params.get("pwd");
 		
-		String name = service.login(id, pwd);
+		Member member = service.login(id, pwd);
 		
 		Map<String, Object> map = new HashMap<String, Object>();
-		if(name != null) {
+		if(member != null) {
 			map.put("rt", "OK");
-			map.put("name", name);
+			map.put("name", member.getName());
+			map.put("nickname", member.getNickname());
 			map.put("id", id);
 		} else {
 			map.put("rt", "FAIL");

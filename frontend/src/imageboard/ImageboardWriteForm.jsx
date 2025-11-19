@@ -1,25 +1,71 @@
-import {useState, useRef} from "react";
+import {useState, useRef, useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import { validateWrite } from "../script/imageboardValidation";
 
 function ImageboardWriteForm() {
-    const [imageId, setImageId] = useState("img_");
-    const [imageName, setImageName] = useState("");
-    const [imagePrice, setImagePrice] = useState("");
-    const [imageQty, setImageQty] = useState("");
-    const [imageContent, setImageContent] = useState("");
-    const [imageFile, setImageFile] = useState(null);
+    const [productName, setProductName] = useState("");
+    const [category, setCategory] = useState("");
+    const [startPrice, setStartPrice] = useState("");
+    const [auctionPeriod, setAuctionPeriod] = useState("");
+    const [transactionMethod, setTransactionMethod] = useState("");
+    const [description, setDescription] = useState("");
+    const [imageFiles, setImageFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
 
-    const imageIdRef = useRef(null);
-    const imageNameRef = useRef(null);
-    const imagePriceRef = useRef(null);
-    const imageQtyRef = useRef(null);
-    const imageContentRef = useRef(null);
+    const productNameRef = useRef(null);
+    const categoryRef = useRef(null);
+    const startPriceRef = useRef(null);
+    const auctionPeriodRef = useRef(null);
+    const transactionMethodRef = useRef(null);
+    const descriptionRef = useRef(null);
     const imgRef = useRef(null);
 
     const navigate = useNavigate();
+    const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
 
+    // 로그인 상태 확인 - 로그인하지 않았으면 로그인 페이지로 리다이렉트
+    useEffect(() => {
+        if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
+        loginCheckedRef.current = true;
+        
+        const memId = sessionStorage.getItem("memId");
+        const memName = sessionStorage.getItem("memName");
+        if(!memId || !memName) {
+            alert("로그인이 필요합니다.");
+            navigate("/member/loginForm");
+        }
+    }, [navigate]);
 
+    // 이미지 파일 선택 처리 (최대 8장)
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        if(files.length > 8) {
+            alert("최대 8장까지만 업로드 가능합니다.");
+            return;
+        }
+        
+        const newFiles = files.slice(0, 8);
+        setImageFiles(newFiles);
+        
+        // 미리보기 생성
+        const previews = newFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(previews);
+    };
+
+    // 이미지 삭제
+    const handleRemoveImage = (index) => {
+        const newFiles = imageFiles.filter((_, i) => i !== index);
+        const newPreviews = imagePreviews.filter((_, i) => i !== index);
+        setImageFiles(newFiles);
+        setImagePreviews(newPreviews);
+        
+        // 파일 입력 초기화 후 다시 설정
+        if(imgRef.current) {
+            imgRef.current.value = "";
+        }
+    };
+
+    // 경매 등록 처리
     const fetchWriteData = async (formData) => {
         try {
             const response = await fetch("http://localhost:8080/imageboard/imageboardWrite",
@@ -29,16 +75,16 @@ function ImageboardWriteForm() {
             const data = await response.json();
             if(response.ok) {
                 if(data.rt === "OK") {
-                    alert("저장 성공");
+                    alert("경매 등록 성공");
                     navigate("/imageboard/imageboardList");
                 } else {
-                    alert("저장 실패");
+                    alert("경매 등록 실패");
                 }
             } else {
-                alert("글 작성에 실패했습니다.");
+                alert("경매 등록에 실패했습니다.");
             }
         } catch(err) {
-            alert("글 작성 중 오류가 발생했습니다.");
+            alert("경매 등록 중 오류가 발생했습니다.");
             console.error(err);
         }
     };
@@ -47,102 +93,388 @@ function ImageboardWriteForm() {
         e.preventDefault();
 
         const validationData = {
-            imageId, imageName, imagePrice, imageQty, imageContent, imageFile
+            productName, category, startPrice, auctionPeriod, transactionMethod, description, imageFiles
         };
         const refs = {
-            imageIdRef, imageNameRef, imagePriceRef, imageQtyRef, imageContentRef, imgRef
+            productNameRef, categoryRef, startPriceRef, auctionPeriodRef, transactionMethodRef, descriptionRef, imgRef
         };
         
         if(!validateWrite(validationData, refs)) {
             return false;
         }
         
-        const formData = new FormData();
-        formData.append("imageId", imageId);
-        formData.append("imageName", imageName);
-        formData.append("imagePrice", imagePrice);
-        formData.append("imageQty", imageQty);
-        formData.append("imageContent", imageContent);
-        if(imageFile) {
-            formData.append("img", imageFile);
+        // 로그인한 사용자 ID 가져오기
+        const memId = sessionStorage.getItem("memId");
+        if(!memId) {
+            alert("로그인이 필요합니다.");
+            navigate("/member/loginForm");
+            return;
         }
+        
+        const formData = new FormData();
+        formData.append("productName", productName);
+        formData.append("category", category);
+        formData.append("startPrice", startPrice);
+        formData.append("auctionPeriod", auctionPeriod);
+        formData.append("transactionMethod", transactionMethod);
+        formData.append("description", description);
+        formData.append("imageId", memId);  // 작성자 ID 추가
+        
+        // 이미지 파일들 추가
+        console.log("업로드할 이미지 개수:", imageFiles.length); // 디버깅용
+        imageFiles.forEach((file, index) => {
+            console.log(`이미지 ${index + 1}:`, file.name, file.size); // 디버깅용
+            formData.append("images", file);
+        });
+        
+        // FormData 내용 확인
+        console.log("FormData 전송 준비 완료");
+        for(let pair of formData.entries()) {
+            if(pair[1] instanceof File) {
+                console.log(pair[0] + ": " + pair[1].name);
+            } else {
+                console.log(pair[0] + ": " + pair[1]);
+            }
+        }
+        
         fetchWriteData(formData);
     };
+
     const handleReset = () => {
-        setImageId("img_");
-        setImageName("");
-        setImagePrice("");
-        setImageQty("");
-        setImageContent("");
-        setImageFile(null);
-        imgRef.current.value = "";  // 선택된 파일명 삭제
+        setProductName("");
+        setCategory("");
+        setStartPrice("");
+        setAuctionPeriod("");
+        setTransactionMethod("");
+        setDescription("");
+        setImageFiles([]);
+        setImagePreviews([]);
+        if(imgRef.current) {
+            imgRef.current.value = "";
+        }
     };
 
     return (
-        <div className="container">
-            <h3 align="center">이미지 등록</h3>
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
-                <table className="table" style={{width:"500px", margin:"auto"}}>
-                    <tbody>
-                        <tr>
-                            <td  align="right">상품 코드</td>
-                            <td>
-                                <input type="text" value={imageId} size="45"
-                                        ref={imageIdRef} 
-                                        onChange={(e) => setImageId(e.target.value)}/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td  align="right">상품명</td>
-                            <td>
-                                <input type="text" value={imageName} size="45"
-                                        ref={imageNameRef} 
-                                        onChange={(e) => setImageName(e.target.value)}/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td  align="right">단가</td>
-                            <td>
-                                <input type="text" value={imagePrice} size="45"
-                                        ref={imagePriceRef} 
-                                        onChange={(e) => setImagePrice(e.target.value)}/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td  align="right">개수</td>
-                            <td>
-                                <input type="text" value={imageQty} size="45"
-                                        ref={imageQtyRef} 
-                                        onChange={(e) => setImageQty(e.target.value)}/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td  align="right">내용</td>
-                            <td>
-                                <textarea value={imageContent} rows="7" cols="47"
-                                        ref={imageContentRef} 
-                                        onChange={(e) => setImageContent(e.target.value)}/>
-                            </td>
-                        </tr>
-                        <tr>                            
-                            <td colSpan="2">
-                                <input type="file" size="45" ref={imgRef} 
-                                        onChange={(e) => setImageFile(e.target.files[0])}/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td  align="center" colSpan="2">
-                                <input type="submit" value="이미지 등록"/>&nbsp;
-                                <input type="button" value="다시 작성" onClick={handleReset}/>
-                            </td>                            
-                        </tr>
-                        <tr>
-                            <td colSpan="2" align="center">
-                                <Link to="/imageboard/imageboardList">목록</Link>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+            <form onSubmit={handleSubmit} encType="multipart/form-data" style={{margin: 0, padding: 0, width: "100%"}}>
+                {/* 상품 이미지 */}
+                <div style={{marginBottom: "30px"}}>
+                    <label style={{display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px", fontWeight: "bold"}}>
+                        <span>
+                            <span style={{color: "red"}}>*</span> 상품 이미지
+                        </span>
+                        <span style={{color: "#5bc0f7", fontSize: "14px", fontWeight: "normal"}}>
+                           &nbsp;&nbsp;&nbsp;&nbsp;자세한 정보를 입력해주시면 더 빠르게 거래할 수 있어요
+                        </span>
+                    </label>
+                    <div 
+                        style={{
+                            border: "2px dashed #ccc",
+                            borderRadius: "8px",
+                            padding: "20px",
+                            textAlign: "center",
+                            cursor: "pointer",
+                            backgroundColor: "#f9f9f9"
+                        }}
+                        onClick={() => imgRef.current?.click()}
+                    >
+                        <i className="bi bi-camera" style={{fontSize: "32px", color: "#999", display: "block", marginBottom: "8px"}}></i>
+                        <div style={{color: "#666", marginBottom: "8px", fontSize: "14px"}}>사진 추가 (최대 8장)</div>
+                        <div style={{fontSize: "11px", color: "#666"}}>
+                            * 첫 번째 사진이 대표 이미지로 설정되며, 순서대로 저장됩니다
+                        </div>
+                        <input 
+                            type="file" 
+                            ref={imgRef} 
+                            onChange={handleImageChange}
+                            multiple
+                            accept="image/*"
+                            style={{display: "none"}}
+                        />
+                    </div>
+                    {imagePreviews.length > 0 && (
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "15px"}}>
+                            {imagePreviews.map((preview, index) => (
+                                <div key={index} style={{position: "relative", width: "100px", height: "100px"}}>
+                                    <img 
+                                        src={preview} 
+                                        alt={`미리보기 ${index + 1}`}
+                                        style={{width: "100%", height: "100%", objectFit: "cover", borderRadius: "4px"}}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveImage(index)}
+                                        style={{
+                                            position: "absolute",
+                                            top: "-5px",
+                                            right: "-5px",
+                                            background: "red",
+                                            color: "white",
+                                            border: "none",
+                                            borderRadius: "50%",
+                                            width: "20px",
+                                            height: "20px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* 상품명 */}
+                <div style={{marginBottom: "20px"}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        <span style={{color: "red"}}>*</span> 상품명
+                    </label>
+                    <input 
+                        type="text" 
+                        value={productName}
+                        ref={productNameRef}
+                        onChange={(e) => setProductName(e.target.value)}
+                        placeholder="상품명을 입력하세요"
+                        style={{
+                            width: "100%",
+                            padding: "10px",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            fontSize: "14px"
+                        }}
+                    />
+                    <div style={{marginTop: "5px", fontSize: "12px", color: "#666"}}>
+                        * 상품명은 2자 이상 입력해주세요
+                    </div>
+                </div>
+
+                {/* 카테고리 */}
+                <div style={{marginBottom: "20px", position: "relative", zIndex: 10}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        <span style={{color: "red"}}>*</span> 카테고리
+                    </label>
+                    <select
+                        value={category}
+                        ref={categoryRef}
+                        onChange={(e) => setCategory(e.target.value)}
+                        style={{
+                            width: "100%",
+                            padding: "10px",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            fontSize: "14px"
+                        }}
+                    >
+                        <option value="">카테고리를 선택하세요</option>
+                        <option value="골드">골드</option>
+                        <option value="실버">실버</option>
+                        <option value="백금">백금</option>
+                        <option value="다이아">다이아</option>
+                        <option value="귀금속">귀금속</option>
+                        <option value="주화">주화</option>
+                        <option value="금은정련">금은정련</option>
+                        <option value="유가증권">유가증권</option>
+                    </select>
+                </div>
+
+                {/* 입찰 시작가격 */}
+                <div style={{marginBottom: "20px"}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        입찰 시작가격
+                    </label>
+                    <input 
+                        type="number" 
+                        value={startPrice}
+                        ref={startPriceRef}
+                        onChange={(e) => setStartPrice(e.target.value)}
+                        placeholder="시작가격을 입력하세요"
+                        style={{
+                            width: "100%",
+                            padding: "10px",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            fontSize: "14px"
+                        }}
+                    />
+                </div>
+
+                {/* 경매종료일 */}
+                <div style={{marginBottom: "20px"}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        경매종료일
+                        <span style={{fontSize: "14px", fontWeight: "normal", color: "#ff1493", marginLeft: "10px"}}>
+                            (종료일을 선택해주세요)
+                        </span>
+                    </label>
+                    <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
+                        <button
+                            type="button"
+                            onClick={() => setAuctionPeriod("7일후")}
+                            style={{
+                                padding: "10px 20px",
+                                border: auctionPeriod === "7일후" ? "2px solid #007bff" : "1px solid #ddd",
+                                borderRadius: "4px",
+                                backgroundColor: auctionPeriod === "7일후" ? "#e7f3ff" : "#fff",
+                                color: auctionPeriod === "7일후" ? "#007bff" : "#333",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: auctionPeriod === "7일후" ? "bold" : "normal"
+                            }}
+                        >
+                            7일후
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setAuctionPeriod("14일후")}
+                            style={{
+                                padding: "10px 20px",
+                                border: auctionPeriod === "14일후" ? "2px solid #007bff" : "1px solid #ddd",
+                                borderRadius: "4px",
+                                backgroundColor: auctionPeriod === "14일후" ? "#e7f3ff" : "#fff",
+                                color: auctionPeriod === "14일후" ? "#007bff" : "#333",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: auctionPeriod === "14일후" ? "bold" : "normal"
+                            }}
+                        >
+                            14일후
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setAuctionPeriod("21일후")}
+                            style={{
+                                padding: "10px 20px",
+                                border: auctionPeriod === "21일후" ? "2px solid #007bff" : "1px solid #ddd",
+                                borderRadius: "4px",
+                                backgroundColor: auctionPeriod === "21일후" ? "#e7f3ff" : "#fff",
+                                color: auctionPeriod === "21일후" ? "#007bff" : "#333",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: auctionPeriod === "21일후" ? "bold" : "normal"
+                            }}
+                        >
+                            21일후
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setAuctionPeriod("30일후")}
+                            style={{
+                                padding: "10px 20px",
+                                border: auctionPeriod === "30일후" ? "2px solid #007bff" : "1px solid #ddd",
+                                borderRadius: "4px",
+                                backgroundColor: auctionPeriod === "30일후" ? "#e7f3ff" : "#fff",
+                                color: auctionPeriod === "30일후" ? "#007bff" : "#333",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: auctionPeriod === "30일후" ? "bold" : "normal"
+                            }}
+                        >
+                            30일후
+                        </button>
+                    </div>
+                </div>
+
+                {/* 거래 방식 */}
+                <div style={{marginBottom: "20px"}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        거래 방식
+                    </label>
+                    <div style={{display: "flex", gap: "20px", flexWrap: "wrap"}}>
+                        <label style={{display: "flex", alignItems: "center", cursor: "pointer"}}>
+                            <input 
+                                type="radio" 
+                                name="transactionMethod"
+                                value="직거래"
+                                checked={transactionMethod === "직거래"}
+                                onChange={(e) => setTransactionMethod(e.target.value)}
+                                style={{marginRight: "5px"}}
+                            />
+                            직거래
+                        </label>
+                        <label style={{display: "flex", alignItems: "center", cursor: "pointer"}}>
+                            <input 
+                                type="radio" 
+                                name="transactionMethod"
+                                value="매장방문"
+                                checked={transactionMethod === "매장방문"}
+                                onChange={(e) => setTransactionMethod(e.target.value)}
+                                style={{marginRight: "5px"}}
+                            />
+                            매장방문
+                        </label>
+                        <label style={{display: "flex", alignItems: "center", cursor: "pointer"}}>
+                            <input 
+                                type="radio" 
+                                name="transactionMethod"
+                                value="에스크로"
+                                checked={transactionMethod === "에스크로"}
+                                onChange={(e) => setTransactionMethod(e.target.value)}
+                                style={{marginRight: "5px"}}
+                            />
+                            에스크로
+                        </label>
+                        <label style={{display: "flex", alignItems: "center", cursor: "pointer"}}>
+                            <input 
+                                type="radio" 
+                                name="transactionMethod"
+                                value="중계소 이용"
+                                checked={transactionMethod === "중계소 이용"}
+                                onChange={(e) => setTransactionMethod(e.target.value)}
+                                style={{marginRight: "5px"}}
+                            />
+                            중계소 이용
+                        </label>
+                    </div>
+                </div>
+
+                {/* 상세 설명 */}
+                <div style={{marginBottom: "30px"}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        <span style={{color: "red"}}>*</span> 상세 설명
+                    </label>
+                    <textarea 
+                        value={description}
+                        ref={descriptionRef}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="상품에 대한 자세한 설명을 입력해주세요."
+                        rows="7"
+                        style={{
+                            width: "100%",
+                            padding: "10px",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            fontSize: "14px",
+                            resize: "vertical"
+                        }}
+                    />
+                </div>
+
+                {/* 버튼 */}
+                <div style={{textAlign: "center", marginTop: "30px"}}>
+                    <button 
+                        type="submit" 
+                        className="btn btn-primary"
+                        style={{
+                            padding: "10px 30px",
+                            marginRight: "10px",
+                            fontSize: "16px"
+                        }}
+                    >
+                        이미지 등록
+                    </button>
+                    <button 
+                        type="button" 
+                        className="btn btn-secondary"
+                        onClick={handleReset}
+                        style={{
+                            padding: "10px 30px",
+                            fontSize: "16px"
+                        }}
+                    >
+                        다시 작성
+                    </button>
+                </div>
             </form>
         </div>
     );

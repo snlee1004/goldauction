@@ -127,6 +127,22 @@ export const validateAddr = (addr, addrRef) => {
     return true;
 };
 
+// 닉네임 형식 검증 (한글, 영문, 숫자만 허용, 2-10자)
+export const validateNickname = (nickname, nicknameRef) => {
+    if(!nickname || nickname.trim() === "") {
+        alert("닉네임을 입력하세요.");
+        if(nicknameRef && nicknameRef.current) nicknameRef.current.focus();
+        return false;
+    }
+    const nicknamePattern = /^[가-힣a-zA-Z0-9]{2,10}$/;
+    if(!nicknamePattern.test(nickname.trim())) {
+        alert("닉네임은 한글, 영문, 숫자만 사용 가능하며 2-10자여야 합니다.");
+        if(nicknameRef && nicknameRef.current) nicknameRef.current.focus();
+        return false;
+    }
+    return true;
+};
+
 // 로그인 입력값 검증
 export const validateLogin = (id, pwd, idRef, pwdRef) => {
     if(!id || id.trim() === "") {
@@ -144,8 +160,8 @@ export const validateLogin = (id, pwd, idRef, pwdRef) => {
 
 // 회원가입 입력값 검증
 export const validateWrite = (formData, refs, idCheckMsg) => {
-    const { name, id, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr } = formData;
-    const { nameRef, idRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef } = refs;
+    const { name, id, nickname, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr } = formData;
+    const { nameRef, idRef, nicknameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef } = refs;
     
     // 이름 검증
     if(!validateName(name, nameRef)) {
@@ -161,6 +177,11 @@ export const validateWrite = (formData, refs, idCheckMsg) => {
     if(idCheckMsg !== "사용 가능한 아이디입니다.") {
         alert("아이디 중복 확인을 해주세요.");
         if(idRef && idRef.current) idRef.current.focus();
+        return false;
+    }
+    
+    // 닉네임 검증
+    if(!validateNickname(nickname, nicknameRef)) {
         return false;
     }
     
@@ -203,8 +224,13 @@ export const validateWrite = (formData, refs, idCheckMsg) => {
 
 // 회원정보 수정 입력값 검증
 export const validateModify = (formData, refs) => {
-    const { name, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr } = formData;
-    const { nameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef } = refs;
+    const { nickname, name, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr } = formData;
+    const { nicknameRef, nameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef } = refs;
+    
+    // 닉네임 검증
+    if(!validateNickname(nickname, nicknameRef)) {
+        return false;
+    }
     
     // 이름 검증
     if(!validateName(name, nameRef)) {

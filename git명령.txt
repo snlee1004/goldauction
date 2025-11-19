@@ -80,7 +80,7 @@ git commit -m "second commit"
 3. Github로 올리기
 git push origin main(브런치이름)
 
-Github에 다운로드 하는법
+Github에서 다운로드 하는법
 ---------------------------------------------------------------------
 git clone https://github.com/snlee1004/goldauction.git
 
@@ -114,8 +114,6 @@ git pull origin master
 
 5. 브렌치끼리 이동하는 법
 git checkout 브렌치이름
-
-
 
 ------------------------------------------------------------------
 오류 처리 방법

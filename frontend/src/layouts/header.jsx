@@ -6,18 +6,21 @@ const NavbarComponent = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [memName, setMemName] = useState("");
+    const [memNickname, setMemNickname] = useState("");
 
     // 로그인 상태 확인
     useEffect(() => {
         const memId = sessionStorage.getItem("memId");
+        const nickname = sessionStorage.getItem("memNickname");
         const name = sessionStorage.getItem("memName");
-        if(memId && name) {
+        console.log("헤더 - 로그인 상태 확인:", { memId, nickname, name }); // 디버깅용
+        if(memId) {
             setIsLoggedIn(true);
-            setMemName(name);
+            // 닉네임이 있으면 닉네임 사용, 없으면 이름 사용
+            setMemNickname(nickname || name || "");
         } else {
             setIsLoggedIn(false);
-            setMemName("");
+            setMemNickname("");
         }
     }, [location]); // location이 변경될 때마다 로그인 상태 확인
 
@@ -25,8 +28,9 @@ const NavbarComponent = () => {
     const handleLogout = () => {
         sessionStorage.removeItem("memId");
         sessionStorage.removeItem("memName");
+        sessionStorage.removeItem("memNickname");
         setIsLoggedIn(false);
-        setMemName("");
+        setMemNickname("");
         navigate("/member/loginForm");
     };
 
@@ -41,17 +45,23 @@ const NavbarComponent = () => {
                         <span className="navbar-toggler-icon"></span>
                     </button>
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0" style={{gap: "20px"}}>
                             <li className="nav-item">
-                                <Link className={`nav-link ${location.pathname === "/" || location.pathname === "/imageboard/imageboardList" ? "active" : ""}`} 
-                                      to="/imageboard/imageboardList">
-                                    <i className="bi bi-list-ul"></i> 목록
+                                <Link className={`nav-link ${location.pathname === "/notice" ? "active" : ""}`} 
+                                      to="/notice">
+                                    공지사항
                                 </Link>
                             </li>
                             <li className="nav-item">
                                 <Link className={`nav-link ${location.pathname === "/imageboard/imageboardWriteForm" ? "active" : ""}`} 
                                       to="/imageboard/imageboardWriteForm">
-                                    <i className="bi bi-pencil-square"></i> 글 작성
+                                    경매등록
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className={`nav-link ${location.pathname === "/imageboard/imageboardList" || location.pathname === "/" ? "active" : ""}`} 
+                                      to="/imageboard/imageboardList">
+                                    <span style={{ fontWeight: "bold", fontSize: "1.25rem" }}>경매 GOGO</span>
                                 </Link>
                             </li>
                         </ul>
@@ -59,9 +69,9 @@ const NavbarComponent = () => {
                             {isLoggedIn ? (
                                 <>
                                     <li className="nav-item">
-                                        <Link className={`nav-link ${location.pathname === "/member/modifyForm" ? "active" : ""}`} 
-                                              to="/member/modifyForm">
-                                            <i className="bi bi-person-circle"></i> {memName}님
+                                        <Link className={`nav-link ${location.pathname === "/member/memberInfo" ? "active" : ""}`} 
+                                              to="/member/memberInfo">
+                                            <i className="bi bi-person-circle"></i> {memNickname}님
                                         </Link>
                                     </li>
                                     <li className="nav-item">
