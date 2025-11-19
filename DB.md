@@ -488,3 +488,47 @@ DROP SEQUENCE SEQ_NOTICE1;
 3. **리뷰/평가 기능**: 거래 완료 후 리뷰 작성 기능을 위한 리뷰 테이블 추가 고려
 4. **채팅 기능**: 거래자 간 소통을 위한 채팅 테이블 추가 고려
 
+
+## 12. IMAGEBOARD1 샘플 데이터 삽입
+-- 1. IMAGEBOARD1
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 10g', 1200000, 1, '고순도 99.9% 골드바입니다.', 'img_001.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버바 100g', 45000, 1, '92.5% 정제된 실버바입니다.', 'img_002.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 코인', 980000, 1, '순도 높은 플래티넘 코인입니다.', 'img_003.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 원석 1캐럿', 3500000, 1, '투명도와 광채가 뛰어난 다이아몬드 원석입니다.', 'img_004.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 팔찌 18K', 270000, 1, '18K 귀금속 팔찌입니다.', 'img_005.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '한국 기념주화', 85000, 1, '한국 조폐공사 발행 기념주화입니다.', 'img_006.jpg', '주화', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 골드 분말', 150000, 1, '금은정련 고순도 골드 파우더입니다.', 'img_007.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드 코인 24K', 890000, 1, '24K 순금 골드 코인입니다.', 'img_008.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버 메달', 25000, 1, '투자용 실버 메달입니다.', 'img_009.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 반지 PT950', 720000, 1, '플래티넘 PT950 백금 반지입니다.', 'img_010.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 목걸이 1캐럿', 5800000, 1, '1캐럿 다이아몬드 목걸이입니다.', 'img_011.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 귀걸이 14K', 180000, 1, '14K 귀금속 귀걸이입니다.', 'img_012.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '기념 금화 한정판', 310000, 1, '한정판 기념 금화입니다.', 'img_013.jpg', '주화', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 은 분말', 60000, 1, '정련된 고순도 은 분말입니다.', 'img_014.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 5g', 650000, 1, '보관이 편한 5g 골드바입니다.', 'img_015.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버 코인', 30000, 1, '투자용 실버 코인입니다.', 'img_016.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 팔찌', 820000, 1, '백금으로 제작된 고품질 팔찌입니다.', 'img_017.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 반지 0.5캐럿', 2400000, 1, '고품질 0.5캐럿 다이아 반지입니다.', 'img_018.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 체인 18K', 350000, 1, '18K 귀금속 체인 목걸이입니다.', 'img_019.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 금속 샘플', 200000, 1, '금·은 정련된 금속 샘플입니다.', 'img_020.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+```
