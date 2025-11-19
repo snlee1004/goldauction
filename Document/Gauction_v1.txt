@@ -43,6 +43,20 @@ https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15094805
 참고구현설명 링크 : https://yhuj79.github.io/React/240909/
 
 
+// Alpha Vantage API 키
+const API_KEY = 'GNYJONLPYPY5UC5E'
+
+// 실제 금시세 데이터를 가져오는 함수
+const fetchGoldPrice = async () => {
+  try {
+    // Alpha Vantage API로 실제 금시세 가져오기 (XAU = 금, USD = 미국 달러)
+    const response = await fetch(
+      `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${API_KEY}`
+    )
+
+
+
+
 (5-1) 게시판 댓글구현 
 -------------------------------------------------------------------------
 https://ambious12.tistory.com/54       --> 검토
