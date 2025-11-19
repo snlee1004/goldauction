@@ -2,7 +2,6 @@ package com.example.backend.entity;
 
 import java.util.Date;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,6 +30,7 @@ public class Imageboard {
 	private String imageid;
 	private String imagename;
     private int imageprice;
+    private Integer maxBidPrice;  // 최고 낙찰 가격 (즉시 구매 가격, 선택사항)
     private int imageqty;
     private String imagecontent;
     private String image1;

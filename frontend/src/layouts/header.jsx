@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import "./header.css";
 
 const NavbarComponent = () => {
     const location = useLocation();
@@ -36,9 +37,9 @@ const NavbarComponent = () => {
 
     return (
         <>
-            <nav className="navbar navbar-expand-lg bg-body-tertiary">
+            <nav className="navbar navbar-expand-lg navbar-custom">
                 <div className="container-fluid">
-                    <Link className="navbar-brand" to="/imageboard/imageboardList">
+                    <Link className="navbar-brand" to="/">
                         <i className="bi bi-gem"></i> 골드옥션
                     </Link>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,7 +48,7 @@ const NavbarComponent = () => {
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0" style={{gap: "20px"}}>
                             <li className="nav-item">
-                                <Link className={`nav-link ${location.pathname === "/notice" ? "active" : ""}`} 
+                                <Link className={`nav-link notice-link ${location.pathname === "/notice" ? "active" : ""}`} 
                                       to="/notice">
                                     공지사항
                                 </Link>
@@ -61,7 +62,7 @@ const NavbarComponent = () => {
                             <li className="nav-item">
                                 <Link className={`nav-link ${location.pathname === "/imageboard/imageboardList" || location.pathname === "/" ? "active" : ""}`} 
                                       to="/imageboard/imageboardList">
-                                    <span style={{ fontWeight: "bold", fontSize: "1.25rem" }}>경매 GOGO</span>
+                                    <span style={{ fontWeight: "bold", fontSize: "1.25rem" }}>경매 GO</span>
                                 </Link>
                             </li>
                         </ul>

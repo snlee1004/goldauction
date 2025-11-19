@@ -6,6 +6,7 @@ function ImageboardWriteForm() {
     const [productName, setProductName] = useState("");
     const [category, setCategory] = useState("");
     const [startPrice, setStartPrice] = useState("");
+    const [maxBidPrice, setMaxBidPrice] = useState("");
     const [auctionPeriod, setAuctionPeriod] = useState("");
     const [transactionMethod, setTransactionMethod] = useState("");
     const [description, setDescription] = useState("");
@@ -15,6 +16,7 @@ function ImageboardWriteForm() {
     const productNameRef = useRef(null);
     const categoryRef = useRef(null);
     const startPriceRef = useRef(null);
+    const maxBidPriceRef = useRef(null);
     const auctionPeriodRef = useRef(null);
     const transactionMethodRef = useRef(null);
     const descriptionRef = useRef(null);
@@ -93,10 +95,10 @@ function ImageboardWriteForm() {
         e.preventDefault();
 
         const validationData = {
-            productName, category, startPrice, auctionPeriod, transactionMethod, description, imageFiles
+            productName, category, startPrice, maxBidPrice, auctionPeriod, transactionMethod, description, imageFiles
         };
         const refs = {
-            productNameRef, categoryRef, startPriceRef, auctionPeriodRef, transactionMethodRef, descriptionRef, imgRef
+            productNameRef, categoryRef, startPriceRef, maxBidPriceRef, auctionPeriodRef, transactionMethodRef, descriptionRef, imgRef
         };
         
         if(!validateWrite(validationData, refs)) {
@@ -115,6 +117,9 @@ function ImageboardWriteForm() {
         formData.append("productName", productName);
         formData.append("category", category);
         formData.append("startPrice", startPrice);
+        if(maxBidPrice && maxBidPrice.trim() !== "") {
+            formData.append("maxBidPrice", maxBidPrice);
+        }
         formData.append("auctionPeriod", auctionPeriod);
         formData.append("transactionMethod", transactionMethod);
         formData.append("description", description);
@@ -144,6 +149,7 @@ function ImageboardWriteForm() {
         setProductName("");
         setCategory("");
         setStartPrice("");
+        setMaxBidPrice("");
         setAuctionPeriod("");
         setTransactionMethod("");
         setDescription("");
@@ -281,7 +287,7 @@ function ImageboardWriteForm() {
                 {/* 입찰 시작가격 */}
                 <div style={{marginBottom: "20px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
-                        입찰 시작가격
+                        <span style={{color: "red"}}>*</span> 경매 시작가격
                     </label>
                     <input 
                         type="number" 
@@ -299,10 +305,37 @@ function ImageboardWriteForm() {
                     />
                 </div>
 
+                {/* 최고 낙찰 가격 (즉시 구매 가격) */}
+                <div style={{marginBottom: "20px"}}>
+                    <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
+                        <span style={{color: "#ff9999"}}>최고 낙찰 가격 (즉시 구매 가격)</span>
+                        <span style={{fontSize: "12px", fontWeight: "normal", color: "red", marginLeft: "10px"}}>
+                            (선택사항 - 이 가격으로 즉시 구매 가능)
+                        </span>
+                    </label>
+                    <input 
+                        type="number" 
+                        value={maxBidPrice}
+                        ref={maxBidPriceRef}
+                        onChange={(e) => setMaxBidPrice(e.target.value)}
+                        placeholder="최고 낙찰 가격을 입력하세요 (선택사항)"
+                        style={{
+                            width: "100%",
+                            padding: "10px",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            fontSize: "14px"
+                        }}
+                    />
+                    <div style={{marginTop: "5px", fontSize: "12px", color: "#666"}}>
+                        * 최고 낙찰 가격을 설정하면, 누군가가 이 가격으로 입찰 시 즉시 낙찰됩니다.
+                    </div>
+                </div>
+
                 {/* 경매종료일 */}
                 <div style={{marginBottom: "20px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
-                        경매종료일
+                        <span style={{color: "red"}}>*</span> 경매종료일
                         <span style={{fontSize: "14px", fontWeight: "normal", color: "#ff1493", marginLeft: "10px"}}>
                             (종료일을 선택해주세요)
                         </span>
@@ -378,7 +411,7 @@ function ImageboardWriteForm() {
                 {/* 거래 방식 */}
                 <div style={{marginBottom: "20px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
-                        거래 방식
+                        <span style={{color: "red"}}>*</span> 거래 방식
                     </label>
                     <div style={{display: "flex", gap: "20px", flexWrap: "wrap"}}>
                         <label style={{display: "flex", alignItems: "center", cursor: "pointer"}}>
@@ -431,7 +464,7 @@ function ImageboardWriteForm() {
                 {/* 상세 설명 */}
                 <div style={{marginBottom: "30px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
-                        <span style={{color: "red"}}>*</span> 상세 설명
+                        상세 설명
                     </label>
                     <textarea 
                         value={description}
@@ -456,20 +489,23 @@ function ImageboardWriteForm() {
                         type="submit" 
                         className="btn btn-primary"
                         style={{
-                            padding: "10px 30px",
+                            padding: "6px 12px",
                             marginRight: "10px",
-                            fontSize: "16px"
+                            fontSize: "13px",
+                            backgroundColor: "#D4AF37",
+                            borderColor: "#D4AF37",
+                            color: "#000"
                         }}
                     >
-                        이미지 등록
+                        상품 등록
                     </button>
                     <button 
                         type="button" 
                         className="btn btn-secondary"
                         onClick={handleReset}
                         style={{
-                            padding: "10px 30px",
-                            fontSize: "16px"
+                            padding: "6px 12px",
+                            fontSize: "13px"
                         }}
                     >
                         다시 작성

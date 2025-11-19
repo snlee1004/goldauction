@@ -38,5 +38,15 @@ public class BidService {
 	public List<Bid> getTopBidsByImageboardSeq(int imageboardSeq, int limit) {
 		return dao.findTopBidsByImageboardSeq(imageboardSeq, limit);
 	}
+	
+	// 입찰 취소
+	public Bid cancelBid(int bidSeq) {
+		return dao.cancelBid(bidSeq);
+	}
+	
+	// 입찰자 ID로 입찰 목록 조회
+	public List<Bid> getBidsByBidderId(String bidderId) {
+		return dao.findByBidderId(bidderId);
+	}
 }
 

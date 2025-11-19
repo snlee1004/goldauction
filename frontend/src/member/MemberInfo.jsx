@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 function MemberInfo() {
@@ -6,6 +6,7 @@ function MemberInfo() {
     const [activeList, setActiveList] = useState([]); // 진행중인 경매
     const [completedList, setCompletedList] = useState([]); // 판매 완료/종료
     const [canceledList, setCanceledList] = useState([]); // 포기한 경매
+    const [bidParticipatedList, setBidParticipatedList] = useState([]); // 입찰 참여한 경매
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     
@@ -24,6 +25,7 @@ function MemberInfo() {
         }
         fetchMemberData(memId);
         fetchAuctionList(memId);
+        fetchBidParticipatedList(memId);
     }, [navigate]);
 
     // 회원 정보 조회
@@ -39,6 +41,29 @@ function MemberInfo() {
         } catch(err) {
             console.error("회원정보 조회 오류:", err);
             setError("회원정보 조회 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 입찰 참여한 경매 목록 조회
+    const fetchBidParticipatedList = async (memId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/bid/auctionsByBidder?bidderId=${encodeURIComponent(memId)}`);
+            
+            if(!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("입찰 참여 경매 목록 조회 응답:", data);
+            
+            if(data.rt === "OK") {
+                setBidParticipatedList(data.items || []);
+            } else {
+                setBidParticipatedList([]);
+            }
+        } catch(err) {
+            console.error("입찰 참여 경매 목록 조회 오류:", err);
+            setBidParticipatedList([]);
         }
     };
 
@@ -108,13 +133,11 @@ function MemberInfo() {
 
     return (
         <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
-            <h3 style={{marginBottom: "20px", textAlign: "center"}}>회원 정보</h3>
-
             {error && (
                 <div style={{
                     padding: "15px",
                     backgroundColor: "#f8d7da",
-                    border: "1px solid #f5c6cb",
+                    border: "1px solid #ccc",
                     borderRadius: "4px",
                     color: "#721c24",
                     marginBottom: "20px"
@@ -124,55 +147,48 @@ function MemberInfo() {
             )}
 
             {/* 회원 정보 섹션 */}
-            <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden", marginBottom: "30px"}}>
-                <table style={{margin: 0, width: "100%"}}>
-                    <thead>
-                        <tr style={{backgroundColor: "#ccc"}}>
-                            <th colSpan="2" style={{padding: "8px", fontWeight: "bold", textAlign: "center"}}>
-                                회원 정보
-                            </th>
-                        </tr>
-                    </thead>
+            <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden", marginBottom: "30px", display: "flex", justifyContent: "center", padding: "20px", maxWidth: "550px", margin: "0 auto 30px auto"}}>
+                <table style={{margin: 0}}>
                     <tbody>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold", width: "150px"}}>닉네임</td>
-                            <td style={{padding: "6px 12px"}}>{memberData.nickname || "-"}</td>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", width: "150px", textAlign: "left", fontSize: "13px"}}>닉네임</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>{memberData.nickname || "-"}</td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>이름</td>
-                            <td style={{padding: "6px 12px"}}>{memberData.name || "-"}</td>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>이름</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>{memberData.name || "-"}</td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>아이디</td>
-                            <td style={{padding: "6px 12px"}}>{memberData.id || "-"}</td>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>아이디</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>{memberData.id || "-"}</td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>성별</td>
-                            <td style={{padding: "6px 12px"}}>{memberData.gender || "-"}</td>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>성별</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>{memberData.gender || "-"}</td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>이메일</td>
-                            <td style={{padding: "6px 12px"}}>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>이메일</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>
                                 {memberData.email1 && memberData.email2 
                                     ? `${memberData.email1}@${memberData.email2}` 
                                     : "-"}
                             </td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>전화번호</td>
-                            <td style={{padding: "6px 12px"}}>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>전화번호</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>
                                 {memberData.tel1 && memberData.tel2 && memberData.tel3
                                     ? `${memberData.tel1}-${memberData.tel2}-${memberData.tel3}`
                                     : "-"}
                             </td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>주소</td>
-                            <td style={{padding: "6px 12px"}}>{memberData.addr || "-"}</td>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>주소</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>{memberData.addr || "-"}</td>
                         </tr>
                         <tr>
-                            <td style={{padding: "6px 12px", fontWeight: "bold"}}>가입일</td>
-                            <td style={{padding: "6px 12px"}}>
+                            <td style={{padding: "6px 12px", fontWeight: "bold", textAlign: "left", fontSize: "13px"}}>가입일</td>
+                            <td style={{padding: "6px 12px", textAlign: "left", fontSize: "13px"}}>
                                 {memberData.logtime 
                                     ? new Date(memberData.logtime).toLocaleDateString() 
                                     : "-"}
@@ -184,7 +200,17 @@ function MemberInfo() {
 
             {/* 회원정보 수정 버튼 */}
             <div style={{textAlign: "center", marginBottom: "30px"}}>
-                <button className="btn btn-primary" onClick={handleModify}>
+                <button 
+                    className="btn btn-primary" 
+                    onClick={handleModify}
+                    style={{
+                        padding: "6px 12px",
+                        fontSize: "13px",
+                        backgroundColor: "#D4AF37",
+                        borderColor: "#D4AF37",
+                        color: "#000"
+                    }}
+                >
                     <i className="bi bi-pencil-square"></i> 회원정보 수정하기
                 </button>
             </div>
@@ -199,13 +225,13 @@ function MemberInfo() {
 
             {/* 진행중인 경매 목록 */}
             <div style={{marginBottom: "30px"}}>
-                <h4 style={{marginBottom: "15px", color: "#337ab7"}}>진행중인 경매 ({activeList.length}건)</h4>
+                <h4 style={{marginBottom: "15px", color: "#337ab7", fontSize: "16px", fontWeight: "bold"}}>진행중인 경매 ({activeList.length}건)</h4>
                 {activeList.length === 0 ? (
-                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ddd", borderRadius: "4px"}}>
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
                         진행중인 경매가 없습니다.
                     </div>
                 ) : (
-                    <div style={{border: "2px solid #8b5cf6", borderRadius: "8px", overflow: "hidden"}}>
+                    <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
                         <table style={{margin: 0, width: "100%"}}>
                             <thead>
                                 <tr style={{backgroundColor: "#b3d9ff"}}>
@@ -240,13 +266,13 @@ function MemberInfo() {
 
             {/* 판매 완료/종료된 경매 목록 */}
             <div style={{marginBottom: "30px"}}>
-                <h4 style={{marginBottom: "15px", color: "#5cb85c"}}>판매 완료/종료된 경매 ({completedList.length}건)</h4>
+                <h4 style={{marginBottom: "15px", color: "#5cb85c", fontSize: "16px", fontWeight: "bold"}}>판매 완료/종료된 경매 ({completedList.length}건)</h4>
                 {completedList.length === 0 ? (
-                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ddd", borderRadius: "4px"}}>
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
                         판매 완료/종료된 경매가 없습니다.
                     </div>
                 ) : (
-                    <div style={{border: "2px solid #8b5cf6", borderRadius: "8px", overflow: "hidden"}}>
+                    <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
                         <table style={{margin: 0, width: "100%"}}>
                             <thead>
                                 <tr style={{backgroundColor: "#b3d9ff"}}>
@@ -279,15 +305,58 @@ function MemberInfo() {
                 )}
             </div>
 
+            {/* 입찰 참여한 경매 목록 */}
+            <div style={{marginBottom: "30px"}}>
+                <h4 style={{marginBottom: "15px", color: "#b3d9ff", fontSize: "16px", fontWeight: "bold"}}>입찰 참여한 경매 ({bidParticipatedList.length}건)</h4>
+                {bidParticipatedList.length === 0 ? (
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
+                        입찰에 참여한 경매가 없습니다.
+                    </div>
+                ) : (
+                    <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
+                        <table style={{margin: 0, width: "100%"}}>
+                            <thead>
+                                <tr style={{backgroundColor: "#b3d9ff"}}>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>내 최고 입찰가</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>종료일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bidParticipatedList.map(item => (
+                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                        <td style={{padding: "10px", textAlign: "center", color: "#d9534f", fontWeight: "bold"}}>
+                                            ₩ {item.myMaxBidAmount?.toLocaleString() || 0}
+                                        </td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            <span style={getStatusStyle(item.status || "진행중")}>
+                                                {item.status || "진행중"}
+                                            </span>
+                                        </td>
+                                        <td style={{padding: "10px", textAlign: "center"}}>
+                                            {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
             {/* 포기한 경매 목록 */}
             <div style={{marginBottom: "30px"}}>
-                <h4 style={{marginBottom: "15px", color: "#d9534f"}}>포기한 경매 ({canceledList.length}건)</h4>
+                <h4 style={{marginBottom: "15px", color: "#d9534f", fontSize: "16px", fontWeight: "bold"}}>포기한 경매 ({canceledList.length}건)</h4>
                 {canceledList.length === 0 ? (
-                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ddd", borderRadius: "4px"}}>
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
                         포기한 경매가 없습니다.
                     </div>
                 ) : (
-                    <div style={{border: "2px solid #8b5cf6", borderRadius: "8px", overflow: "hidden"}}>
+                    <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
                         <table style={{margin: 0, width: "100%"}}>
                             <thead>
                                 <tr style={{backgroundColor: "#b3d9ff"}}>

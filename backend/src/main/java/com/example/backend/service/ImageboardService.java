@@ -86,8 +86,8 @@ public class ImageboardService {
 	}
 	// 6. 수정
 	public Imageboard imageboardModify(ImageboardDTO dto) {
-		// 경매 종료일 재계산
-		if(dto.getAuctionPeriod() != null && !dto.getAuctionPeriod().isEmpty()) {
+		// 경매 종료일이 이미 설정되어 있으면 재계산하지 않음 (즉시 구매 등)
+		if(dto.getAuctionEndDate() == null && dto.getAuctionPeriod() != null && !dto.getAuctionPeriod().isEmpty()) {
 			Date startDate = dto.getAuctionStartDate();
 			if(startDate == null) {
 				// 기존 데이터에서 시작일 가져오기

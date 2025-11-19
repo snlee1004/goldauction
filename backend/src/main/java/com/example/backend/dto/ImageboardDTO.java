@@ -12,6 +12,7 @@ public class ImageboardDTO {
 	private String imageId;
 	private String imageName;
     private int imagePrice;
+    private Integer maxBidPrice;  // 최고 낙찰 가격 (즉시 구매 가격, 선택사항)
     private int imageQty;
     private String imageContent;
     private String image1;
@@ -24,7 +25,7 @@ public class ImageboardDTO {
     private Date logtime;
     
     public Imageboard toEntity() {
-    	return new Imageboard(seq, imageId, imageName, imagePrice, imageQty, imageContent, image1, 
+    	return new Imageboard(seq, imageId, imageName, imagePrice, maxBidPrice, imageQty, imageContent, image1, 
     			category, auctionPeriod, transactionMethod, auctionStartDate, auctionEndDate, status, logtime);
     }
 }

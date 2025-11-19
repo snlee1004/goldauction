@@ -137,42 +137,45 @@ function WriteForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
-            <h3 align="left" style={{marginBottom: "20px"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "0 auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <h3 align="center" style={{marginBottom: "20px", fontSize: "18px"}}>
                 <i className="bi bi-person-plus"></i> 회원가입
             </h3>
-            <form onSubmit={handleSubmit} style={{display: "flex", justifyContent: "center"}}>
+            <form onSubmit={handleSubmit} style={{width: "100%", display: "flex", justifyContent: "center"}}>
                 <div style={{
                     borderRadius: "8px",
                     overflow: "hidden",
-                    width: "100%"
+                    width: "100%",
+                    maxWidth: "600px"
                 }}>
                     <table className="table" style={{margin: "0 auto", width: "100%"}}>
                     <tbody>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-person-circle"></i> 닉네임
                             </td>
                             <td>
                                 <input type="text" value={nickname} size="25"
                                         ref={nicknameRef} 
                                         onChange={(e) => setNickname(e.target.value)}
-                                        placeholder="닉네임을 입력하세요"/>
+                                        placeholder="닉네임을 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-person"></i> 이름
                             </td>
                             <td>
                                 <input type="text" value={name} size="25"
                                         ref={nameRef} 
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder="이름을 입력하세요"/>
+                                        placeholder="이름을 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-person-badge"></i> 아이디
                             </td>
                             <td>
@@ -183,46 +186,57 @@ function WriteForm() {
                                                 setId(e.target.value);
                                                 setIdCheckMsg("");
                                             }}
-                                            placeholder="아이디를 입력하세요"/>
+                                            placeholder="아이디를 입력하세요"
+                                            style={{fontSize: "13px", padding: "6px"}}/>
                                     &nbsp;&nbsp;
-                                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={checkId}>
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-sm btn-outline-secondary" 
+                                        onClick={checkId}
+                                        style={{
+                                            padding: "6px 12px",
+                                            fontSize: "13px"
+                                        }}
+                                    >
                                         <i className="bi bi-check-circle"></i> 중복확인
                                     </button>
                                 </div>
                                 {idCheckMsg && (
-                                    <div style={{color: idCheckMsg.includes("사용 가능") ? "green" : "red", marginTop: "5px"}}>
+                                    <div style={{color: idCheckMsg.includes("사용 가능") ? "green" : "red", marginTop: "5px", fontSize: "13px"}}>
                                         {idCheckMsg}
                                     </div>
                                 )}
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
                                 <input type="password" value={pwd} size="25"
                                         ref={pwdRef} 
                                         onChange={(e) => setPwd(e.target.value)}
-                                        placeholder="비밀번호를 입력하세요"/>
+                                        placeholder="비밀번호를 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-lock-fill"></i> 비번확인
                             </td>
                             <td>
                                 <input type="password" value={pwdConfirm} size="25"
                                         ref={pwdConfirmRef} 
                                         onChange={(e) => setPwdConfirm(e.target.value)}
-                                        placeholder="비밀번호를 다시 입력하세요"/>
+                                        placeholder="비밀번호를 다시 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-gender-ambiguous"></i> 성별
                             </td>
-                            <td>
+                            <td style={{fontSize: "13px"}}>
                                 <input type="radio" name="gender" value="남" 
                                         ref={genderRef}
                                         checked={gender === "남"}
@@ -234,20 +248,22 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-envelope"></i> 이메일
                             </td>
                             <td>
                                 <input type="text" value={email1} size="12"
                                         ref={email1Ref} 
                                         onChange={(e) => setEmail1(e.target.value)}
-                                        placeholder="이메일"/>
+                                        placeholder="이메일"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                                 @
                                 <input type="text" value={email2} size="12"
                                         onChange={(e) => setEmail2(e.target.value)}
                                         placeholder="도메인"
-                                        disabled={email2Select !== "직접입력" && email2Select !== ""}/>
-                                <select value={email2Select} onChange={handleEmail2Select} style={{marginLeft: "5px"}}>
+                                        disabled={email2Select !== "직접입력" && email2Select !== ""}
+                                        style={{fontSize: "13px", padding: "6px"}}/>
+                                <select value={email2Select} onChange={handleEmail2Select} style={{marginLeft: "5px", fontSize: "13px", padding: "6px"}}>
                                     <option value="">선택하세요</option>
                                     <option value="naver.com">naver.com</option>
                                     <option value="gmail.com">gmail.com</option>
@@ -257,42 +273,64 @@ function WriteForm() {
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-telephone"></i> 전화번호
                             </td>
                             <td>
                                 <input type="text" value={tel1} size="8"
                                         ref={tel1Ref} 
                                         onChange={(e) => setTel1(e.target.value)}
-                                        placeholder="010"/>
+                                        placeholder="010"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                                 -
                                 <input type="text" value={tel2} size="8"
                                         onChange={(e) => setTel2(e.target.value)}
-                                        placeholder="1234"/>
+                                        placeholder="1234"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                                 -
                                 <input type="text" value={tel3} size="8"
                                         onChange={(e) => setTel3(e.target.value)}
-                                        placeholder="5678"/>
+                                        placeholder="5678"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" style={{whiteSpace: "nowrap", width: "150px"}}>
+                            <td align="left" style={{whiteSpace: "nowrap", width: "150px", fontSize: "13px"}}>
                                 <i className="bi bi-house"></i> 주소
                             </td>
                             <td>
                                 <input type="text" value={addr} size="30"
                                         ref={addrRef} 
                                         onChange={(e) => setAddr(e.target.value)}
-                                        placeholder="주소를 입력하세요"/>
+                                        placeholder="주소를 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" colSpan="2">
-                                <button type="submit" className="btn btn-primary">
+                            <td align="center" colSpan="2">
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary"
+                                    style={{
+                                        padding: "6px 12px",
+                                        fontSize: "13px",
+                                        backgroundColor: "#D4AF37",
+                                        borderColor: "#D4AF37",
+                                        color: "#000"
+                                    }}
+                                >
                                     <i className="bi bi-check-circle"></i> 회원가입
                                 </button>
                                 &nbsp;
-                                <button type="button" className="btn btn-secondary" onClick={handleReset}>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-secondary" 
+                                    onClick={handleReset}
+                                    style={{
+                                        padding: "6px 12px",
+                                        fontSize: "13px"
+                                    }}
+                                >
                                     <i className="bi bi-arrow-clockwise"></i> 다시 작성
                                 </button>
                             </td>                            

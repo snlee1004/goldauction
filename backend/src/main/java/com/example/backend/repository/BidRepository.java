@@ -24,5 +24,9 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 	// 게시글 번호로 입찰 목록 조회 (상위 N개)
 	@Query(value = "select * from (select * from BID1 where IMAGEBOARD_SEQ = :seq and STATUS = '유효' order by BID_AMOUNT desc, BID_TIME desc) where rownum <= :limit", nativeQuery = true)
 	List<Bid> findTopBidsByImageboardSeq(@Param("seq") int seq, @Param("limit") int limit);
+	
+	// 입찰자 ID로 입찰 목록 조회 (유효한 입찰만)
+	@Query(value = "select * from BID1 where BIDDER_ID = :bidderId and STATUS = '유효' order by BID_TIME desc", nativeQuery = true)
+	List<Bid> findByBidderId(@Param("bidderId") String bidderId);
 }
 

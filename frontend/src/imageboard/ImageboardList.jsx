@@ -223,13 +223,13 @@ function ImageboardList() {
                 <table className="table" style={{margin: 0, width: "100%"}}>
                     <thead>
                         <tr style={{backgroundColor: "#b3d9ff", textAlign: "center"}}>
-                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>상품코드</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "100px"}}>상품코드</th>
                             <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>이미지</th>
                             <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>상품명</th>
-                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>입찰가</th>
-                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>입찰종료일</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap"}}>입찰가</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "120px"}}>종료일</th>
                             <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", width: "80px", verticalAlign: "middle"}}>입찰수</th>
-                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle"}}>상태</th>
+                            <th style={{padding: "12px", fontWeight: "bold", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "80px"}}>상태</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -265,9 +265,9 @@ function ImageboardList() {
                                 return (
                                     <tr key={dto.seq} style={{textAlign: "center", backgroundColor: "#fff"}}>
                                         <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
-                                            <div>{dto.seq}</div>
+                                            <div style={{whiteSpace: "nowrap"}}>{dto.seq}</div>
                                             {dto.category && (
-                                                <div style={{fontSize: "12px", color: "#666", marginTop: "4px"}}>
+                                                <div style={{fontSize: "12px", color: "#666", marginTop: "4px", whiteSpace: "nowrap"}}>
                                                     {dto.category}
                                                 </div>
                                             )}
@@ -304,7 +304,7 @@ function ImageboardList() {
                                                 {dto.imagename}
                                             </Link>
                                         </td>
-                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap"}}>
                                             {(() => {
                                                 const maxBid = dto.maxBidAmount !== undefined && dto.maxBidAmount !== null ? Number(dto.maxBidAmount) : 0;
                                                 if(maxBid > 0) {
@@ -319,8 +319,29 @@ function ImageboardList() {
                                                 }
                                             })()}
                                         </td>
-                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
-                                            {dto.auctionEndDate || dto.endDate || "미설정"}
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "120px"}}>
+                                            {(() => {
+                                                const endDateStr = dto.auctionEndDate || dto.endDate;
+                                                if(!endDateStr || endDateStr === "미설정") {
+                                                    return <span style={{fontSize: "0.9em"}}>미설정</span>;
+                                                }
+                                                
+                                                try {
+                                                    const endDate = new Date(endDateStr);
+                                                    const year = endDate.getFullYear();
+                                                    const month = endDate.getMonth() + 1;
+                                                    const day = endDate.getDate();
+                                                    
+                                                    return (
+                                                        <span style={{fontSize: "0.9em"}}>
+                                                            {year}년<br />
+                                                            {month}월{day}일
+                                                        </span>
+                                                    );
+                                                } catch(e) {
+                                                    return <span style={{fontSize: "0.9em"}}>{endDateStr}</span>;
+                                                }
+                                            })()}
                                         </td>
                                         <td style={{padding: "12px", textAlign: "center", width: "80px", verticalAlign: "middle"}}>
                                             {(() => {
@@ -328,7 +349,7 @@ function ImageboardList() {
                                                 return count;
                                             })()}
                                         </td>
-                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
+                                        <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "80px"}}>
                                             <span style={getStatusStyle()}>
                                                 {status}
                                             </span>

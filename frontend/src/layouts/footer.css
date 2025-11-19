@@ -3,14 +3,14 @@
     width: 100%;
     margin-top: 5px; /* 상단 간격 최소화 */
     padding: 15px 0; /* 상하 패딩 줄임 */
-    background-color: #f8f9fa;
+    background-color: #D4AF37;
     flex-shrink: 0; /* Footer 크기 고정 */
 }
 
 .footer-divider {
     margin: 0 0 15px 0;
     border: 0;
-    border-top: 1px solid #dee2e6;
+    border-top: 1px solid #000;
 }
 
 .footer-content {
@@ -20,18 +20,18 @@
 
 .footer-text {
     margin: 0;
-    color: #6c757d;
+    color: #000;
     font-size: 14px;
 }
 
 .footer-text a {
-    color: #6c757d;
+    color: #000;
     text-decoration: none;
     margin: 0 5px;
 }
 
 .footer-text a:hover {
-    color: #495057;
+    color: #333;
     text-decoration: underline;
 }
 

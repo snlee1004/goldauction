@@ -66,8 +66,8 @@ function LoginForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
-            <h3 align="center" style={{marginBottom: "20px"}}>
+        <div className="container" style={{maxWidth: "400px", margin: "auto", padding: "20px"}}>
+            <h3 align="center" style={{marginBottom: "20px", fontSize: "18px"}}>
                 <i className="bi bi-box-arrow-in-right"></i> 로그인
             </h3>
             <form onSubmit={handleSubmit}>
@@ -77,41 +77,61 @@ function LoginForm() {
                 }}>
                     <table className="table" style={{margin: 0, width: "100%", border: "none"}}>
                     <tbody>
-                        <tr>
-                            <td align="right">
+                        <tr style={{borderBottom: "1px solid #ccc"}}>
+                            <td align="left" style={{fontSize: "13px"}}>
                                 <i className="bi bi-person"></i> 아이디
                             </td>
                             <td>
                                 <input type="text" value={id} size="25"
                                         ref={idRef} 
                                         onChange={(e) => setId(e.target.value)}
-                                        placeholder="아이디를 입력하세요"/>
+                                        placeholder="아이디를 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
-                        <tr>
-                            <td align="right">
+                        <tr style={{borderBottom: "1px solid #ccc"}}>
+                            <td align="left" style={{fontSize: "13px"}}>
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
                                 <input type="password" value={pwd} size="25"
                                         ref={pwdRef} 
                                         onChange={(e) => setPwd(e.target.value)}
-                                        placeholder="비밀번호를 입력하세요"/>
+                                        placeholder="비밀번호를 입력하세요"
+                                        style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
-                        <tr>
+                        <tr style={{borderBottom: "1px solid #ccc"}}>
                             <td align="center" colSpan="2">
-                                <button type="submit" className="btn btn-primary">
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary"
+                                    style={{
+                                        padding: "6px 12px",
+                                        fontSize: "13px",
+                                        backgroundColor: "#D4AF37",
+                                        borderColor: "#D4AF37",
+                                        color: "#000"
+                                    }}
+                                >
                                     <i className="bi bi-box-arrow-in-right"></i> 로그인
                                 </button>
                                 &nbsp;
-                                <button type="button" className="btn btn-secondary" onClick={handleReset}>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-secondary" 
+                                    onClick={handleReset}
+                                    style={{
+                                        padding: "6px 12px",
+                                        fontSize: "13px"
+                                    }}
+                                >
                                     <i className="bi bi-arrow-clockwise"></i> 다시 작성
                                 </button>
                             </td>                            
                         </tr>
                         <tr>
-                            <td colSpan="2" align="center">
+                            <td colSpan="2" align="center" style={{fontSize: "13px"}}>
                                 <Link to="/member/writeForm">
                                     <i className="bi bi-person-plus"></i> 회원가입
                                 </Link>

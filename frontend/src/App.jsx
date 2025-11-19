@@ -13,6 +13,7 @@ import LoginForm from "./member/LoginForm";
 import WriteForm from "./member/WriteForm";
 import ModifyForm from "./member/ModifyForm";
 import MemberInfo from "./member/MemberInfo";
+import Intro from "./Intro";
 
 function App() {
     return (
@@ -23,7 +24,7 @@ function App() {
 
                     <div className="main-content">
                         <Routes>
-                            <Route path="/" element={<ImageboardList/>} />
+                            <Route path="/" element={<Intro/>} />
                             <Route path="/imageboard/imageboardWriteForm" 
                                 element={<ImageboardWriteForm/>} />
                             <Route path="/imageboard/imageboardModifyForm" 

@@ -45,6 +45,7 @@ public class ImageboardController {
 			@RequestParam(value="productName", required=false) String productName,
 			@RequestParam(value="category", required=false) String category,
 			@RequestParam(value="startPrice", required=false) String startPrice,
+			@RequestParam(value="maxBidPrice", required=false) String maxBidPrice,
 			@RequestParam(value="auctionPeriod", required=false) String auctionPeriod,
 			@RequestParam(value="transactionMethod", required=false) String transactionMethod,
 			@RequestParam(value="description", required=false) String description,
@@ -60,6 +61,14 @@ public class ImageboardController {
 				dto.setImagePrice(Integer.parseInt(startPrice));
 			} catch(NumberFormatException e) {
 				dto.setImagePrice(0);
+			}
+		}
+		// 최고 낙찰 가격 처리 (선택사항)
+		if(maxBidPrice != null && !maxBidPrice.isEmpty()) {
+			try {
+				dto.setMaxBidPrice(Integer.parseInt(maxBidPrice));
+			} catch(NumberFormatException e) {
+				dto.setMaxBidPrice(null);
 			}
 		}
 		if(auctionPeriod != null) dto.setAuctionPeriod(auctionPeriod);

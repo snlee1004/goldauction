@@ -30,7 +30,7 @@ public class Bid {
 	private int imageboardSeq;  // 경매 게시글 번호 (FK)
 	private String bidderId;  // 입찰자 ID (FK)
 	private int bidAmount;  // 입찰 금액
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date bidTime;  // 입찰 시간
 	private String status;  // 상태 (유효, 취소, 낙찰)
 }

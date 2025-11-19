@@ -163,6 +163,11 @@ export const validateWrite = (formData, refs, idCheckMsg) => {
     const { name, id, nickname, pwd, pwdConfirm, gender, email1, email2, tel1, tel2, tel3, addr } = formData;
     const { nameRef, idRef, nicknameRef, pwdRef, pwdConfirmRef, genderRef, email1Ref, tel1Ref, addrRef } = refs;
     
+    // 닉네임 검증
+    if(!validateNickname(nickname, nicknameRef)) {
+        return false;
+    }
+    
     // 이름 검증
     if(!validateName(name, nameRef)) {
         return false;
@@ -177,11 +182,6 @@ export const validateWrite = (formData, refs, idCheckMsg) => {
     if(idCheckMsg !== "사용 가능한 아이디입니다.") {
         alert("아이디 중복 확인을 해주세요.");
         if(idRef && idRef.current) idRef.current.focus();
-        return false;
-    }
-    
-    // 닉네임 검증
-    if(!validateNickname(nickname, nicknameRef)) {
         return false;
     }
     
@@ -237,15 +237,24 @@ export const validateModify = (formData, refs) => {
         return false;
     }
     
-    // 비밀번호 형식 검증
-    if(!validatePwdFormat(pwd, pwdRef)) {
-        return false;
-    }
-    
-    // 비밀번호 확인 검증
-    if(pwd !== pwdConfirm) {
-        alert("비밀번호가 일치하지 않습니다.");
-        if(pwdConfirmRef && pwdConfirmRef.current) pwdConfirmRef.current.focus();
+    // 비밀번호는 선택사항 (변경하지 않으면 비워둘 수 있음)
+    // 비밀번호가 입력된 경우에만 검증
+    if(pwd && pwd.trim() !== "") {
+        // 비밀번호 형식 검증
+        if(!validatePwdFormat(pwd, pwdRef)) {
+            return false;
+        }
+        
+        // 비밀번호 확인 검증
+        if(pwd !== pwdConfirm) {
+            alert("비밀번호가 일치하지 않습니다.");
+            if(pwdConfirmRef && pwdConfirmRef.current) pwdConfirmRef.current.focus();
+            return false;
+        }
+    } else if(pwdConfirm && pwdConfirm.trim() !== "") {
+        // 비밀번호는 비어있는데 확인은 입력된 경우
+        alert("비밀번호를 입력하세요.");
+        if(pwdRef && pwdRef.current) pwdRef.current.focus();
         return false;
     }
     

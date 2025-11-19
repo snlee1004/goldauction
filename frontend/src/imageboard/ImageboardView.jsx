@@ -12,6 +12,7 @@ function ImageboardView() {
     const [totalBids, setTotalBids] = useState(0); // 전체 입찰 수
     const [currentHighestBid, setCurrentHighestBid] = useState(0); // 현재 최고 입찰 금액
     const [showImagePopup, setShowImagePopup] = useState(false); // 이미지 팝업 표시 여부
+    const [writerNickname, setWriterNickname] = useState(""); // 등록자 닉네임
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -37,12 +38,33 @@ function ImageboardView() {
             const response = await fetch(`http://localhost:8080/imageboard/imageboardView?seq=${seq}`);
             const data = await response.json();
             if(data.rt === "OK") {
+                console.log("경매 데이터:", data.item); // 디버깅용
                 setImageboardData(data.item);
+                // 등록자 닉네임 조회
+                if(data.item.imageid) {
+                    fetchWriterNickname(data.item.imageid);
+                }
             } else {
                 alert("해당 게시글이 존재하지 않습니다.");
             }
         } catch(err) {
             console.error(err);
+        }
+    };
+
+    // 등록자 닉네임 조회
+    const fetchWriterNickname = async (imageid) => {
+        try {
+            const response = await fetch(`http://localhost:8080/member/getMember?id=${imageid}`);
+            const data = await response.json();
+            if(data.rt === "OK" && data.member) {
+                setWriterNickname(data.member.nickname || imageid);
+            } else {
+                setWriterNickname(imageid);
+            }
+        } catch(err) {
+            console.error("등록자 닉네임 조회 오류:", err);
+            setWriterNickname(imageid);
         }
     };
 
@@ -166,6 +188,14 @@ function ImageboardView() {
             return;
         }
         
+        // 최고 낙찰 가격 체크 (즉시 구매)
+        const maxBidPrice = imageboardData.maxBidPrice || imageboardData.max_bid_price;
+        if(maxBidPrice && maxBidPrice > 0 && bidAmountNum >= maxBidPrice) {
+            if(!window.confirm(`즉시 구매 가격(${maxBidPrice.toLocaleString()}원) 이상입니다. 즉시 구매하시겠습니까?`)) {
+                return;
+            }
+        }
+        
         try {
             const response = await fetch("http://localhost:8080/bid/write", {
                 method: "POST",
@@ -181,17 +211,83 @@ function ImageboardView() {
             
             const data = await response.json();
             if(data.rt === "OK") {
-                alert("입찰이 완료되었습니다.");
-                setBidAmount("");
-                // 입찰 데이터 다시 가져오기 (약간의 지연을 두어 DB 반영 시간 확보)
-                setTimeout(() => {
-                    fetchBidData(seq);
-                }, 300);
+                if(data.immediatePurchase) {
+                    alert("즉시 구매가 완료되었습니다!");
+                    // 페이지 새로고침하여 상태 업데이트
+                    window.location.reload();
+                } else {
+                    alert("입찰이 완료되었습니다.");
+                    setBidAmount("");
+                    // 입찰 데이터 다시 가져오기 (약간의 지연을 두어 DB 반영 시간 확보)
+                    setTimeout(() => {
+                        fetchBidData(seq);
+                    }, 300);
+                }
             } else {
                 alert(data.msg || "입찰에 실패했습니다.");
             }
         } catch(err) {
             alert("입찰 중 오류가 발생했습니다.");
+            console.error(err);
+        }
+    };
+
+    // 즉시 구매 처리
+    const handleBuyNow = async () => {
+        const memId = sessionStorage.getItem("memId");
+        if(!memId) {
+            alert("로그인이 필요합니다.");
+            navigate("/member/loginForm");
+            return;
+        }
+        
+        // maxBidPrice 필드명 확인 (camelCase 또는 snake_case)
+        const maxBidPrice = imageboardData.maxBidPrice || imageboardData.max_bid_price;
+        console.log("즉시 구매 가격:", maxBidPrice, "전체 데이터:", imageboardData); // 디버깅용
+        
+        if(!maxBidPrice || maxBidPrice <= 0) {
+            alert("즉시 구매 가격이 설정되지 않았습니다.");
+            return;
+        }
+        
+        if(!window.confirm(`정말로 ${maxBidPrice.toLocaleString()}원에 즉시 구매하시겠습니까?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch("http://localhost:8080/bid/write", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    imageboardSeq: seq,
+                    bidderId: memId,
+                    bidAmount: maxBidPrice
+                })
+            });
+            
+            const data = await response.json();
+            console.log("입찰 응답:", data); // 디버깅용
+            
+            if(data.rt === "OK") {
+                if(data.immediatePurchase) {
+                    alert("즉시 구매가 완료되었습니다!");
+                    // 페이지 새로고침하여 상태 업데이트
+                    window.location.reload();
+                } else {
+                    alert("입찰이 완료되었습니다.");
+                    setBidAmount("");
+                    setTimeout(() => {
+                        fetchBidData(seq);
+                        fetchBoardData(seq); // 경매 데이터도 다시 가져오기
+                    }, 300);
+                }
+            } else {
+                alert(data.msg || "즉시 구매에 실패했습니다.");
+            }
+        } catch(err) {
+            alert("즉시 구매 중 오류가 발생했습니다.");
             console.error(err);
         }
     };
@@ -241,6 +337,48 @@ function ImageboardView() {
         return imageboardData.imageid === memId;
     };
 
+    // 현재 로그인한 사용자가 입찰했는지 확인
+    const hasUserBid = () => {
+        const memId = sessionStorage.getItem("memId");
+        if(!memId) return false;
+        return bidList.some(bid => bid.bidderId === memId);
+    };
+
+    // 사용자의 입찰 정보 가져오기
+    const getUserBid = () => {
+        const memId = sessionStorage.getItem("memId");
+        if(!memId) return null;
+        return bidList.find(bid => bid.bidderId === memId);
+    };
+
+    // 입찰 취소 처리 (bidSeq로 직접 취소)
+    const handleCancelBidBySeq = async (bidSeq) => {
+        if(!bidSeq) {
+            alert("입찰 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/bid/cancel?bidSeq=${bidSeq}`, {
+                method: "POST"
+            });
+            
+            const data = await response.json();
+            if(data.rt === "OK") {
+                alert("입찰이 취소되었습니다.");
+                // 입찰 데이터 다시 가져오기
+                setTimeout(() => {
+                    fetchBidData(seq);
+                }, 300);
+            } else {
+                alert(data.msg || "입찰 취소에 실패했습니다.");
+            }
+        } catch(err) {
+            console.error("입찰 취소 오류:", err);
+            alert("입찰 취소 중 오류가 발생했습니다.");
+        }
+    };
+
     const status = getAuctionStatus();
     const remainingDays = calculateRemainingDays();
     const unitPrice = imageboardData.imageprice || 0; // 단가
@@ -259,20 +397,23 @@ function ImageboardView() {
             </div>
 
             {/* 상품 이미지와 정보 테이블 */}
-            <div style={{display: "flex", gap: "20px", marginBottom: "30px"}}>
+            <div style={{display: "flex", gap: "40px", marginBottom: "30px"}}>
                 {/* 상품 이미지 */}
-                <div style={{flex: "0 0 200px"}}>
+                <div style={{flex: "0 0 280px"}}>
                     <div style={{fontSize: "14px", marginBottom: "10px", color: "#666"}}>
                         {imageboardData.category || "카테고리"}
                     </div>
                     <img 
-                        width="200" 
-                        height="200" 
+                        width="280" 
+                        height="280" 
                         alt="상품 이미지"
                         src={imageboardData.image1 ? `http://localhost:8080/storage/${imageboardData.image1}` : "/placeholder-image.png"}
-                        style={{border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer"}}
+                        style={{border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", width: "280px", height: "280px", objectFit: "cover"}}
                         onClick={handleImageClick}
                     />
+                    <div style={{fontSize: "12px", color: "#555", marginTop: "8px", textAlign: "center"}}>
+                        {writerNickname || imageboardData.imageid || "등록자"}
+                    </div>
                 </div>
 
                 {/* 상품 정보 테이블 */}
@@ -280,15 +421,15 @@ function ImageboardView() {
                     <table style={{width: "100%", borderCollapse: "collapse"}}>
                         <tbody>
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", width: "150px", fontWeight: "bold"}}>상품명</td>
-                                <td style={{padding: "10px"}}>{imageboardData.imagename || imageboardData.productname || "웰치스"}</td>
+                                <td style={{padding: "10px", width: "150px", fontWeight: "bold", fontSize: "13px"}}>상품명</td>
+                                <td style={{padding: "10px", fontSize: "13px"}}>{imageboardData.imagename || imageboardData.productname || "웰치스"}</td>
                             </tr>
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", fontWeight: "bold"}}>단가</td>
-                                <td style={{padding: "10px"}}>{unitPrice.toLocaleString()}</td>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>단가</td>
+                                <td style={{padding: "10px", fontSize: "13px"}}>{unitPrice.toLocaleString()}</td>
                             </tr>
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", fontWeight: "bold"}}>입찰 참여</td>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>입찰 참여</td>
                                 <td style={{padding: "10px"}}>
                                     <form onSubmit={handleBidSubmit} style={{display: "flex", gap: "10px"}}>
                                         <input 
@@ -297,21 +438,23 @@ function ImageboardView() {
                                             onChange={(e) => setBidAmount(e.target.value)}
                                             placeholder="입찰 금액 입력"
                                             style={{
-                                                padding: "8px",
+                                                padding: "6px",
                                                 border: "1px solid #ddd",
                                                 borderRadius: "4px",
-                                                flex: "1"
+                                                flex: "1",
+                                                fontSize: "13px"
                                             }}
                                         />
                                         <button 
                                             type="submit"
                                             style={{
-                                                padding: "8px 16px",
-                                                backgroundColor: "#007bff",
-                                                color: "white",
-                                                border: "none",
+                                                padding: "6px 12px",
+                                                backgroundColor: "#D4AF37",
+                                                borderColor: "#D4AF37",
+                                                color: "#000",
                                                 borderRadius: "4px",
-                                                cursor: "pointer"
+                                                cursor: "pointer",
+                                                fontSize: "13px"
                                             }}
                                         >
                                             입찰
@@ -319,21 +462,48 @@ function ImageboardView() {
                                     </form>
                                 </td>
                             </tr>
+                            {(() => {
+                                const maxBidPrice = imageboardData.maxBidPrice || imageboardData.max_bid_price;
+                                return maxBidPrice && maxBidPrice > 0 && status === "진행중" && (
+                                    <tr style={{borderBottom: "1px solid #eee"}}>
+                                        <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>즉시 구매</td>
+                                        <td style={{padding: "10px"}}>
+                                            <button 
+                                                type="button"
+                                                onClick={handleBuyNow}
+                                                style={{
+                                                    padding: "8px 20px",
+                                                    backgroundColor: "#ff6b35",
+                                                    border: "none",
+                                                    color: "#fff",
+                                                    borderRadius: "4px",
+                                                    cursor: "pointer",
+                                                    fontSize: "14px",
+                                                    fontWeight: "bold",
+                                                    width: "100%"
+                                                }}
+                                            >
+                                                즉시 구매 ({maxBidPrice.toLocaleString()}원)
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })()}
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", fontWeight: "bold"}}>현재 최고 입찰된 금액</td>
-                                <td style={{padding: "10px", color: "#d9534f", fontWeight: "bold"}}>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>현재 최고 입찰된 금액</td>
+                                <td style={{padding: "10px", color: "#d9534f", fontWeight: "bold", fontSize: "13px"}}>
                                     ₩ {currentHighestBid > 0 ? currentHighestBid.toLocaleString() : "입찰 없음"}
                                 </td>
                             </tr>
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", fontWeight: "bold"}}>거래방식</td>
-                                <td style={{padding: "10px"}}>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>거래방식</td>
+                                <td style={{padding: "10px", fontSize: "13px"}}>
                                     {imageboardData.transactionMethod || "미설정"}
                                 </td>
                             </tr>
                             <tr>
-                                <td style={{padding: "10px", fontWeight: "bold"}}>입찰인수</td>
-                                <td style={{padding: "10px", fontWeight: "bold"}}>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>입찰인수</td>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>
                                     {totalBids}명
                                 </td>
                             </tr>
@@ -345,36 +515,47 @@ function ImageboardView() {
             {/* 경매 상태 메시지 */}
             <div style={{
                 padding: "15px",
-                backgroundColor: status === "진행중" ? "#d4edda" : "#f8d7da",
-                border: `1px solid ${status === "진행중" ? "#c3e6cb" : "#f5c6cb"}`,
+                backgroundColor: "transparent",
+                border: "1px solid #ddd",
                 borderRadius: "4px",
                 marginBottom: "30px",
                 textAlign: "center"
             }}>
-                <div style={{fontSize: "18px", fontWeight: "bold"}}>
+                <div style={{fontSize: "18px"}}>
                     {imageboardData.imagecontent || imageboardData.description || "상세 내용이 없습니다."}
                 </div>
-                <div style={{fontSize: "16px", marginTop: "5px"}}>
-                    {status === "진행중" ? "경매가 진행 중입니다." : "경매가 종료 되었습니다."}
+                <div style={{marginTop: "5px"}}>
+                    {status === "진행중" ? (
+                        <div style={{fontSize: "16px", color: "#b3d9ff"}}>
+                            경매가 진행 중입니다.
+                        </div>
+                    ) : (
+                        <div style={{fontSize: "24px", color: "red", fontWeight: "bold"}}>
+                            경매가 종료 되었습니다.
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* 입찰 순위 섹션 */}
             <div>
                 <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px"}}>
-                    <h4 style={{margin: 0}}>입찰 순위</h4>
+                    <h4 style={{margin: 0, fontSize: "16px", display: "flex", alignItems: "center", gap: "8px"}}>
+                        <i className="bi bi-trophy"></i> 입찰 순위
+                    </h4>
                     <button
                         onClick={() => setShowAllBids(!showAllBids)}
                         style={{
                             padding: "8px 16px",
                             backgroundColor: "white",
-                            border: "2px solid #007bff",
+                            border: "1px solid #007bff",
                             color: "#007bff",
                             borderRadius: "4px",
                             cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            gap: "5px"
+                            gap: "5px",
+                            fontSize: "13px"
                         }}
                     >
                         모든 입찰 보기({totalBids})
@@ -390,13 +571,18 @@ function ImageboardView() {
                         </div>
                     ) : (
                         (showAllBids ? bidList : bidList.slice(0, 3)).map((bid, index) => {
-                            // 입찰 시간 포맷팅
+                            // 입찰 시간 포맷팅 (년월일시 형식)
                             const bidTime = new Date(bid.bidTime);
-                            const now = new Date();
-                            const diffTime = now - bidTime;
-                            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                            const diffWeeks = Math.floor(diffDays / 7);
-                            const timeStr = diffWeeks > 0 ? `${diffWeeks}주 전` : diffDays > 0 ? `${diffDays}일 전` : "오늘";
+                            const year = bidTime.getFullYear();
+                            const month = bidTime.getMonth() + 1;
+                            const day = bidTime.getDate();
+                            const hours = bidTime.getHours();
+                            const minutes = bidTime.getMinutes();
+                            const timeStr = `${year}년 ${month}월 ${day}일 ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                            
+                            // 현재 로그인한 사용자가 이 입찰의 입찰자인지 확인
+                            const memId = sessionStorage.getItem("memId");
+                            const isCurrentUserBid = memId && bid.bidderId === memId;
                             
                             return (
                                 <div 
@@ -405,7 +591,9 @@ function ImageboardView() {
                                         display: "flex",
                                         alignItems: "center",
                                         padding: "12px",
-                                        borderBottom: "1px solid #eee",
+                                        border: "1px solid #ffeb99",
+                                        borderRadius: "4px",
+                                        marginBottom: "10px",
                                         gap: "15px"
                                     }}
                                 >
@@ -413,8 +601,37 @@ function ImageboardView() {
                                     <div style={{flex: "1"}}>
                                         <span style={{color: "#999", fontSize: "12px"}}>입찰자</span> {bid.bidderNickname || bid.bidderId}
                                     </div>
-                                    <div style={{color: "#666", fontSize: "14px"}}>{timeStr}</div>
-                                    <div style={{fontWeight: "bold", color: "#d9534f"}}>₩ {bid.bidAmount.toLocaleString()}</div>
+                                    <div style={{color: "#999", fontSize: "12px", textAlign: "center", width: "200px"}}>
+                                        {timeStr}
+                                    </div>
+                                    <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                                        <span style={{fontWeight: "bold", color: "#d9534f"}}>₩ {bid.bidAmount.toLocaleString()}</span>
+                                        {isCurrentUserBid && (
+                                            <button
+                                                onClick={() => {
+                                                    if(window.confirm("정말로 입찰을 취소하시겠습니까?")) {
+                                                        handleCancelBidBySeq(bid.bidSeq);
+                                                    }
+                                                }}
+                                                style={{
+                                                    padding: "4px 8px",
+                                                    backgroundColor: "#dc3545",
+                                                    border: "none",
+                                                    color: "white",
+                                                    borderRadius: "4px",
+                                                    cursor: "pointer",
+                                                    fontSize: "11px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "3px"
+                                                }}
+                                                title="입찰 취소"
+                                            >
+                                                <i className="bi bi-x-circle" style={{fontSize: "10px"}}></i>
+                                                취소
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })
