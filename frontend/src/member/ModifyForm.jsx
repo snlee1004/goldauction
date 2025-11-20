@@ -148,7 +148,7 @@ function ModifyForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "0 auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "0 auto", padding: "20px", marginTop: "70px", paddingTop: "10px", display: "flex", flexDirection: "column", alignItems: "center"}}>
             <h3 align="center" style={{marginBottom: "20px", fontSize: "18px"}}>
                 <i className="bi bi-pencil-square"></i> 회원정보 수정
             </h3>

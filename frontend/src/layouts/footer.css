@@ -1,10 +1,14 @@
 /* Footer 반응형 스타일 */
 .footer-container {
     width: 100%;
+    max-width: 100%;
     margin-top: 5px; /* 상단 간격 최소화 */
     padding: 15px 0; /* 상하 패딩 줄임 */
     background-color: #D4AF37;
     flex-shrink: 0; /* Footer 크기 고정 */
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .footer-divider {

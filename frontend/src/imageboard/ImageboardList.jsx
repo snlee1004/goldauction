@@ -154,7 +154,7 @@ function ImageboardList() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "5px"}}>
             {/* 에러 메시지 */}
             {error && (
                 <div style={{
@@ -181,7 +181,7 @@ function ImageboardList() {
             )}
             
             {/* 카테고리 선택 및 검색 입력창 */}
-            <div style={{width: "100%", margin: "20px auto", display: "flex", gap: "10px", alignItems: "center"}}>
+            <div style={{width: "100%", margin: "0 auto", marginTop: "20px", display: "flex", gap: "10px", alignItems: "center"}}>
                 <select
                     className="form-control"
                     value={selectedCategory}
@@ -255,7 +255,9 @@ function ImageboardList() {
                                 const getStatusStyle = () => {
                                     if(status === "포기") {
                                         return {color: "#d9534f", fontWeight: "bold"};
-                                    } else if(status === "종료" || status === "판매완료") {
+                                    } else if(status === "판매완료") {
+                                        return {color: "#d9534f", fontWeight: "bold"}; // 판매완료는 빨간색
+                                    } else if(status === "종료") {
                                         return {color: "#5cb85c", fontWeight: "bold"};
                                     } else {
                                         return {color: "#337ab7", fontWeight: "bold"};

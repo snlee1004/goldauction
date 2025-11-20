@@ -66,9 +66,9 @@ function LoginForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "400px", margin: "auto", padding: "20px"}}>
+        <div className="container" style={{maxWidth: "400px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "30px"}}>
             <h3 align="center" style={{marginBottom: "20px", fontSize: "18px"}}>
-                <i className="bi bi-box-arrow-in-right"></i> 로그인
+                <i className="bi bi-person-check"></i> 회원 로그인
             </h3>
             <form onSubmit={handleSubmit}>
                 <div style={{

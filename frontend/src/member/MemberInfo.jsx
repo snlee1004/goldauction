@@ -132,7 +132,7 @@ function MemberInfo() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "10px"}}>
             {error && (
                 <div style={{
                     padding: "15px",

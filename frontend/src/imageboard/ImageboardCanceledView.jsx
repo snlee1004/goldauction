@@ -98,7 +98,7 @@ function ImageboardCanceledView() {
     const unitPrice = imageboardData.imageprice || 0; // 단가
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "0"}}>
             {/* 포기 상태 표시 */}
             <div style={{
                 padding: "15px",

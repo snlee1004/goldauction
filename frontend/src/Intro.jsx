@@ -7,7 +7,7 @@ const API_KEY = 'GNYJONLPYPY5UC5E';
 
 function Intro() {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("GOLD"); // GOLD, SILVER, PLATINUM
+    const [activeTab, setActiveTab] = useState("GOLD"); // GOLD, SILVER, COIN
     const [domesticPeriod, setDomesticPeriod] = useState("5개월"); // 1개월, 5개월, 1년, 3년
     const [internationalPeriod, setInternationalPeriod] = useState("5개월"); // 실시간, 1개월, 5개월, 1년, 3년
     
@@ -27,6 +27,11 @@ function Intro() {
     });
     const [priceLoading, setPriceLoading] = useState(false);
     
+    // 네이버 경제 뉴스 데이터
+    const [newsList, setNewsList] = useState([]);
+    const [newsLoading, setNewsLoading] = useState(false);
+    const [newsError, setNewsError] = useState(null);
+    
     // 경매 목록 데이터
     const [bestBidList, setBestBidList] = useState([]);
     const [recentList, setRecentList] = useState([]);
@@ -39,8 +44,22 @@ function Intro() {
             if(response.ok) {
                 const data = await response.json();
                 if(data.rt === "OK") {
+                    // 현재 날짜
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0); // 시간을 00:00:00으로 설정하여 날짜만 비교
+                    
+                    // 경매 종료되지 않은 항목만 필터링
+                    const activeItems = (data.items || []).filter(item => {
+                        if(!item.auctionEndDate) {
+                            return true; // 종료일이 없으면 진행 중으로 간주
+                        }
+                        const endDate = new Date(item.auctionEndDate);
+                        endDate.setHours(0, 0, 0, 0);
+                        return endDate >= now; // 종료일이 오늘 이후이거나 오늘인 경우만 포함
+                    });
+                    
                     // 입찰 수 기준으로 정렬 (내림차순)
-                    const sorted = [...(data.items || [])].sort((a, b) => {
+                    const sorted = [...activeItems].sort((a, b) => {
                         const bidCountA = a.bidCount || 0;
                         const bidCountB = b.bidCount || 0;
                         return bidCountB - bidCountA;
@@ -71,6 +90,53 @@ function Intro() {
             }
         } catch(err) {
             console.error("최근 등록순 조회 오류:", err);
+        }
+    };
+    
+    // 네이버 경제 뉴스 조회 (금 관련) - 백엔드 프록시를 통해 호출
+    const fetchGoldNews = async () => {
+        setNewsLoading(true);
+        setNewsError(null);
+        try {
+            // 백엔드 프록시 API 호출
+            const apiUrl = `http://localhost:8080/news/gold?query=${encodeURIComponent('금 시세 경제')}&display=10`;
+            
+            console.log("뉴스 API 호출 시작:", apiUrl);
+            
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log("뉴스 API 응답 상태:", response.status, response.statusText);
+            
+            if(response.ok) {
+                const result = await response.json();
+                console.log("뉴스 API 응답 데이터:", result);
+                
+                if(result.rt === "OK" && result.data && result.data.items && Array.isArray(result.data.items) && result.data.items.length > 0) {
+                    console.log("뉴스 개수:", result.data.items.length);
+                    setNewsList(result.data.items);
+                    setNewsError(null);
+                } else {
+                    console.warn("뉴스 데이터가 없거나 배열이 아닙니다:", result);
+                    setNewsList([]);
+                    setNewsError(result.msg || "뉴스 데이터를 찾을 수 없습니다.");
+                }
+            } else {
+                const errorText = await response.text();
+                console.error("뉴스 API 호출 실패:", response.status, errorText);
+                setNewsList([]);
+                setNewsError(`API 호출 실패 (${response.status}): ${errorText}`);
+            }
+        } catch(err) {
+            console.error("뉴스 조회 오류:", err);
+            setNewsList([]);
+            setNewsError(`오류 발생: ${err.message}`);
+        } finally {
+            setNewsLoading(false);
         }
     };
     
@@ -127,10 +193,10 @@ function Intro() {
         }
     };
     
-    // 경매 목록 조회
+    // 경매 목록 조회 및 뉴스 조회
     useEffect(() => {
         setLoading(true);
-        Promise.all([fetchBestBids(), fetchRecentList()])
+        Promise.all([fetchBestBids(), fetchRecentList(), fetchGoldNews()])
             .finally(() => setLoading(false));
     }, []);
     
@@ -139,7 +205,7 @@ function Intro() {
         if(activeTab === "GOLD") {
             fetchGoldPrice();
         } else {
-            // SILVER, PLATINUM 탭일 때는 데이터 초기화
+            // SILVER, COIN 탭일 때는 데이터 초기화
             setDomesticChartData([]);
             setInternationalChartData([]);
             setYearComparisonData([{ name: "전년", value: 0 }, { name: "오늘", value: 0 }]);
@@ -157,7 +223,9 @@ function Intro() {
         <div style={{
             maxWidth: "1400px",
             margin: "0 auto",
-            padding: "20px"
+            padding: "20px",
+            marginTop: "70px",
+            paddingTop: "0"
         }}>
             {/* 상단 탭 */}
             <div style={{
@@ -196,11 +264,11 @@ function Intro() {
                     SILVER
                 </button>
                 <button
-                    onClick={() => setActiveTab("PLATINUM")}
+                    onClick={() => setActiveTab("COIN")}
                     style={{
                         padding: "6px 15px",
-                        backgroundColor: activeTab === "PLATINUM" ? "#ff6b35" : "#f0f0f0",
-                        color: activeTab === "PLATINUM" ? "#fff" : "#333",
+                        backgroundColor: activeTab === "COIN" ? "#ff6b35" : "#f0f0f0",
+                        color: activeTab === "COIN" ? "#fff" : "#333",
                         border: "none",
                         borderRadius: "4px",
                         fontWeight: "bold",
@@ -208,37 +276,389 @@ function Intro() {
                         fontSize: "12px"
                     }}
                 >
-                    PLATINUM
+                    COIN
                 </button>
             </div>
 
             {/* 메인 콘텐츠 영역 */}
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "20px",
-                marginBottom: "40px"
-            }}>
-                {/* 왼쪽 패널: 국내 시세 */}
+            {activeTab === "SILVER" ? (
+                // 실버 탭: 골드 시세처럼 두 개의 박스
                 <div style={{
-                    border: "1px solid #ffeb99",
-                    borderRadius: "8px",
-                    padding: "20px",
-                    backgroundColor: "#fff"
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "20px",
+                    marginBottom: "40px"
                 }}>
+                    {/* 왼쪽 패널: 은시세 */}
                     <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "15px"
+                        border: "1px solid #c0c0c0",
+                        borderRadius: "8px",
+                        padding: "20px",
+                        backgroundColor: "#fff"
                     }}>
-                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold" }}>
-                            국내 시세 (KRW/3.75g)
-                        </h3>
-                        <a href="#" style={{ color: "#007bff", textDecoration: "none", fontSize: "14px" }}>
-                            국내 시세 전체보기 &gt;
-                        </a>
+                        <div style={{
+                            marginBottom: "15px"
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                                은 시세 (XAG/USD)
+                            </h3>
+                        </div>
+                        
+                        {/* 기간 선택 탭 */}
+                        <div style={{
+                            display: "flex",
+                            gap: "5px",
+                            marginBottom: "20px"
+                        }}>
+                            {["1개월", "5개월", "1년", "3년"].map(period => (
+                                <button
+                                    key={period}
+                                    onClick={() => setDomesticPeriod(period)}
+                                    style={{
+                                        padding: "4px 8px",
+                                        backgroundColor: domesticPeriod === period ? "#007bff" : "#f0f0f0",
+                                        color: domesticPeriod === period ? "#fff" : "#333",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontSize: "10px"
+                                    }}
+                                >
+                                    {period}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* TradingView 은시세 그래프 */}
+                        <div style={{ marginBottom: "20px", height: "250px" }}>
+                            <div style={{ width: "100%", height: "100%" }}>
+                                {(() => {
+                                    const getInterval = (period) => {
+                                        switch(period) {
+                                            case "1개월": return "D";
+                                            case "5개월": return "W";
+                                            case "1년": return "M";
+                                            case "3년": return "12M";
+                                            default: return "D";
+                                        }
+                                    };
+                                    
+                                    const interval = getInterval(domesticPeriod);
+                                    const widgetUrl = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_silver_${domesticPeriod}&symbol=OANDA:XAGUSD&interval=${interval}&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=kr&utm_source=www.koreagoldx.co.kr&utm_medium=widget&utm_campaign=chart&utm_term=OANDA:XAGUSD`;
+                                    
+                                    return (
+                                        <iframe
+                                            key={domesticPeriod}
+                                            src={widgetUrl}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                border: "none",
+                                                borderRadius: "4px"
+                                            }}
+                                            title="은시세 차트"
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                        
+                        {/* 데이터 출처 표기 */}
+                        <div style={{
+                            marginTop: "10px",
+                            textAlign: "center",
+                            fontSize: "11px",
+                            color: "#999"
+                        }}>
+                            데이터 출처: TradingView
+                        </div>
                     </div>
+
+                    {/* 오른쪽 패널: Platinum 시세 */}
+                    <div style={{
+                        border: "1px solid #e5e4e2",
+                        borderRadius: "8px",
+                        padding: "20px",
+                        backgroundColor: "#fff"
+                    }}>
+                        <div style={{
+                            marginBottom: "15px"
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                                Platinum 시세 (XPT/USD)
+                            </h3>
+                        </div>
+                        
+                        {/* 기간 선택 탭 */}
+                        <div style={{
+                            display: "flex",
+                            gap: "5px",
+                            marginBottom: "20px"
+                        }}>
+                            {["1개월", "5개월", "1년", "3년"].map(period => (
+                                <button
+                                    key={period}
+                                    onClick={() => setInternationalPeriod(period)}
+                                    style={{
+                                        padding: "4px 8px",
+                                        backgroundColor: internationalPeriod === period ? "#007bff" : "#f0f0f0",
+                                        color: internationalPeriod === period ? "#fff" : "#333",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontSize: "10px"
+                                    }}
+                                >
+                                    {period}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* TradingView Platinum 시세 그래프 */}
+                        <div style={{ marginBottom: "20px", height: "250px" }}>
+                            <div style={{ width: "100%", height: "100%" }}>
+                                {(() => {
+                                    const getInterval = (period) => {
+                                        switch(period) {
+                                            case "1개월": return "D";
+                                            case "5개월": return "W";
+                                            case "1년": return "M";
+                                            case "3년": return "12M";
+                                            default: return "D";
+                                        }
+                                    };
+                                    
+                                    const interval = getInterval(internationalPeriod);
+                                    const widgetUrl = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_platinum_${internationalPeriod}&symbol=OANDA:XPTUSD&interval=${interval}&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=kr&utm_source=www.koreagoldx.co.kr&utm_medium=widget&utm_campaign=chart&utm_term=OANDA:XPTUSD`;
+                                    
+                                    return (
+                                        <iframe
+                                            key={internationalPeriod}
+                                            src={widgetUrl}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                border: "none",
+                                                borderRadius: "4px"
+                                            }}
+                                            title="Platinum 시세 차트"
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                        
+                        {/* 데이터 출처 표기 */}
+                        <div style={{
+                            marginTop: "10px",
+                            textAlign: "center",
+                            fontSize: "11px",
+                            color: "#999"
+                        }}>
+                            데이터 출처: TradingView
+                        </div>
+                    </div>
+                </div>
+            ) : activeTab === "COIN" ? (
+                // COIN 탭: 환율 정보 + 비트코인 그래프
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "20px",
+                    marginBottom: "40px"
+                }}>
+                    {/* 왼쪽 패널: 환율 정보 (USD/KRW) */}
+                    <div style={{
+                        border: "1px solid #4a90e2",
+                        borderRadius: "8px",
+                        padding: "20px",
+                        backgroundColor: "#fff"
+                    }}>
+                        <div style={{
+                            marginBottom: "15px"
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                                환율 정보 (USD/KRW)
+                            </h3>
+                        </div>
+                        
+                        {/* 기간 선택 탭 */}
+                        <div style={{
+                            display: "flex",
+                            gap: "5px",
+                            marginBottom: "20px"
+                        }}>
+                            {["1개월", "5개월", "1년", "3년"].map(period => (
+                                <button
+                                    key={period}
+                                    onClick={() => setDomesticPeriod(period)}
+                                    style={{
+                                        padding: "4px 8px",
+                                        backgroundColor: domesticPeriod === period ? "#007bff" : "#f0f0f0",
+                                        color: domesticPeriod === period ? "#fff" : "#333",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontSize: "10px"
+                                    }}
+                                >
+                                    {period}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* TradingView 환율 그래프 */}
+                        <div style={{ marginBottom: "20px", height: "250px" }}>
+                            <div style={{ width: "100%", height: "100%" }}>
+                                {(() => {
+                                    const getInterval = (period) => {
+                                        switch(period) {
+                                            case "1개월": return "D";
+                                            case "5개월": return "W";
+                                            case "1년": return "M";
+                                            case "3년": return "12M";
+                                            default: return "D";
+                                        }
+                                    };
+                                    
+                                    const interval = getInterval(domesticPeriod);
+                                    const widgetUrl = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_usdkrw_${domesticPeriod}&symbol=FX_IDC:USDKRW&interval=${interval}&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=kr&utm_source=www.koreagoldx.co.kr&utm_medium=widget&utm_campaign=chart&utm_term=FX_IDC:USDKRW`;
+                                    
+                                    return (
+                                        <iframe
+                                            key={domesticPeriod}
+                                            src={widgetUrl}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                border: "none",
+                                                borderRadius: "4px"
+                                            }}
+                                            title="환율 차트"
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                        
+                        {/* 데이터 출처 표기 */}
+                        <div style={{
+                            marginTop: "10px",
+                            textAlign: "center",
+                            fontSize: "11px",
+                            color: "#999"
+                        }}>
+                            데이터 출처: TradingView
+                        </div>
+                    </div>
+
+                    {/* 오른쪽 패널: 비트코인 정보 */}
+                    <div style={{
+                        border: "1px solid #f7931a",
+                        borderRadius: "8px",
+                        padding: "20px",
+                        backgroundColor: "#fff"
+                    }}>
+                        <div style={{
+                            marginBottom: "15px"
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                                비트코인 시세 (BTC/USD)
+                            </h3>
+                        </div>
+                        
+                        {/* 기간 선택 탭 */}
+                        <div style={{
+                            display: "flex",
+                            gap: "5px",
+                            marginBottom: "20px"
+                        }}>
+                            {["1개월", "5개월", "1년", "3년"].map(period => (
+                                <button
+                                    key={period}
+                                    onClick={() => setInternationalPeriod(period)}
+                                    style={{
+                                        padding: "4px 8px",
+                                        backgroundColor: internationalPeriod === period ? "#007bff" : "#f0f0f0",
+                                        color: internationalPeriod === period ? "#fff" : "#333",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        fontSize: "10px"
+                                    }}
+                                >
+                                    {period}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* TradingView 비트코인 그래프 */}
+                        <div style={{ marginBottom: "20px", height: "250px" }}>
+                            <div style={{ width: "100%", height: "100%" }}>
+                                {(() => {
+                                    const getInterval = (period) => {
+                                        switch(period) {
+                                            case "1개월": return "D";
+                                            case "5개월": return "W";
+                                            case "1년": return "M";
+                                            case "3년": return "12M";
+                                            default: return "D";
+                                        }
+                                    };
+                                    
+                                    const interval = getInterval(internationalPeriod);
+                                    const widgetUrl = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_btc_${internationalPeriod}&symbol=BINANCE:BTCUSDT&interval=${interval}&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=kr&utm_source=www.koreagoldx.co.kr&utm_medium=widget&utm_campaign=chart&utm_term=BINANCE:BTCUSDT`;
+                                    
+                                    return (
+                                        <iframe
+                                            key={internationalPeriod}
+                                            src={widgetUrl}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                border: "none",
+                                                borderRadius: "4px"
+                                            }}
+                                            title="비트코인 시세 차트"
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                        
+                        {/* 데이터 출처 표기 */}
+                        <div style={{
+                            marginTop: "10px",
+                            textAlign: "center",
+                            fontSize: "11px",
+                            color: "#999"
+                        }}>
+                            데이터 출처: TradingView
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                // GOLD 탭: 기존 레이아웃
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "20px",
+                    marginBottom: "40px"
+                }}>
+                    {/* 왼쪽 패널: 국내 시세 */}
+                    <div style={{
+                        border: "1px solid #ffeb99",
+                        borderRadius: "8px",
+                        padding: "20px",
+                        backgroundColor: "#fff"
+                    }}>
+                        <div style={{
+                            marginBottom: "15px"
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                                국제 금 시세 (KRW/3.75g)
+                            </h3>
+                        </div>
                     
                     {/* 기간 선택 탭 */}
                     <div style={{
@@ -265,98 +685,57 @@ function Intro() {
                         ))}
                     </div>
                     
-                    {/* 라인 차트 */}
-                    <div style={{ marginBottom: "20px", height: "120px" }}>
-                        {domesticChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={domesticChartData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis 
-                                        domain={['auto', 'auto']}
-                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    {/* TradingView Mini Chart - 국내 금시세 (KRW) */}
+                    {/* API 키 없이 TradingView 위젯 사용 */}
+                    <div style={{ marginBottom: "20px", height: "250px" }}>
+                        <div style={{ width: "100%", height: "100%" }}>
+                            {(() => {
+                                // 기간에 따라 interval 조정
+                                const getInterval = (period) => {
+                                    switch(period) {
+                                        case "1개월": return "D";
+                                        case "5개월": return "W";
+                                        case "1년": return "M";
+                                        case "3년": return "12M";
+                                        default: return "D";
+                                    }
+                                };
+                                
+                                const interval = getInterval(domesticPeriod);
+                                // 한국 금시세는 TradingView에서 직접 제공하지 않으므로
+                                // 국제 금시세를 KRW로 변환하거나, 다른 방법 사용
+                                // 일단 국제 금시세를 기반으로 표시 (실제로는 한국 금시장 데이터 필요)
+                                const widgetUrl = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_domestic_${domesticPeriod}&symbol=OANDA:XAUUSD&interval=${interval}&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=kr&utm_source=www.koreagoldx.co.kr&utm_medium=widget&utm_campaign=chart&utm_term=OANDA:XAUUSD`;
+                                
+                                return (
+                                    <iframe
+                                        key={domesticPeriod}
+                                        src={widgetUrl}
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            border: "none",
+                                            borderRadius: "4px"
+                                        }}
+                                        title="국내 금시세 차트"
                                     />
-                                    <Tooltip 
-                                        formatter={(value) => [`${value.toLocaleString()}원`, "금"]}
-                                    />
-                                    <Line 
-                                        type="monotone" 
-                                        dataKey="price" 
-                                        stroke="#ff6b35" 
-                                        strokeWidth={2}
-                                        dot={{ r: 4 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div style={{ 
-                                height: "100%", 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center",
-                                color: "#666"
-                            }}>
-                                {priceLoading ? "데이터를 불러오는 중..." : "데이터가 없습니다."}
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* 바 차트 (전년 대비) */}
-                    <div style={{ marginBottom: "20px", height: "100px" }}>
-                        {yearComparisonData[1].value > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={yearComparisonData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis 
-                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                    />
-                                    <Tooltip 
-                                        formatter={(value) => `${value.toLocaleString()}원`}
-                                    />
-                                    <Bar dataKey="value" fill="#ff6b35" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div style={{ 
-                                height: "100%", 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center",
-                                color: "#666"
-                            }}>
-                                {priceLoading ? "데이터를 불러오는 중..." : "데이터가 없습니다."}
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* 요약 텍스트 */}
-                    {yearComparisonData[1].value > 0 && (
-                        <div style={{
-                            padding: "15px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "4px",
-                            fontSize: "14px",
-                            lineHeight: "1.6"
-                        }}>
-                            <p style={{ margin: 0, marginBottom: "5px" }}>
-                                오늘 금시세는 전년 동월동일 대비{" "}
-                                <strong style={{ color: "#ff6b35" }}>
-                                    {yearComparisonData[1].value > yearComparisonData[0].value 
-                                        ? `${(yearComparisonData[1].value - yearComparisonData[0].value).toLocaleString()}원 ▲ ${(((yearComparisonData[1].value - yearComparisonData[0].value) / yearComparisonData[0].value) * 100).toFixed(2)}%`
-                                        : `${(yearComparisonData[0].value - yearComparisonData[1].value).toLocaleString()}원 ▼ ${(((yearComparisonData[0].value - yearComparisonData[1].value) / yearComparisonData[0].value) * 100).toFixed(2)}%`}
-                                </strong>{" "}
-                                입니다.
-                            </p>
-                            <p style={{ margin: 0, color: "#666", fontSize: "12px" }}>
-                                美연준의 금리 인하 불확실성과 우크라이나...
-                            </p>
+                                );
+                            })()}
                         </div>
-                    )}
+                    </div>
+                    
+                    {/* 데이터 출처 표기 */}
+                    <div style={{
+                        marginTop: "10px",
+                        textAlign: "center",
+                        fontSize: "11px",
+                        color: "#999"
+                    }}>
+                        데이터 출처: TradingView
+                    </div>
                 </div>
 
-                {/* 오른쪽 패널: 국제 시세 */}
+                {/* 오른쪽 패널: 네이버 경제 뉴스 */}
                 <div style={{
                     border: "1px solid #b3ffb3",
                     borderRadius: "8px",
@@ -364,131 +743,132 @@ function Intro() {
                     backgroundColor: "#fff"
                 }}>
                     <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
                         marginBottom: "15px"
                     }}>
-                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold" }}>
-                            국제 시세 (USD/T.oz)
+                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                            경제 뉴스 브리핑
                         </h3>
-                        <a href="#" style={{ color: "#007bff", textDecoration: "none", fontSize: "14px" }}>
-                            국제 시세 전체보기 &gt;
-                        </a>
                     </div>
                     
-                    {/* 기간 선택 탭 */}
+                    {/* 네이버 뉴스 목록 */}
                     <div style={{
-                        display: "flex",
-                        gap: "5px",
-                        marginBottom: "20px"
+                        maxHeight: "250px",
+                        overflowY: "auto"
                     }}>
-                        {["실시간", "1개월", "5개월", "1년", "3년"].map(period => (
-                            <button
-                                key={period}
-                                onClick={() => setInternationalPeriod(period)}
-                                style={{
-                                    padding: "4px 8px",
-                                    backgroundColor: internationalPeriod === period ? "#007bff" : "#f0f0f0",
-                                    color: internationalPeriod === period ? "#fff" : "#333",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                    fontSize: "10px"
-                                }}
-                            >
-                                {period}
-                            </button>
-                        ))}
-                    </div>
-                    
-                    {/* 라인 차트 */}
-                    <div style={{ marginBottom: "20px", height: "120px" }}>
-                        {internationalChartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={internationalChartData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis 
-                                        domain={['auto', 'auto']}
-                                        tickFormatter={(value) => `$${value.toLocaleString()}`}
-                                    />
-                                    <Tooltip 
-                                        formatter={(value) => [`$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, "금"]}
-                                    />
-                                    <Line 
-                                        type="monotone" 
-                                        dataKey="price" 
-                                        stroke="#ff6b35" 
-                                        strokeWidth={2}
-                                        dot={{ r: 4 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div style={{ 
-                                height: "100%", 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center",
+                        {newsLoading ? (
+                            <div style={{
+                                padding: "20px",
+                                textAlign: "center",
                                 color: "#666"
                             }}>
-                                {priceLoading ? "데이터를 불러오는 중..." : "데이터가 없습니다."}
+                                뉴스를 불러오는 중...
+                            </div>
+                        ) : newsError ? (
+                            <div style={{
+                                padding: "20px",
+                                textAlign: "center",
+                                color: "#dc3545",
+                                fontSize: "12px"
+                            }}>
+                                <div style={{ marginBottom: "10px" }}>⚠️ {newsError}</div>
+                                <div style={{ fontSize: "11px", color: "#999" }}>
+                                    브라우저 콘솔을 확인해주세요.
+                                </div>
+                            </div>
+                        ) : newsList.length === 0 ? (
+                            <div style={{
+                                padding: "20px",
+                                textAlign: "center",
+                                color: "#666"
+                            }}>
+                                뉴스가 없습니다.
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "15px"
+                            }}>
+                                {newsList.map((news, index) => {
+                                    // HTML 태그 제거 및 텍스트만 추출
+                                    const cleanTitle = news.title.replace(/<[^>]*>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                                    const cleanDescription = news.description ? news.description.replace(/<[^>]*>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>') : '';
+                                    
+                                    // 출처 추출
+                                    let source = '뉴스 출처';
+                                    try {
+                                        if(news.originallink) {
+                                            source = new URL(news.originallink).hostname;
+                                        } else if(news.link) {
+                                            source = new URL(news.link).hostname;
+                                        }
+                                    } catch(e) {
+                                        source = '뉴스 출처';
+                                    }
+                                    
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                padding: "12px",
+                                                border: "1px solid #e0e0e0",
+                                                borderRadius: "6px"
+                                            }}
+                                        >
+                                            {/* 타이틀 */}
+                                            <div style={{
+                                                fontSize: "13px",
+                                                fontWeight: "bold",
+                                                marginBottom: "8px",
+                                                color: "#333",
+                                                lineHeight: "1.4"
+                                            }}>
+                                                {cleanTitle}
+                                            </div>
+                                            
+                                            {/* 내용 (2줄로 제한) */}
+                                            {cleanDescription && (
+                                                <div style={{
+                                                    fontSize: "11px",
+                                                    color: "#666",
+                                                    marginBottom: "8px",
+                                                    lineHeight: "1.4",
+                                                    display: "-webkit-box",
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: "vertical",
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis"
+                                                }}>
+                                                    {cleanDescription}
+                                                </div>
+                                            )}
+                                            
+                                            {/* 출처 */}
+                                            <div style={{
+                                                fontSize: "10px",
+                                                color: "#999"
+                                            }}>
+                                                <span>{source}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
                     
-                    {/* 매매기준가 */}
+                    {/* 데이터 출처 표기 */}
                     <div style={{
-                        padding: "15px",
-                        backgroundColor: "#f8f9fa",
-                        borderRadius: "4px"
+                        marginTop: "15px",
+                        textAlign: "center",
+                        fontSize: "11px",
+                        color: "#999"
                     }}>
-                        <div style={{ marginBottom: "10px", fontSize: "12px", color: "#666" }}>
-                            고시시간: {tradingStandard.quotationTime || "로딩 중..."}
-                        </div>
-                        <div style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginBottom: "8px"
-                        }}>
-                            <span style={{ fontSize: "14px" }}>국제기준시세:</span>
-                            <span style={{ fontSize: "14px", fontWeight: "bold", color: "#ff6b35" }}>
-                                {tradingStandard.internationalPrice > 0 
-                                    ? `${tradingStandard.internationalPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (USD/T.oz)` 
-                                    : "로딩 중..."}
-                                {tradingStandard.priceChange !== 0 && (
-                                    <span style={{ color: tradingStandard.priceChange > 0 ? "#28a745" : "#dc3545" }}>
-                                        {tradingStandard.priceChange > 0 ? " ▲" : " ▼"} {Math.abs(tradingStandard.priceChange).toFixed(2)}
-                                    </span>
-                                )}
-                            </span>
-                        </div>
-                        <div style={{
-                            display: "flex",
-                            justifyContent: "space-between"
-                        }}>
-                            <span style={{ fontSize: "14px" }}>기준환율:</span>
-                            <span style={{ fontSize: "14px", fontWeight: "bold" }}>
-                                {tradingStandard.exchangeRate > 0 
-                                    ? `${tradingStandard.exchangeRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (KRW/USD)` 
-                                    : "로딩 중..."}
-                                {tradingStandard.rateChange !== 0 && (
-                                    <span style={{ color: tradingStandard.rateChange > 0 ? "#28a745" : "#dc3545" }}>
-                                        {tradingStandard.rateChange > 0 ? " ▲" : " ▼"} {Math.abs(tradingStandard.rateChange).toFixed(2)}
-                                    </span>
-                                )}
-                            </span>
-                        </div>
+                        데이터 출처: <a href="https://news.deepsearch.com/" target="_blank" rel="noopener noreferrer" style={{ color: "#999", textDecoration: "none" }}>https://news.deepsearch.com/</a>
                     </div>
-                    {priceLoading && (
-                        <div style={{ textAlign: "center", padding: "10px", color: "#666", fontSize: "12px" }}>
-                            시세 데이터를 불러오는 중...
-                        </div>
-                    )}
                 </div>
             </div>
+            )}
 
             {/* 하단 경매 목록 */}
             <div style={{
@@ -532,10 +912,34 @@ function Intro() {
                                         <td style={{ padding: "10px", fontSize: "12px" }}>{item.imagename}</td>
                                         <td style={{ padding: "10px", fontSize: "12px" }}>{item.transactionMethod || "-"}</td>
                                         <td style={{ padding: "10px", fontSize: "12px" }}>
-                                            {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                            {(() => {
+                                                if(!item.auctionEndDate) {
+                                                    return "-";
+                                                }
+                                                const endDate = new Date(item.auctionEndDate);
+                                                endDate.setHours(0, 0, 0, 0);
+                                                const now = new Date();
+                                                now.setHours(0, 0, 0, 0);
+                                                
+                                                // 경매 종료 여부 확인
+                                                if(endDate < now) {
+                                                    return <span style={{ color: "#dc3545", fontWeight: "bold" }}>종료</span>;
+                                                }
+                                                return new Date(item.auctionEndDate).toLocaleDateString();
+                                            })()}
                                         </td>
                                         <td style={{ padding: "10px", textAlign: "right", fontSize: "12px", fontWeight: "bold", color: "#d9534f" }}>
-                                            ₩ {item.maxBidAmount?.toLocaleString() || item.imageprice?.toLocaleString() || 0}
+                                            {(() => {
+                                                // 입찰이 진행된 경우 최고 입찰금액, 그렇지 않으면 최초 등록 금액 표시
+                                                const maxBid = item.maxBidAmount !== undefined && item.maxBidAmount !== null && Number(item.maxBidAmount) > 0 
+                                                    ? Number(item.maxBidAmount) 
+                                                    : null;
+                                                const startPrice = item.imageprice !== undefined && item.imageprice !== null 
+                                                    ? Number(item.imageprice) 
+                                                    : 0;
+                                                const displayPrice = maxBid !== null ? maxBid : startPrice;
+                                                return `₩ ${displayPrice.toLocaleString()}`;
+                                            })()}
                                         </td>
                                         <td style={{ padding: "10px", textAlign: "center", fontSize: "12px" }}>{item.bidCount || 0}</td>
                                     </tr>
@@ -581,10 +985,34 @@ function Intro() {
                                         <td style={{ padding: "10px", fontSize: "12px" }}>{item.imagename}</td>
                                         <td style={{ padding: "10px", fontSize: "12px" }}>{item.transactionMethod || "-"}</td>
                                         <td style={{ padding: "10px", fontSize: "12px" }}>
-                                            {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                            {(() => {
+                                                if(!item.auctionEndDate) {
+                                                    return "-";
+                                                }
+                                                const endDate = new Date(item.auctionEndDate);
+                                                endDate.setHours(0, 0, 0, 0);
+                                                const now = new Date();
+                                                now.setHours(0, 0, 0, 0);
+                                                
+                                                // 경매 종료 여부 확인
+                                                if(endDate < now) {
+                                                    return <span style={{ color: "#dc3545", fontWeight: "bold" }}>종료</span>;
+                                                }
+                                                return new Date(item.auctionEndDate).toLocaleDateString();
+                                            })()}
                                         </td>
                                         <td style={{ padding: "10px", textAlign: "right", fontSize: "12px", fontWeight: "bold", color: "#d9534f" }}>
-                                            ₩ {item.maxBidAmount?.toLocaleString() || item.imageprice?.toLocaleString() || 0}
+                                            {(() => {
+                                                // 입찰이 진행된 경우 최고 입찰금액, 그렇지 않으면 최초 등록 금액 표시
+                                                const maxBid = item.maxBidAmount !== undefined && item.maxBidAmount !== null && Number(item.maxBidAmount) > 0 
+                                                    ? Number(item.maxBidAmount) 
+                                                    : null;
+                                                const startPrice = item.imageprice !== undefined && item.imageprice !== null 
+                                                    ? Number(item.imageprice) 
+                                                    : 0;
+                                                const displayPrice = maxBid !== null ? maxBid : startPrice;
+                                                return `₩ ${displayPrice.toLocaleString()}`;
+                                            })()}
                                         </td>
                                         <td style={{ padding: "10px", textAlign: "center", fontSize: "12px" }}>{item.bidCount || 0}</td>
                                     </tr>

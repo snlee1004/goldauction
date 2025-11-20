@@ -7,7 +7,8 @@ function ImageboardModifyForm() {
     const [productName, setProductName] = useState("");
     const [category, setCategory] = useState("");
     const [startPrice, setStartPrice] = useState("");
-    const [auctionPeriod, setAuctionPeriod] = useState("");
+    const [auctionEndDate, setAuctionEndDate] = useState("");
+    const [auctionEndTime, setAuctionEndTime] = useState("");
     const [transactionMethod, setTransactionMethod] = useState("");
     const [description, setDescription] = useState("");
     const [imageFiles, setImageFiles] = useState([]); // 새로 추가할 이미지 파일들
@@ -66,10 +67,32 @@ function ImageboardModifyForm() {
                     setExistingImages([item.image1]);
                 }
                 
-                // TODO: 백엔드에서 category, auctionPeriod, transactionMethod를 지원하면 설정
-                // setCategory(item.category || "");
-                // setAuctionPeriod(item.auctionPeriod || "");
-                // setTransactionMethod(item.transactionMethod || "");
+                // 카테고리 설정
+                if(item.category) {
+                    setCategory(item.category);
+                }
+                
+                // 거래 방식 설정
+                if(item.transactionMethod) {
+                    setTransactionMethod(item.transactionMethod);
+                }
+                
+                // 경매 종료일 설정 (날짜와 시간 분리)
+                if(item.auctionEndDate) {
+                    try {
+                        const endDate = new Date(item.auctionEndDate);
+                        // 날짜 부분 (YYYY-MM-DD)
+                        const dateStr = endDate.toISOString().split('T')[0];
+                        setAuctionEndDate(dateStr);
+                        
+                        // 시간 부분 (HH:mm)
+                        const hours = endDate.getHours().toString().padStart(2, '0');
+                        const minutes = endDate.getMinutes().toString().padStart(2, '0');
+                        setAuctionEndTime(`${hours}:${minutes}`);
+                    } catch(e) {
+                        console.error("경매 종료일 파싱 오류:", e);
+                    }
+                }
             } else {
                 alert("해당 게시글이 존재하지 않습니다.");
                 navigate("/imageboard/imageboardList");
@@ -144,6 +167,11 @@ function ImageboardModifyForm() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        // 날짜와 시간을 결합하여 auctionPeriod 생성
+        const auctionPeriod = auctionEndDate && auctionEndTime 
+            ? `${auctionEndDate}T${auctionEndTime}:00` 
+            : auctionEndDate || "";
+        
         // 검증 데이터 준비 (기존 필드명 사용)
         const validationData = {
             productName, 
@@ -174,6 +202,7 @@ function ImageboardModifyForm() {
         formData.append("productName", productName);
         formData.append("category", category);
         formData.append("startPrice", startPrice);
+        // 날짜와 시간을 결합하여 전송
         formData.append("auctionPeriod", auctionPeriod);
         formData.append("transactionMethod", transactionMethod);
         formData.append("description", description);
@@ -384,76 +413,52 @@ function ImageboardModifyForm() {
                 {/* 경매종료일 */}
                 <div style={{marginBottom: "20px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
-                        경매종료일
-                        <span style={{fontSize: "14px", fontWeight: "normal", color: "#ffb3d9", marginLeft: "10px"}}>
-                            (종료일을 선택해주세요)
+                        <span style={{color: "red"}}>*</span> 경매종료일
+                        <span style={{fontSize: "14px", fontWeight: "normal", color: "#ff1493", marginLeft: "10px"}}>
+                            (종료일과 시간을 선택해주세요)
                         </span>
                     </label>
-                    <div style={{display: "flex", gap: "10px", flexWrap: "wrap"}}>
-                        <button
-                            type="button"
-                            onClick={() => setAuctionPeriod("7일후")}
-                            style={{
-                                padding: "10px 20px",
-                                border: auctionPeriod === "7일후" ? "2px solid #007bff" : "1px solid #ddd",
-                                borderRadius: "4px",
-                                backgroundColor: auctionPeriod === "7일후" ? "#e7f3ff" : "#fff",
-                                color: auctionPeriod === "7일후" ? "#007bff" : "#333",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: auctionPeriod === "7일후" ? "bold" : "normal"
-                            }}
-                        >
-                            7일후
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setAuctionPeriod("14일후")}
-                            style={{
-                                padding: "10px 20px",
-                                border: auctionPeriod === "14일후" ? "2px solid #007bff" : "1px solid #ddd",
-                                borderRadius: "4px",
-                                backgroundColor: auctionPeriod === "14일후" ? "#e7f3ff" : "#fff",
-                                color: auctionPeriod === "14일후" ? "#007bff" : "#333",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: auctionPeriod === "14일후" ? "bold" : "normal"
-                            }}
-                        >
-                            14일후
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setAuctionPeriod("21일후")}
-                            style={{
-                                padding: "10px 20px",
-                                border: auctionPeriod === "21일후" ? "2px solid #007bff" : "1px solid #ddd",
-                                borderRadius: "4px",
-                                backgroundColor: auctionPeriod === "21일후" ? "#e7f3ff" : "#fff",
-                                color: auctionPeriod === "21일후" ? "#007bff" : "#333",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: auctionPeriod === "21일후" ? "bold" : "normal"
-                            }}
-                        >
-                            21일후
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setAuctionPeriod("30일후")}
-                            style={{
-                                padding: "10px 20px",
-                                border: auctionPeriod === "30일후" ? "2px solid #007bff" : "1px solid #ddd",
-                                borderRadius: "4px",
-                                backgroundColor: auctionPeriod === "30일후" ? "#e7f3ff" : "#fff",
-                                color: auctionPeriod === "30일후" ? "#007bff" : "#333",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: auctionPeriod === "30일후" ? "bold" : "normal"
-                            }}
-                        >
-                            30일후
-                        </button>
+                    <div style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
+                        {/* 날짜 선택 */}
+                        <div style={{flex: "1", minWidth: "200px"}}>
+                            <label style={{display: "block", marginBottom: "5px", fontSize: "14px", color: "#666"}}>
+                                날짜
+                            </label>
+                            <input 
+                                type="date" 
+                                value={auctionEndDate}
+                                onChange={(e) => setAuctionEndDate(e.target.value)}
+                                min={new Date().toISOString().split('T')[0]} // 오늘 이후만 선택 가능
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "4px",
+                                    fontSize: "14px"
+                                }}
+                            />
+                        </div>
+                        {/* 시간 선택 (24시간 형식) */}
+                        <div style={{flex: "1", minWidth: "150px"}}>
+                            <label style={{display: "block", marginBottom: "5px", fontSize: "14px", color: "#666"}}>
+                                시간 (24시간 형식)
+                            </label>
+                            <input 
+                                type="time" 
+                                value={auctionEndTime}
+                                onChange={(e) => setAuctionEndTime(e.target.value)}
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "4px",
+                                    fontSize: "14px"
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div style={{marginTop: "5px", fontSize: "12px", color: "#666"}}>
+                        * 경매 종료일은 오늘 이후 날짜만 선택 가능합니다.
                     </div>
                 </div>
 

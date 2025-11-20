@@ -3,12 +3,27 @@
     color: #000 !important;
     display: flex !important;
     align-items: center !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 800px !important;
+    z-index: 1000 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .navbar-custom .container-fluid {
     display: flex !important;
     align-items: center !important;
     flex-wrap: wrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 15px !important;
+    margin: 0 !important;
 }
 
 .navbar-custom .navbar-nav {
@@ -58,5 +73,97 @@
     display: flex !important;
     align-items: center !important;
     line-height: 1 !important;
+}
+
+/* 경매 GO 중앙 배치 */
+.navbar-custom .navbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+}
+
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+    .navbar-custom {
+        padding: 12px 0 !important;
+    }
+    
+    .navbar-custom .container-fluid {
+        padding: 0 10px !important;
+    }
+    
+    .navbar-custom .navbar-brand {
+        font-size: 14px !important;
+    }
+    
+    .navbar-custom .nav-link {
+        font-size: 12px !important;
+        padding: 5px 8px !important;
+    }
+    
+    .navbar-custom .btn-outline-danger {
+        font-size: 11px !important;
+        padding: 2px 6px !important;
+    }
+    
+    .navbar-custom .navbar-nav.me-auto {
+        gap: 10px;
+    }
+    
+    .navbar-custom .navbar-center {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+/* 반응형 디자인 - 태블릿 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .navbar-custom {
+        padding: 15px 0 !important;
+    }
+    
+    .navbar-custom .container-fluid {
+        padding: 0 15px !important;
+    }
+    
+    .navbar-custom .navbar-brand {
+        font-size: 16px !important;
+    }
+    
+    .navbar-custom .nav-link {
+        font-size: 14px !important;
+        padding: 6px 12px !important;
+    }
+    
+    .navbar-custom .navbar-nav.me-auto {
+        gap: 15px;
+    }
+}
+
+/* 반응형 디자인 - 데스크톱 */
+@media (min-width: 1025px) {
+    .navbar-custom {
+        padding: 15px 0 !important;
+    }
+    
+    .navbar-custom .container-fluid {
+        padding: 0 15px !important;
+    }
+    
+    .navbar-custom .navbar-brand {
+        font-size: 18px !important;
+    }
+    
+    .navbar-custom .nav-link {
+        font-size: 15px !important;
+        padding: 8px 15px !important;
+    }
+    
+    .navbar-custom .navbar-nav.me-auto {
+        gap: 20px;
+    }
 }
 

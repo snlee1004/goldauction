@@ -137,7 +137,7 @@ function WriteForm() {
     };
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "0 auto", padding: "20px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "0 auto", padding: "20px", marginTop: "70px", paddingTop: "30px", display: "flex", flexDirection: "column", alignItems: "center"}}>
             <h3 align="center" style={{marginBottom: "20px", fontSize: "18px"}}>
                 <i className="bi bi-person-plus"></i> 회원가입
             </h3>

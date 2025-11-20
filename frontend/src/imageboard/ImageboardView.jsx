@@ -13,6 +13,7 @@ function ImageboardView() {
     const [currentHighestBid, setCurrentHighestBid] = useState(0); // 현재 최고 입찰 금액
     const [showImagePopup, setShowImagePopup] = useState(false); // 이미지 팝업 표시 여부
     const [writerNickname, setWriterNickname] = useState(""); // 등록자 닉네임
+    const [remainingTime, setRemainingTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false }); // 남은 시간 (실시간)
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -129,17 +130,69 @@ function ImageboardView() {
         }
     };
 
-    // 남은 기간 계산
-    const calculateRemainingDays = () => {
+    // 남은 시간 계산 (실시간)
+    const calculateRemainingTime = () => {
         if(!imageboardData.auctionEndDate) {
-            return 0;
+            return { hours: 0, minutes: 0, seconds: 0, isExpired: true };
         }
+        
         const endDate = new Date(imageboardData.auctionEndDate);
-        const today = new Date();
-        const diffTime = endDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays > 0 ? diffDays : 0;
+        const now = new Date();
+        const diffTime = endDate - now;
+        
+        if(diffTime <= 0) {
+            return { hours: 0, minutes: 0, seconds: 0, isExpired: true };
+        }
+        
+        const hours = Math.floor(diffTime / (1000 * 60 * 60));
+        const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+        
+        return { hours, minutes, seconds, isExpired: false };
     };
+
+    // 실시간 카운터 업데이트
+    useEffect(() => {
+        if(!imageboardData.auctionEndDate) {
+            setRemainingTime({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+            return;
+        }
+        
+        // 즉시 계산
+        const updateTime = () => {
+            if(!imageboardData.auctionEndDate) {
+                setRemainingTime({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+                return;
+            }
+            
+            const endDate = new Date(imageboardData.auctionEndDate);
+            const now = new Date();
+            const diffTime = endDate - now;
+            
+            if(diffTime <= 0) {
+                setRemainingTime({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+                return;
+            }
+            
+            // 일자 계산
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            // 일자를 제외한 나머지 시간
+            const remainingAfterDays = diffTime % (1000 * 60 * 60 * 24);
+            const hours = Math.floor(remainingAfterDays / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingAfterDays % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remainingAfterDays % (1000 * 60)) / 1000);
+            
+            setRemainingTime({ days, hours, minutes, seconds, isExpired: false });
+        };
+        
+        // 즉시 계산
+        updateTime();
+        
+        // 1초마다 업데이트
+        const interval = setInterval(updateTime, 1000);
+        
+        return () => clearInterval(interval);
+    }, [imageboardData.auctionEndDate]);
 
     // 경매 상태 확인
     const getAuctionStatus = () => {
@@ -380,11 +433,10 @@ function ImageboardView() {
     };
 
     const status = getAuctionStatus();
-    const remainingDays = calculateRemainingDays();
     const unitPrice = imageboardData.imageprice || 0; // 단가
 
     return (
-        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px"}}>
+        <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "0"}}>
             {/* 상품명과 남은 기간 */}
             <div style={{marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                 <div style={{fontSize: "20px", color: "#4169E1", fontWeight: "bold"}}>
@@ -392,7 +444,17 @@ function ImageboardView() {
                 </div>
                 <div style={{fontSize: "16px", color: "#666", display: "flex", alignItems: "center", gap: "5px"}}>
                     <i className="bi bi-clock" style={{fontSize: "18px"}}></i>
-                    <span>남은기간: <span style={{color: "#d9534f", fontWeight: "bold"}}>{remainingDays}일</span></span>
+                    <span>
+                        경매 마감까지: 
+                        {remainingTime.isExpired ? (
+                            <span style={{color: "#d9534f", fontWeight: "bold", marginLeft: "5px"}}>종료됨</span>
+                        ) : (
+                            <span style={{color: "#d9534f", fontWeight: "bold", marginLeft: "5px"}}>
+                                {remainingTime.days > 0 && `${remainingTime.days}일 `}
+                                {remainingTime.hours}시간 {remainingTime.minutes.toString().padStart(2, '0')}분 {remainingTime.seconds.toString().padStart(2, '0')}초
+                            </span>
+                        )}
+                    </span>
                 </div>
             </div>
 
@@ -648,7 +710,15 @@ function ImageboardView() {
                 {isAuthor() && imageboardData.status !== "포기" && (
                     <>
                         &nbsp;
-                        <button className="btn btn-primary" onClick={handleModify}>
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={handleModify}
+                            style={{
+                                backgroundColor: "#D4AF37",
+                                borderColor: "#D4AF37",
+                                color: "#000"
+                            }}
+                        >
                             <i className="bi bi-pencil-square"></i> 수정
                         </button>
                         &nbsp;

@@ -35,7 +35,7 @@
 /* 반응형 디자인 - 태블릿 */
 @media (min-width: 769px) and (max-width: 1024px) {
     .app-container {
-        max-width: 90%;
+        max-width: 800px;
     }
     
     .main-content {

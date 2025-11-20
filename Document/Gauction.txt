@@ -1,6 +1,6 @@
 Title : GoldAuction
 금과은 그리고 보석이  관련된 경매중계사이트
-
+https://github.com/yybmion/public-apis-4Kr/blob/main/GLOBAL_PUBLIC_APIS_KR.md#%EB%89%B4%EC%8A%A4
 
 기본 내용
 : 회원 : 회원은 판매자와 구매가 가능하다. 닉네임표시 실제 이름은 다름:

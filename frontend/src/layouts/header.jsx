@@ -59,6 +59,8 @@ const NavbarComponent = () => {
                                     경매등록
                                 </Link>
                             </li>
+                        </ul>
+                        <ul className="navbar-nav navbar-center mb-2 mb-lg-0">
                             <li className="nav-item">
                                 <Link className={`nav-link ${location.pathname === "/imageboard/imageboardList" || location.pathname === "/" ? "active" : ""}`} 
                                       to="/imageboard/imageboardList">
