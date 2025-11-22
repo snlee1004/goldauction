@@ -37,6 +37,12 @@ function Intro() {
     const [recentList, setRecentList] = useState([]);
     const [loading, setLoading] = useState(false);
     
+    // 팝업 데이터
+    const [popupList, setPopupList] = useState([]);
+    const [showPopup, setShowPopup] = useState(false);
+    const [currentPopup, setCurrentPopup] = useState(null);
+    const [currentPopupIndex, setCurrentPopupIndex] = useState(0);
+    
     // 입찰 베스트 목록 조회 (입찰자 수 기준 정렬)
     const fetchBestBids = async () => {
         try {
@@ -193,10 +199,53 @@ function Intro() {
         }
     };
     
+    // 노출 중인 팝업 조회
+    const fetchVisiblePopups = async () => {
+        try {
+            const response = await fetch("http://localhost:8080/popup/visible");
+            if(response.ok) {
+                const data = await response.json();
+                if(data.rt === "OK" && data.items && data.items.length > 0) {
+                    // 오늘 하루 보지 않기 체크
+                    const today = new Date().toDateString();
+                    const visiblePopups = data.items.filter(popup => {
+                        const hiddenDate = localStorage.getItem(`popup_${popup.popupSeq}_hidden`);
+                        // localStorage에 저장된 날짜가 오늘이 아니면 표시
+                        return hiddenDate !== today;
+                    });
+                    
+                    if(visiblePopups.length > 0) {
+                        setPopupList(visiblePopups);
+                        setCurrentPopupIndex(0);
+                        setCurrentPopup(visiblePopups[0]); // 첫 번째 팝업 표시
+                        setShowPopup(true);
+                    }
+                }
+            }
+        } catch(err) {
+            console.error("팝업 조회 오류:", err);
+        }
+    };
+    
+    // 팝업 닫기 (다음 팝업이 있으면 표시)
+    const handleClosePopup = () => {
+        const nextIndex = currentPopupIndex + 1;
+        if(nextIndex < popupList.length) {
+            // 다음 팝업 표시
+            setCurrentPopupIndex(nextIndex);
+            setCurrentPopup(popupList[nextIndex]);
+        } else {
+            // 모든 팝업을 표시했으면 닫기
+            setShowPopup(false);
+            setCurrentPopup(null);
+            setCurrentPopupIndex(0);
+        }
+    };
+    
     // 경매 목록 조회 및 뉴스 조회
     useEffect(() => {
         setLoading(true);
-        Promise.all([fetchBestBids(), fetchRecentList(), fetchGoldNews()])
+        Promise.all([fetchBestBids(), fetchRecentList(), fetchGoldNews(), fetchVisiblePopups()])
             .finally(() => setLoading(false));
     }, []);
     
@@ -227,6 +276,130 @@ function Intro() {
             marginTop: "70px",
             paddingTop: "0"
         }}>
+            {/* 팝업 표시 - 모든 팝업을 동시에 표시 */}
+            {showPopup && popupList.length > 0 && popupList.map((popup, index) => (
+                <div 
+                    key={popup.popupSeq}
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: index === 0 ? "rgba(0, 0, 0, 0.5)" : "transparent",  // 첫 번째 팝업만 배경 표시
+                        zIndex: 9999 - index,  // 첫 번째 팝업이 가장 위에
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "flex-start",
+                        padding: "65px",
+                        pointerEvents: index === 0 ? "auto" : "none"  // 첫 번째 팝업만 클릭 가능
+                    }}
+                >
+                    <div style={{
+                        position: "relative",
+                        maxWidth: "600px",
+                        maxHeight: "80vh",
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                        marginLeft: `${-450 + (index * 300)}px`,  // 각 팝업마다 50px씩 오른쪽으로 이동
+                        marginTop: `${index * 50}px`,  // 각 팝업마다 50px씩 아래로 이동
+                        pointerEvents: "auto"  // 팝업 자체는 클릭 가능
+                    }}>
+                        {/* 백그라운드 이미지 */}
+                        {popup.backgroundImage && (
+                            <div style={{
+                                width: "100%",
+                                height: "200px",
+                                backgroundImage: `url(http://localhost:8080/storage/${popup.backgroundImage})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center"
+                            }}></div>
+                        )}
+                        
+                        {/* 팝업 내용 */}
+                        <div style={{
+                            padding: "20px"
+                        }}>
+                            <h3 style={{
+                                marginTop: 0,
+                                marginBottom: "15px",
+                                fontSize: "20px",
+                                fontWeight: "bold",
+                                color: "#333"
+                            }}>
+                                {popup.popupTitle}
+                            </h3>
+                            
+                            <div style={{
+                                marginBottom: "20px",
+                                fontSize: "14px",
+                                color: "#666",
+                                lineHeight: "1.6",
+                                whiteSpace: "pre-wrap"
+                            }}>
+                                {popup.popupContent}
+                            </div>
+                            
+                            <div style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center"
+                            }}>
+                                <label style={{
+                                    fontSize: "13px",
+                                    color: "#999",
+                                    cursor: "pointer"
+                                }}>
+                                    <input
+                                        type="checkbox"
+                                        onChange={(e) => {
+                                            if(e.target.checked) {
+                                                // 오늘 하루 보지 않기 (localStorage에 저장)
+                                                localStorage.setItem(`popup_${popup.popupSeq}_hidden`, new Date().toDateString());
+                                                // 현재 팝업을 리스트에서 제거하고 다음 팝업 표시
+                                                const updatedList = popupList.filter(p => p.popupSeq !== popup.popupSeq);
+                                                if(updatedList.length > 0) {
+                                                    setPopupList(updatedList);
+                                                    setCurrentPopup(updatedList[0]);
+                                                    setCurrentPopupIndex(0);
+                                                } else {
+                                                    handleClosePopup();
+                                                }
+                                            }
+                                        }}
+                                    />
+                                    {" "}오늘 하루 보지 않기
+                                </label>
+                                
+                                <span
+                                    onClick={() => {
+                                        // 현재 팝업을 리스트에서 제거하고 다음 팝업 표시
+                                        const updatedList = popupList.filter(p => p.popupSeq !== popup.popupSeq);
+                                        if(updatedList.length > 0) {
+                                            setPopupList(updatedList);
+                                            setCurrentPopup(updatedList[0]);
+                                            setCurrentPopupIndex(0);
+                                        } else {
+                                            handleClosePopup();
+                                        }
+                                    }}
+                                    style={{
+                                        fontSize: "14px",
+                                        color: "#666",
+                                        cursor: "pointer",
+                                        textDecoration: "underline",
+                                        marginLeft: "20px"
+                                    }}
+                                >
+                                    [× 닫기]
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ))}
             {/* 상단 탭 */}
             <div style={{
                 display: "flex",

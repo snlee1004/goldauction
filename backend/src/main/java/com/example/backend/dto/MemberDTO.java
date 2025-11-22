@@ -20,9 +20,14 @@ public class MemberDTO {
 	private String tel3;
 	private String addr;
 	private Date logtime;
+	private String isSuspended;  // 계정 정지 여부
+	private Date suspendStartDate;  // 정지 시작일
+	private Date suspendEndDate;  // 정지 종료일
+	private String suspendReason;  // 정지 사유
 	
 	public Member toEntity() {
 		return new Member(name, id, nickname, pwd, gender, email1, email2, 
-						  tel1, tel2, tel3, addr, logtime);
+						  tel1, tel2, tel3, addr, logtime, isSuspended, 
+						  suspendStartDate, suspendEndDate, suspendReason);
 	}
 }

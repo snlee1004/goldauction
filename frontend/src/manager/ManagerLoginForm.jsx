@@ -1,20 +1,19 @@
 import { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { validateLogin } from "../script/memberValidation";
 
-function LoginForm() {
-    const [id, setId] = useState("");
-    const [pwd, setPwd] = useState("");
+function ManagerLoginForm() {
+    const [managerId, setManagerId] = useState("");
+    const [managerPwd, setManagerPwd] = useState("");
 
-    const idRef = useRef(null);
-    const pwdRef = useRef(null);
+    const managerIdRef = useRef(null);
+    const managerPwdRef = useRef(null);
 
     const navigate = useNavigate();
 
-    // 로그인 처리
+    // 관리자 로그인 처리
     const fetchLoginData = async (loginData) => {
         try {
-            const response = await fetch("http://localhost:8080/member/login",
+            const response = await fetch("http://localhost:8080/manager/login",
                                         {   method: "POST",
                                             headers: {
                                                 "Content-Type": "application/json"
@@ -22,31 +21,17 @@ function LoginForm() {
                                             body: JSON.stringify(loginData)
                                         });
             const data = await response.json();
-            console.log("로그인 응답:", data); // 디버깅용
+            console.log("관리자 로그인 응답:", data);
             if(response.ok) {
                 if(data.rt === "OK") {
                     // 로그인 성공 - 세션 스토리지에 저장
-                    sessionStorage.setItem("memName", data.name);
-                    const nickname = data.nickname || data.name || ""; // 닉네임이 없으면 이름 사용
-                    sessionStorage.setItem("memNickname", nickname);
-                    sessionStorage.setItem("memId", data.id);
-                    console.log("저장된 닉네임:", nickname); // 디버깅용
-                    alert("로그인 성공");
-                    navigate("/imageboard/imageboardList");
-                } else if(data.rt === "SUSPENDED") {
-                    // 계정 정지된 경우
-                    if(data.suspendEndDate) {
-                        sessionStorage.setItem("suspendEndDate", data.suspendEndDate);
-                    }
-                    if(data.suspendReason) {
-                        sessionStorage.setItem("suspendReason", data.suspendReason);
-                    }
-                    // 정지 안내 페이지로 이동
-                    const endDateParam = data.suspendEndDate ? `?endDate=${encodeURIComponent(data.suspendEndDate)}` : "";
-                    const reasonParam = data.suspendReason ? `&reason=${encodeURIComponent(data.suspendReason)}` : "";
-                    navigate(`/member/suspended${endDateParam}${reasonParam}`);
+                    sessionStorage.setItem("managerId", data.managerId);
+                    sessionStorage.setItem("managerName", data.managerName);
+                    sessionStorage.setItem("managerRole", data.managerRole);
+                    alert("관리자 로그인 성공");
+                    navigate("/manager/managerInfo");
                 } else {
-                    alert(data.msg || "아이디 또는 비밀번호가 일치하지 않습니다.");
+                    alert("아이디 또는 비밀번호가 일치하지 않습니다.");
                 }
             } else {
                 alert("로그인에 실패했습니다.");
@@ -60,27 +45,36 @@ function LoginForm() {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if(!validateLogin(id, pwd, idRef, pwdRef)) {
+        if(!managerId || managerId.trim() === "") {
+            alert("관리자 ID를 입력하세요.");
+            if(managerIdRef.current) managerIdRef.current.focus();
             return false;
         }
+
+        if(!managerPwd || managerPwd.trim() === "") {
+            alert("비밀번호를 입력하세요.");
+            if(managerPwdRef.current) managerPwdRef.current.focus();
+            return false;
+        }
+
         // 로그인 데이터 준비
         const loginData = {
-            id: id,
-            pwd: pwd
+            managerId: managerId,
+            managerPwd: managerPwd
         };
         // 로그인 요청
         fetchLoginData(loginData);
     };
 
     const handleReset = () => {
-        setId("");
-        setPwd("");
+        setManagerId("");
+        setManagerPwd("");
     };
 
     return (
         <div className="container" style={{maxWidth: "400px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "30px"}}>
             <h3 align="center" style={{marginBottom: "20px", fontSize: "18px"}}>
-                <i className="bi bi-person-check"></i> 회원 로그인
+                <i className="bi bi-shield-lock"></i> 관리자 로그인
             </h3>
             <form onSubmit={handleSubmit}>
                 <div style={{
@@ -91,13 +85,13 @@ function LoginForm() {
                     <tbody>
                         <tr style={{borderBottom: "1px solid #ccc"}}>
                             <td align="left" style={{fontSize: "13px"}}>
-                                <i className="bi bi-person"></i> 아이디
+                                <i className="bi bi-person"></i> 관리자 ID
                             </td>
                             <td>
-                                <input type="text" value={id} size="25"
-                                        ref={idRef} 
-                                        onChange={(e) => setId(e.target.value)}
-                                        placeholder="아이디를 입력하세요"
+                                <input type="text" value={managerId} size="25"
+                                        ref={managerIdRef} 
+                                        onChange={(e) => setManagerId(e.target.value)}
+                                        placeholder="관리자 ID를 입력하세요"
                                         style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
                         </tr>
@@ -106,9 +100,9 @@ function LoginForm() {
                                 <i className="bi bi-lock"></i> 비밀번호
                             </td>
                             <td>
-                                <input type="password" value={pwd} size="25"
-                                        ref={pwdRef} 
-                                        onChange={(e) => setPwd(e.target.value)}
+                                <input type="password" value={managerPwd} size="25"
+                                        ref={managerPwdRef} 
+                                        onChange={(e) => setManagerPwd(e.target.value)}
                                         placeholder="비밀번호를 입력하세요"
                                         style={{fontSize: "13px", padding: "6px"}}/>
                             </td>
@@ -144,8 +138,8 @@ function LoginForm() {
                         </tr>
                         <tr>
                             <td colSpan="2" align="center" style={{fontSize: "13px"}}>
-                                <Link to="/member/writeForm">
-                                    <i className="bi bi-person-plus"></i> 회원가입
+                                <Link to="/member/loginForm">
+                                    <i className="bi bi-arrow-left"></i> 일반 회원 로그인
                                 </Link>
                             </td>
                         </tr>
@@ -157,5 +151,5 @@ function LoginForm() {
     );
 }
 
-export default LoginForm;
+export default ManagerLoginForm;
 

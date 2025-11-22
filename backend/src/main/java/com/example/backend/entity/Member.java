@@ -44,4 +44,18 @@ public class Member {
 	@Temporal(TemporalType.DATE)  // 년월일 저장 설정
 	@Column(name = "LOGTIME")
 	private Date logtime;
+	
+	@Column(name = "IS_SUSPENDED")
+	private String isSuspended;  // 계정 정지 여부 (Y: 정지, N: 정상)
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "SUSPEND_START_DATE")
+	private Date suspendStartDate;  // 정지 시작일
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "SUSPEND_END_DATE")
+	private Date suspendEndDate;  // 정지 종료일
+	
+	@Column(name = "SUSPEND_REASON")
+	private String suspendReason;  // 정지 사유
 }

@@ -13,6 +13,14 @@ import LoginForm from "./member/LoginForm";
 import WriteForm from "./member/WriteForm";
 import ModifyForm from "./member/ModifyForm";
 import MemberInfo from "./member/MemberInfo";
+import MemberSuspended from "./member/MemberSuspended";
+import ManagerInfo from "./manager/managercontronl";
+import ManagerLoginForm from "./manager/ManagerLoginForm";
+import ManagerDetailInfo from "./manager/ManagerDetailInfo";
+import MemberList from "./membercontrol/MemberList";
+import MemberModify from "./membercontrol/MemberModify";
+import MemberSuspend from "./membercontrol/MemberSuspend";
+import PopupManage from "./popup/PopupManage";
 import Intro from "./Intro";
 
 function App() {
@@ -45,6 +53,22 @@ function App() {
                                 element={<ModifyForm/>} />
                             <Route path="/member/memberInfo" 
                                 element={<MemberInfo/>} />
+                            <Route path="/member/suspended" 
+                                element={<MemberSuspended/>} />
+                            <Route path="/manager/managerInfo" 
+                                element={<ManagerInfo/>} />
+                            <Route path="/manager/loginForm" 
+                                element={<ManagerLoginForm/>} />
+                            <Route path="/manager/detailInfo" 
+                                element={<ManagerDetailInfo/>} />
+                            <Route path="/membercontrol/list" 
+                                element={<MemberList/>} />
+                            <Route path="/membercontrol/modify" 
+                                element={<MemberModify/>} />
+                            <Route path="/membercontrol/suspend" 
+                                element={<MemberSuspend/>} />
+                            <Route path="/popup/manage" 
+                                element={<PopupManage/>} />
                         </Routes>
                     </div>
                 </div>

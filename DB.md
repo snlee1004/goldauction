@@ -22,12 +22,55 @@ CREATE TABLE MEMBER1 (
     TEL2 VARCHAR2(10),                      -- 전화번호 중간자리
     TEL3 VARCHAR2(10),                      -- 전화번호 뒷자리
     ADDR VARCHAR2(200),                      -- 주소
-    LOGTIME DATE DEFAULT SYSDATE             -- 가입일시
+    LOGTIME DATE DEFAULT SYSDATE,            -- 가입일시
+    IS_SUSPENDED VARCHAR2(1) DEFAULT 'N',    -- 계정 정지 여부 (Y: 정지, N: 정상)
+    SUSPEND_START_DATE DATE,                 -- 정지 시작일
+    SUSPEND_END_DATE DATE,                   -- 정지 종료일
+    SUSPEND_REASON VARCHAR2(500)             -- 정지 사유
 );
 
 -- 인덱스 생성
 CREATE INDEX IDX_MEMBER1_ID ON MEMBER1(ID);
 CREATE INDEX IDX_MEMBER1_NICKNAME ON MEMBER1(NICKNAME);
+CREATE INDEX IDX_MEMBER1_SUSPENDED ON MEMBER1(IS_SUSPENDED);
+```
+
+### 기존 테이블에 계정 정지 필드 추가 (ALTER TABLE)
+
+기존에 MEMBER1 테이블이 이미 생성되어 있는 경우, 아래 SQL을 실행하여 계정 정지 관련 필드를 추가할 수 있습니다:
+
+```sql
+-- 1. 계정 정지 여부 필드 추가 (Y: 정지, N: 정상, 기본값: N)
+ALTER TABLE MEMBER1 ADD (
+    IS_SUSPENDED VARCHAR2(1) DEFAULT 'N'
+);
+
+-- 2. 정지 시작일 필드 추가
+ALTER TABLE MEMBER1 ADD (
+    SUSPEND_START_DATE DATE
+);
+
+-- 3. 정지 종료일 필드 추가
+ALTER TABLE MEMBER1 ADD (
+    SUSPEND_END_DATE DATE
+);
+
+-- 4. 정지 사유 필드 추가
+ALTER TABLE MEMBER1 ADD (
+    SUSPEND_REASON VARCHAR2(500)
+);
+
+-- 5. 기존 데이터의 IS_SUSPENDED를 'N'으로 업데이트 (NULL인 경우)
+UPDATE MEMBER1 SET IS_SUSPENDED = 'N' WHERE IS_SUSPENDED IS NULL;
+
+-- 6. 인덱스 생성 (계정 정지 여부로 검색 시 성능 향상)
+CREATE INDEX IDX_MEMBER1_SUSPENDED ON MEMBER1(IS_SUSPENDED);
+
+-- 7. 확인 쿼리 (추가된 컬럼 확인)
+SELECT COLUMN_NAME, DATA_TYPE, DATA_LENGTH, NULLABLE, DATA_DEFAULT
+FROM USER_TAB_COLUMNS
+WHERE TABLE_NAME = 'MEMBER1'
+ORDER BY COLUMN_ID;
 ```
 
 ### 샘플 데이터 삽입
@@ -417,7 +460,121 @@ END;
 
 ---
 
-## 9. 테이블 삭제 순서 (주의: 데이터 삭제됨)
+## 9. 팝업 테이블 (POPUP1)
+
+### 테이블 생성
+```sql
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_POPUP1
+START WITH 1
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+
+-- 팝업 테이블 생성
+CREATE TABLE POPUP1 (
+    POPUP_SEQ NUMBER PRIMARY KEY,            -- 팝업 번호 (PK, 시퀀스)
+    POPUP_TITLE VARCHAR2(200),                -- 팝업 제목
+    POPUP_CONTENT CLOB,                      -- 팝업 내용
+    BACKGROUND_IMAGE VARCHAR2(200),          -- 백그라운드 이미지 경로
+    IS_VISIBLE VARCHAR2(1) DEFAULT 'N',     -- 노출 여부 (Y: 노출, N: 비노출)
+    POPUP_TYPE VARCHAR2(50),                 -- 팝업 타입 (이벤트, 초특가, 공지사항)
+    START_DATE DATE,                         -- 노출 시작일
+    END_DATE DATE,                           -- 노출 종료일
+    LOGTIME DATE DEFAULT SYSDATE             -- 등록일시
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_POPUP1_SEQ ON POPUP1(POPUP_SEQ);
+CREATE INDEX IDX_POPUP1_VISIBLE ON POPUP1(IS_VISIBLE);
+CREATE INDEX IDX_POPUP1_TYPE ON POPUP1(POPUP_TYPE);
+```
+
+### 샘플 데이터 삽입
+```sql
+-- 팝업 샘플 데이터
+INSERT INTO POPUP1 (POPUP_SEQ, POPUP_TITLE, POPUP_CONTENT, BACKGROUND_IMAGE, IS_VISIBLE, POPUP_TYPE, START_DATE, END_DATE, LOGTIME)
+VALUES (SEQ_POPUP1.NEXTVAL, '신규 회원 이벤트', '신규 회원 가입 시 특별 혜택을 드립니다!', 'event_bg.jpg', 'Y', '이벤트', SYSDATE, SYSDATE + 30, SYSDATE);
+
+INSERT INTO POPUP1 (POPUP_SEQ, POPUP_TITLE, POPUP_CONTENT, BACKGROUND_IMAGE, IS_VISIBLE, POPUP_TYPE, START_DATE, END_DATE, LOGTIME)
+VALUES (SEQ_POPUP1.NEXTVAL, '초특가 경매 안내', '한정 기간 초특가 경매가 진행 중입니다.', 'special_bg.jpg', 'N', '초특가', SYSDATE, SYSDATE + 7, SYSDATE);
+```
+
+### 팝업 관련 쿼리
+```sql
+-- 노출 중인 팝업 조회
+SELECT * FROM POPUP1 
+WHERE IS_VISIBLE = 'Y' 
+AND (START_DATE IS NULL OR START_DATE <= SYSDATE)
+AND (END_DATE IS NULL OR END_DATE >= SYSDATE)
+ORDER BY POPUP_SEQ;
+
+-- 팝업 노출 상태 변경
+UPDATE POPUP1 
+SET IS_VISIBLE = 'Y'
+WHERE POPUP_SEQ = ?;
+
+-- 팝업 비노출 상태 변경
+UPDATE POPUP1 
+SET IS_VISIBLE = 'N'
+WHERE POPUP_SEQ = ?;
+```
+
+---
+
+## 10. 관리자 테이블 (MANAGER1)
+
+### 테이블 생성
+```sql
+-- 관리자 테이블 생성
+CREATE TABLE MANAGER1 (
+    MANAGER_ID VARCHAR2(50) PRIMARY KEY,        -- 관리자 ID (PK)
+    MANAGER_NAME VARCHAR2(50) NOT NULL,          -- 관리자 이름
+    MANAGER_PWD VARCHAR2(100) NOT NULL,          -- 비밀번호
+    MANAGER_EMAIL VARCHAR2(100),                 -- 이메일
+    MANAGER_TEL VARCHAR2(20),                    -- 전화번호
+    MANAGER_ROLE VARCHAR2(20) DEFAULT '관리자',  -- 권한 (관리자, 슈퍼관리자)
+    LOGTIME DATE DEFAULT SYSDATE,                -- 등록일시
+    LAST_LOGIN DATE                              -- 마지막 로그인 시간
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_MANAGER1_ID ON MANAGER1(MANAGER_ID);
+CREATE INDEX IDX_MANAGER1_ROLE ON MANAGER1(MANAGER_ROLE);
+```
+
+### 샘플 데이터 삽입
+```sql
+-- 관리자 샘플 데이터
+INSERT INTO MANAGER1 (MANAGER_ID, MANAGER_NAME, MANAGER_PWD, MANAGER_EMAIL, MANAGER_TEL, MANAGER_ROLE, LOGTIME, LAST_LOGIN)
+VALUES ('admin', '관리자', '1111', 'admin@goldauction.com', '010-1234-5678', '슈퍼관리자', SYSDATE, NULL);
+
+INSERT INTO MANAGER1 (MANAGER_ID, MANAGER_NAME, MANAGER_PWD, MANAGER_EMAIL, MANAGER_TEL, MANAGER_ROLE, LOGTIME, LAST_LOGIN)
+VALUES ('manager1', '일반관리자', '1111', 'manager1@goldauction.com', '010-2345-6789', '관리자', SYSDATE, NULL);
+```
+
+### 관리자 관련 쿼리
+```sql
+-- 관리자 로그인 확인
+SELECT * FROM MANAGER1 WHERE MANAGER_ID = ? AND MANAGER_PWD = ?;
+
+-- 관리자 정보 조회
+SELECT * FROM MANAGER1 WHERE MANAGER_ID = ?;
+
+-- 관리자 정보 수정
+UPDATE MANAGER1 
+SET MANAGER_NAME = ?, MANAGER_PWD = ?, MANAGER_EMAIL = ?, MANAGER_TEL = ?
+WHERE MANAGER_ID = ?;
+
+-- 마지막 로그인 시간 업데이트
+UPDATE MANAGER1 
+SET LAST_LOGIN = SYSDATE
+WHERE MANAGER_ID = ?;
+```
+
+---
+
+## 10. 테이블 삭제 순서 (주의: 데이터 삭제됨)
 
 ```sql
 -- 외래키 제약조건 때문에 역순으로 삭제
@@ -425,6 +582,7 @@ DROP TABLE BID1;
 DROP TABLE IMAGEBOARD_IMAGES1;
 DROP TABLE IMAGEBOARD1;
 DROP TABLE NOTICE1;
+DROP TABLE MANAGER1;
 DROP TABLE MEMBER1;
 
 -- 시퀀스 삭제
@@ -436,7 +594,7 @@ DROP SEQUENCE SEQ_NOTICE1;
 
 ---
 
-## 10. 필드 매핑 정리
+## 11. 필드 매핑 정리
 
 ### WriteForm.jsx → MEMBER1 테이블
 - name → NAME
@@ -471,7 +629,7 @@ DROP SEQUENCE SEQ_NOTICE1;
 
 ---
 
-## 11. 주의사항
+## 12. 주의사항
 
 1. **비밀번호 암호화**: 실제 운영 환경에서는 PWD 필드에 평문 비밀번호를 저장하지 말고 해시값을 저장해야 합니다.
 2. **이미지 파일 저장**: 이미지 파일은 서버 파일 시스템에 저장하고, DB에는 파일 경로만 저장합니다.
@@ -481,7 +639,7 @@ DROP SEQUENCE SEQ_NOTICE1;
 
 ---
 
-## 12. 추가 개선 사항
+## 13. 추가 개선 사항
 
 1. **입찰 알림 기능**: 입찰 시 이메일/알림 발송을 위한 알림 테이블 추가 고려
 2. **경매 관심 목록**: 사용자별 관심 경매 저장을 위한 관심목록 테이블 추가 고려
@@ -489,7 +647,7 @@ DROP SEQUENCE SEQ_NOTICE1;
 4. **채팅 기능**: 거래자 간 소통을 위한 채팅 테이블 추가 고려
 
 
-## 12. IMAGEBOARD1 샘플 데이터 삽입
+## 14. IMAGEBOARD1 샘플 데이터 삽입
 -- 1. IMAGEBOARD1
 
 INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 10g', 1200000, 1, '고순도 99.9% 골드바입니다.', 'img_001.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);

@@ -1,6 +1,12 @@
 package com.example.backend.dao;
 
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.backend.dto.MemberDTO;
@@ -46,12 +52,91 @@ public class MemberDAO {
 		if(member != null) {
 			// 회원가입일 데이터 저장
 			dto.setLogtime(member.getLogtime());
+			// 비밀번호가 null이거나 비어있으면 기존 비밀번호 유지
+			if(dto.getPwd() == null || dto.getPwd().trim().isEmpty()) {
+				dto.setPwd(member.getPwd());
+			}
+			// 계정 정지 정보 유지 (수정 시 변경되지 않으면)
+			if(dto.getIsSuspended() == null) {
+				dto.setIsSuspended(member.getIsSuspended());
+				dto.setSuspendStartDate(member.getSuspendStartDate());
+				dto.setSuspendEndDate(member.getSuspendEndDate());
+				dto.setSuspendReason(member.getSuspendReason());
+			}
 			// 수정내용 저장
 			Member member_result = memberRepository.save(dto.toEntity());
 			// 결과값
 			if(member_result != null) result = 1;
 		}
 		return result;
+	}
+	
+	// 전체 회원 목록 조회 (페이징)
+	public List<Member> getAllMembers(int startNum, int endNum) {
+		int pageSize = endNum - startNum + 1;
+		int pageNum = (startNum - 1) / pageSize;
+		Pageable pageable = PageRequest.of(pageNum, pageSize);
+		Page<Member> page = memberRepository.findAll(pageable);
+		return page.getContent();
+	}
+	
+	// 회원 검색 (이름, 아이디, 닉네임)
+	public List<Member> searchMembers(String keyword, int startNum, int endNum) {
+		int pageSize = endNum - startNum + 1;
+		int pageNum = (startNum - 1) / pageSize;
+		Pageable pageable = PageRequest.of(pageNum, pageSize);
+		Page<Member> page = memberRepository.findByKeyword(keyword, pageable);
+		return page.getContent();
+	}
+	
+	// 전체 회원 수 조회
+	public long getTotalCount() {
+		return memberRepository.count();
+	}
+	
+	// 검색된 회원 수 조회
+	public long getSearchCount(String keyword) {
+		Pageable pageable = PageRequest.of(0, 1);
+		Page<Member> page = memberRepository.findByKeyword(keyword, pageable);
+		return page.getTotalElements();
+	}
+	
+	// 회원 삭제
+	public int deleteMember(String id) {
+		try {
+			memberRepository.deleteById(id);
+			return 1;
+		} catch(Exception e) {
+			return 0;
+		}
+	}
+	
+	// 계정 정지 설정
+	public int suspendMember(String id, Date startDate, Date endDate, String reason) {
+		Member member = memberRepository.findById(id).orElse(null);
+		if(member != null) {
+			member.setIsSuspended("Y");
+			member.setSuspendStartDate(startDate);
+			member.setSuspendEndDate(endDate);
+			member.setSuspendReason(reason);
+			Member result = memberRepository.save(member);
+			return result != null ? 1 : 0;
+		}
+		return 0;
+	}
+	
+	// 계정 정지 해제
+	public int unsuspendMember(String id) {
+		Member member = memberRepository.findById(id).orElse(null);
+		if(member != null) {
+			member.setIsSuspended("N");
+			member.setSuspendStartDate(null);
+			member.setSuspendEndDate(null);
+			member.setSuspendReason(null);
+			Member result = memberRepository.save(member);
+			return result != null ? 1 : 0;
+		}
+		return 0;
 	}
 }
 
