@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +21,6 @@ import com.example.backend.service.ImageboardService;
 import com.example.backend.service.MemberService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class BidController {
 	@Autowired
 	BidService service;
@@ -235,10 +233,17 @@ public class BidController {
 			for(Integer seq : imageboardSeqSet) {
 				Imageboard imageboard = imageboardService.imageboardView(seq);
 				if(imageboard != null) {
+					// 자신이 등록한 경매는 제외 (imageid가 입찰자 ID와 같으면 제외)
+					if(imageboard.getImageid() != null && imageboard.getImageid().equals(bidderId)) {
+						System.out.println("자신이 등록한 경매 제외 (seq: " + seq + ", imageid: " + imageboard.getImageid() + ")");
+						continue; // 자신이 등록한 경매는 목록에 포함하지 않음
+					}
+					
 					Map<String, Object> auctionInfo = new HashMap<>();
 					auctionInfo.put("seq", imageboard.getSeq());
 					auctionInfo.put("imagename", imageboard.getImagename());
 					auctionInfo.put("imageprice", imageboard.getImageprice());
+					auctionInfo.put("imageid", imageboard.getImageid()); // 작성자 ID 추가
 					auctionInfo.put("status", imageboard.getStatus());
 					auctionInfo.put("logtime", imageboard.getLogtime());
 					auctionInfo.put("auctionEndDate", imageboard.getAuctionEndDate());

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +16,6 @@ import com.example.backend.entity.Member;
 import com.example.backend.service.MemberService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class MemberController {
 	@Autowired
 	MemberService service;
@@ -71,16 +69,28 @@ public class MemberController {
 	
 	@GetMapping("/member/getMember")
 	public Map<String, Object> getMember(@RequestParam("id") String id) {
-		Member member = service.getMember(id);
-		
 		Map<String, Object> map = new HashMap<String, Object>();
-		if(member != null) {
-			map.put("rt", "OK");
-			map.put("member", member);
-		} else {
+		
+		try {
+			System.out.println("회원정보 조회 시작 - id: " + id);
+			Member member = service.getMember(id);
+			
+			if(member != null) {
+				map.put("rt", "OK");
+				map.put("member", member);
+				System.out.println("회원정보 조회 완료 - name: " + member.getName());
+			} else {
+				map.put("rt", "FAIL");
+				map.put("msg", "회원정보를 찾을 수 없습니다.");
+				System.out.println("회원정보를 찾을 수 없음 - id: " + id);
+			}
+		} catch(Exception e) {
+			System.err.println("회원정보 조회 중 오류 발생: " + e.getMessage());
+			e.printStackTrace();
 			map.put("rt", "FAIL");
-			map.put("msg", "회원정보를 찾을 수 없습니다.");
+			map.put("msg", "회원정보 조회 중 오류가 발생했습니다: " + e.getMessage());
 		}
+		
 		return map;
 	}
 	

@@ -256,12 +256,20 @@ function ImageboardList() {
                                     if(status === "포기") {
                                         return {color: "#d9534f", fontWeight: "bold"};
                                     } else if(status === "판매완료") {
-                                        return {color: "#d9534f", fontWeight: "bold"}; // 판매완료는 빨간색
+                                        return {color: "#5cb85c", fontWeight: "bold"}; // 판매완료는 초록색
                                     } else if(status === "종료") {
-                                        return {color: "#5cb85c", fontWeight: "bold"};
+                                        return {color: "#d9534f", fontWeight: "bold"}; // 경매종료는 빨간색
                                     } else {
                                         return {color: "#337ab7", fontWeight: "bold"};
                                     }
+                                };
+                                
+                                // 상태 표시 텍스트
+                                const getStatusText = () => {
+                                    if(status === "종료") {
+                                        return "경매종료";
+                                    }
+                                    return status;
                                 };
                                 
                                 return (
@@ -353,7 +361,7 @@ function ImageboardList() {
                                         </td>
                                         <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "80px"}}>
                                             <span style={getStatusStyle()}>
-                                                {status}
+                                                {getStatusText()}
                                             </span>
                                         </td>
                                     </tr>

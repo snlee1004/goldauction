@@ -44,8 +44,14 @@ public class ImageboardService {
 		if(dto.getAuctionStartDate() == null) {
 			dto.setAuctionStartDate(new Date());
 		}
-		// 경매 종료일 계산
-		dto.setAuctionEndDate(calculateAuctionEndDate(dto.getAuctionStartDate(), dto.getAuctionPeriod()));
+		// 경매 종료일이 이미 설정되어 있으면 재계산하지 않음 (Controller에서 날짜/시간 형식으로 파싱한 경우)
+		if(dto.getAuctionEndDate() == null && dto.getAuctionPeriod() != null && !dto.getAuctionPeriod().isEmpty()) {
+			// "7일후", "14일후" 같은 형식인 경우에만 계산
+			if(dto.getAuctionPeriod().equals("7일후") || dto.getAuctionPeriod().equals("14일후") 
+				|| dto.getAuctionPeriod().equals("21일후") || dto.getAuctionPeriod().equals("30일후")) {
+				dto.setAuctionEndDate(calculateAuctionEndDate(dto.getAuctionStartDate(), dto.getAuctionPeriod()));
+			}
+		}
 		// 상태 기본값 설정
 		if(dto.getStatus() == null || dto.getStatus().isEmpty()) {
 			dto.setStatus("진행중");

@@ -232,34 +232,36 @@ function MemberInfo() {
                     </div>
                 ) : (
                     <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
-                        <table style={{margin: 0, width: "100%"}}>
-                            <thead>
-                                <tr style={{backgroundColor: "#b3d9ff"}}>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {activeList.map(item => (
-                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            <span style={getStatusStyle(item.status || "진행중")}>
-                                                {item.status || "진행중"}
-                                            </span>
-                                        </td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
-                                        </td>
+                        <div style={{maxHeight: "220px", overflowY: "auto"}}>
+                            <table style={{margin: 0, width: "100%"}}>
+                                <thead style={{position: "sticky", top: 0, backgroundColor: "#b3d9ff", zIndex: 1}}>
+                                    <tr>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {activeList.map(item => (
+                                        <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                            <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                <span style={getStatusStyle(item.status || "진행중")}>
+                                                    {item.status || "진행중"}
+                                                </span>
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>
@@ -273,79 +275,134 @@ function MemberInfo() {
                     </div>
                 ) : (
                     <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
-                        <table style={{margin: 0, width: "100%"}}>
-                            <thead>
-                                <tr style={{backgroundColor: "#b3d9ff"}}>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>종료일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {completedList.map(item => (
-                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            <span style={getStatusStyle(item.status)}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
-                                        </td>
+                        <div style={{maxHeight: "220px", overflowY: "auto"}}>
+                            <table style={{margin: 0, width: "100%"}}>
+                                <thead style={{position: "sticky", top: 0, backgroundColor: "#b3d9ff", zIndex: 1}}>
+                                    <tr>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>종료일</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {completedList.map(item => (
+                                        <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                            <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                <span style={getStatusStyle(item.status)}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* 입찰 참여한 경매 목록 */}
             <div style={{marginBottom: "30px"}}>
-                <h4 style={{marginBottom: "15px", color: "#b3d9ff", fontSize: "16px", fontWeight: "bold"}}>입찰 참여한 경매 ({bidParticipatedList.length}건)</h4>
-                {bidParticipatedList.length === 0 ? (
-                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
-                        입찰에 참여한 경매가 없습니다.
-                    </div>
-                ) : (
-                    <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
-                        <table style={{margin: 0, width: "100%"}}>
-                            <thead>
-                                <tr style={{backgroundColor: "#b3d9ff"}}>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>내 최고 입찰가</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>종료일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {bidParticipatedList.map(item => (
-                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
-                                        <td style={{padding: "10px", textAlign: "center", color: "#d9534f", fontWeight: "bold"}}>
-                                            ₩ {item.myMaxBidAmount?.toLocaleString() || 0}
-                                        </td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            <span style={getStatusStyle(item.status || "진행중")}>
-                                                {item.status || "진행중"}
-                                            </span>
-                                        </td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                {(() => {
+                    // 자신이 등록한 경매는 제외 (imageid가 현재 로그인한 사용자 ID와 같으면 제외)
+                    const memId = sessionStorage.getItem("memId");
+                    const filteredList = bidParticipatedList.filter(item => {
+                        // imageid가 현재 사용자 ID와 다를 때만 포함
+                        return item.imageid !== memId;
+                    });
+                    
+                    return (
+                        <>
+                            <h4 style={{marginBottom: "15px", color: "#b3d9ff", fontSize: "16px", fontWeight: "bold"}}>입찰 참여한 경매 ({filteredList.length}건)</h4>
+                            {filteredList.length === 0 ? (
+                                <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
+                                    입찰에 참여한 경매가 없습니다.
+                                </div>
+                            ) : (
+                                <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
+                                    <div style={{maxHeight: "220px", overflowY: "auto"}}>
+                                        <table style={{margin: 0, width: "100%"}}>
+                                            <thead style={{position: "sticky", top: 0, backgroundColor: "#b3d9ff", zIndex: 1}}>
+                                                <tr>
+                                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>내 최고 입찰가</th>
+                                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>종료일</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filteredList.map(item => {
+                                                    // 상태가 진행중인지 확인
+                                                    const isActive = (item.status || "진행중") === "진행중";
+                                                    
+                                                    return (
+                                                        <tr 
+                                                            key={item.seq} 
+                                                            style={{
+                                                                cursor: isActive ? "pointer" : "not-allowed",
+                                                                opacity: isActive ? 1 : 0.6
+                                                            }} 
+                                                            onClick={isActive ? () => handleViewAuction(item.seq, item.status) : undefined}
+                                                        >
+                                                            <td style={{
+                                                                padding: "10px", 
+                                                                textAlign: "center",
+                                                                textDecoration: isActive ? "none" : "line-through"
+                                                            }}>
+                                                                {item.seq}
+                                                            </td>
+                                                            <td style={{
+                                                                padding: "10px", 
+                                                                textAlign: "center",
+                                                                textDecoration: isActive ? "none" : "line-through"
+                                                            }}>
+                                                                {item.imagename}
+                                                            </td>
+                                                            <td style={{
+                                                                padding: "10px", 
+                                                                textAlign: "center", 
+                                                                color: "#d9534f", 
+                                                                fontWeight: "bold",
+                                                                textDecoration: isActive ? "none" : "line-through"
+                                                            }}>
+                                                                ₩ {item.myMaxBidAmount?.toLocaleString() || 0}
+                                                            </td>
+                                                            <td style={{
+                                                                padding: "10px", 
+                                                                textAlign: "center",
+                                                                textDecoration: isActive ? "none" : "line-through"
+                                                            }}>
+                                                                <span style={getStatusStyle(item.status || "진행중")}>
+                                                                    {item.status || "진행중"}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{
+                                                                padding: "10px", 
+                                                                textAlign: "center",
+                                                                textDecoration: isActive ? "none" : "line-through"
+                                                            }}>
+                                                                {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
             </div>
 
             {/* 포기한 경매 목록 */}
@@ -357,34 +414,36 @@ function MemberInfo() {
                     </div>
                 ) : (
                     <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
-                        <table style={{margin: 0, width: "100%"}}>
-                            <thead>
-                                <tr style={{backgroundColor: "#b3d9ff"}}>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
-                                    <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {canceledList.map(item => (
-                                    <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            <span style={getStatusStyle(item.status)}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td style={{padding: "10px", textAlign: "center"}}>
-                                            {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
-                                        </td>
+                        <div style={{maxHeight: "220px", overflowY: "auto"}}>
+                            <table style={{margin: 0, width: "100%"}}>
+                                <thead style={{position: "sticky", top: 0, backgroundColor: "#b3d9ff", zIndex: 1}}>
+                                    <tr>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품코드</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {canceledList.map(item => (
+                                        <tr key={item.seq} style={{cursor: "pointer"}} onClick={() => handleViewAuction(item.seq, item.status)}>
+                                            <td style={{padding: "10px", textAlign: "center"}}>{item.seq}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>{item.imagename}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>₩ {item.imageprice?.toLocaleString() || 0}</td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                <span style={getStatusStyle(item.status)}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>

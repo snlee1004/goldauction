@@ -26,7 +26,7 @@ function ImageboardWriteForm() {
     const navigate = useNavigate();
     const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
 
-    // 로그인 상태 확인 - 로그인하지 않았으면 로그인 페이지로 리다이렉트
+    // 로그인 상태 확인 및 재등록 데이터 로드
     useEffect(() => {
         if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
         loginCheckedRef.current = true;
@@ -36,6 +36,26 @@ function ImageboardWriteForm() {
         if(!memId || !memName) {
             alert("로그인이 필요합니다.");
             navigate("/member/loginForm");
+            return;
+        }
+        
+        // 재등록 데이터가 있으면 폼에 채우기
+        const reRegisterDataStr = sessionStorage.getItem("reRegisterData");
+        if(reRegisterDataStr) {
+            try {
+                const reRegisterData = JSON.parse(reRegisterDataStr);
+                if(reRegisterData.productName) setProductName(reRegisterData.productName);
+                if(reRegisterData.category) setCategory(reRegisterData.category);
+                if(reRegisterData.startPrice) setStartPrice(reRegisterData.startPrice.toString());
+                if(reRegisterData.maxBidPrice) setMaxBidPrice(reRegisterData.maxBidPrice.toString());
+                if(reRegisterData.transactionMethod) setTransactionMethod(reRegisterData.transactionMethod);
+                if(reRegisterData.description) setDescription(reRegisterData.description);
+                
+                // 사용 후 세션 스토리지에서 삭제
+                sessionStorage.removeItem("reRegisterData");
+            } catch(err) {
+                console.error("재등록 데이터 파싱 오류:", err);
+            }
         }
     }, [navigate]);
 

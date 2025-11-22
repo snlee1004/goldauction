@@ -40,6 +40,9 @@ function ImageboardView() {
             const data = await response.json();
             if(data.rt === "OK") {
                 console.log("경매 데이터:", data.item); // 디버깅용
+                console.log("경매 상태:", data.item.status); // 디버깅용
+                console.log("경매 종료일:", data.item.auctionEndDate); // 디버깅용
+                console.log("경매 시작일:", data.item.auctionStartDate); // 디버깅용
                 setImageboardData(data.item);
                 // 등록자 닉네임 조회
                 if(data.item.imageid) {
@@ -49,7 +52,7 @@ function ImageboardView() {
                 alert("해당 게시글이 존재하지 않습니다.");
             }
         } catch(err) {
-            console.error(err);
+            console.error("경매 데이터 조회 오류:", err);
         }
     };
 
@@ -196,15 +199,93 @@ function ImageboardView() {
 
     // 경매 상태 확인
     const getAuctionStatus = () => {
+        // DB의 status 필드를 우선적으로 사용 (가장 신뢰할 수 있는 값)
+        const dbStatus = imageboardData.status;
+        console.log("=== 경매 상태 확인 ===");
+        console.log("DB 상태:", dbStatus);
+        console.log("경매 종료일:", imageboardData.auctionEndDate);
+        console.log("전체 데이터:", imageboardData);
+        
+        // DB 상태가 명확하게 설정되어 있으면 그대로 사용 (우선순위 1)
+        if(dbStatus && dbStatus.trim() !== "") {
+            // "진행중"이 아닌 다른 상태는 그대로 반환
+            if(dbStatus !== "진행중") {
+                console.log("DB 상태 사용 (명확한 상태):", dbStatus);
+                return dbStatus;
+            }
+        }
+        
+        // DB 상태가 "진행중"이거나 없을 때만 날짜로 확인
+        // 경매 종료일이 없으면 진행중으로 반환
         if(!imageboardData.auctionEndDate) {
-            return imageboardData.status || "진행중";
+            console.log("경매 종료일이 없음 - 진행중 반환");
+            return "진행중";
         }
-        const endDate = new Date(imageboardData.auctionEndDate);
-        const today = new Date();
-        if(today > endDate) {
-            return "종료";
+        
+        // 경매 종료일과 현재 날짜 비교 (보조 확인용)
+        // 단, DB 상태가 "진행중"인 경우에만 날짜로 재확인
+        try {
+            // 날짜 문자열 파싱
+            let endDateStr = imageboardData.auctionEndDate;
+            
+            // 문자열이 배열인 경우 첫 번째 요소 사용
+            if(Array.isArray(endDateStr)) {
+                endDateStr = endDateStr[0];
+            }
+            
+            // 날짜 파싱
+            let endDate = null;
+            if(typeof endDateStr === 'string') {
+                // ISO 형식 또는 일반 날짜 형식
+                endDate = new Date(endDateStr);
+                
+                // Invalid Date 체크
+                if(isNaN(endDate.getTime())) {
+                    // 다른 형식 시도
+                    const cleaned = endDateStr.replace(/[^\d-:T\s]/g, '');
+                    endDate = new Date(cleaned);
+                }
+            } else if(endDateStr instanceof Date) {
+                endDate = endDateStr;
+            } else {
+                console.warn("경매 종료일 형식을 알 수 없음:", endDateStr);
+                return dbStatus || "진행중";
+            }
+            
+            // Invalid Date 체크
+            if(isNaN(endDate.getTime())) {
+                console.error("경매 종료일 파싱 실패:", endDateStr);
+                return dbStatus || "진행중";
+            }
+            
+            const today = new Date();
+            
+            // 날짜 비교 (시간 제외, 로컬 시간대 사용)
+            const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+            const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            
+            console.log("종료일 (파싱됨):", endDateOnly.toISOString().split('T')[0]);
+            console.log("오늘:", todayOnly.toISOString().split('T')[0]);
+            console.log("종료일이 지났는가?", todayOnly > endDateOnly);
+            
+            // 종료일이 지났고 DB 상태가 "진행중"이거나 없을 때만 "종료"로 변경
+            // 하지만 DB 상태가 다른 값이면 그대로 사용
+            if(todayOnly > endDateOnly) {
+                if(!dbStatus || dbStatus === "진행중") {
+                    console.log("경매 종료일이 지남 - 종료 반환 (DB 상태는 진행중 또는 없음)");
+                    return "종료";
+                } else {
+                    console.log("경매 종료일이 지났지만 DB 상태 유지:", dbStatus);
+                    return dbStatus;
+                }
+            } else {
+                console.log("경매 진행중 - DB 상태 유지:", dbStatus || "진행중");
+                return dbStatus || "진행중";
+            }
+        } catch(e) {
+            console.error("날짜 파싱 오류:", e, "원본 데이터:", imageboardData.auctionEndDate);
+            return dbStatus || "진행중";
         }
-        return imageboardData.status || "진행중";
     };
 
     // 입찰 참여 처리
@@ -381,6 +462,50 @@ function ImageboardView() {
             alert("경매 포기 중 오류가 발생했습니다.");
         }
     };
+    
+    // 경매 재등록 처리 (기존 데이터를 복사하여 새 경매 등록)
+    const handleReRegister = () => {
+        // 기존 경매 데이터를 세션 스토리지에 저장하여 등록 페이지로 전달
+        const reRegisterData = {
+            productName: imageboardData.imagename || "",
+            category: imageboardData.category || "",
+            startPrice: imageboardData.imageprice || "",
+            maxBidPrice: imageboardData.maxBidPrice || imageboardData.max_bid_price || "",
+            transactionMethod: imageboardData.transactionMethod || "",
+            description: imageboardData.imagecontent || ""
+        };
+        
+        // 세션 스토리지에 저장
+        sessionStorage.setItem("reRegisterData", JSON.stringify(reRegisterData));
+        
+        // 등록 페이지로 이동
+        navigate("/imageboard/imageboardWriteForm");
+    };
+    
+    // 경매 삭제 처리
+    const handleDelete = async () => {
+        if(!window.confirm("정말로 이 경매를 삭제하시겠습니까? 삭제된 경매는 복구할 수 없습니다.")) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`http://localhost:8080/imageboard/imageboardDelete?seq=${seq}`, {
+                method: "GET"
+            });
+            
+            const data = await response.json();
+            if(data.rt === "OK") {
+                alert("경매가 삭제되었습니다.");
+                // 목록 페이지로 이동
+                navigate("/imageboard/imageboardList");
+            } else {
+                alert(data.msg || "경매 삭제에 실패했습니다.");
+            }
+        } catch(err) {
+            console.error("경매 삭제 오류:", err);
+            alert("경매 삭제 중 오류가 발생했습니다.");
+        }
+    };
 
     // 작성자 확인 - 로그인한 사용자가 작성자인지 확인
     const isAuthor = () => {
@@ -443,18 +568,48 @@ function ImageboardView() {
                     상품명 : {imageboardData.imagename || imageboardData.productname || "웰치스"}
                 </div>
                 <div style={{fontSize: "16px", color: "#666", display: "flex", alignItems: "center", gap: "5px"}}>
-                    <i className="bi bi-clock" style={{fontSize: "18px"}}></i>
-                    <span>
-                        경매 마감까지: 
-                        {remainingTime.isExpired ? (
-                            <span style={{color: "#d9534f", fontWeight: "bold", marginLeft: "5px"}}>종료됨</span>
-                        ) : (
-                            <span style={{color: "#d9534f", fontWeight: "bold", marginLeft: "5px"}}>
-                                {remainingTime.days > 0 && `${remainingTime.days}일 `}
-                                {remainingTime.hours}시간 {remainingTime.minutes.toString().padStart(2, '0')}분 {remainingTime.seconds.toString().padStart(2, '0')}초
+                    {status === "진행중" ? (
+                        <>
+                            <i className="bi bi-clock" style={{fontSize: "18px"}}></i>
+                            <span>
+                                경매 마감까지: 
+                                {remainingTime.isExpired ? (
+                                    <span style={{color: "#d9534f", fontWeight: "bold", marginLeft: "5px"}}>종료됨</span>
+                                ) : (
+                                    <span style={{color: "#d9534f", fontWeight: "bold", marginLeft: "5px"}}>
+                                        {remainingTime.days > 0 && `${remainingTime.days}일 `}
+                                        {remainingTime.hours}시간 {remainingTime.minutes.toString().padStart(2, '0')}분 {remainingTime.seconds.toString().padStart(2, '0')}초
+                                    </span>
+                                )}
                             </span>
-                        )}
-                    </span>
+                        </>
+                    ) : status === "종료" ? (
+                        <>
+                            <i className="bi bi-x-circle" style={{fontSize: "18px", color: "#d9534f"}}></i>
+                            <span style={{color: "#d9534f", fontWeight: "bold"}}>
+                                경매가 종료되었습니다.
+                            </span>
+                        </>
+                    ) : status === "판매완료" ? (
+                        <>
+                            <i className="bi bi-check-circle" style={{fontSize: "18px", color: "#5cb85c"}}></i>
+                            <span style={{color: "#5cb85c", fontWeight: "bold"}}>
+                                판매가 완료되었습니다.
+                            </span>
+                        </>
+                    ) : status === "포기" ? (
+                        <>
+                            <i className="bi bi-x-octagon" style={{fontSize: "18px", color: "#d9534f"}}></i>
+                            <span style={{color: "#d9534f", fontWeight: "bold"}}>
+                                경매가 포기되었습니다.
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <i className="bi bi-info-circle" style={{fontSize: "18px"}}></i>
+                            <span>상태: {status || "알 수 없음"}</span>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -588,12 +743,24 @@ function ImageboardView() {
                 </div>
                 <div style={{marginTop: "5px"}}>
                     {status === "진행중" ? (
-                        <div style={{fontSize: "16px", color: "#b3d9ff"}}>
-                            경매가 진행 중입니다.
+                        <div style={{fontSize: "16px", color: "#337ab7", fontWeight: "bold"}}>
+                            <i className="bi bi-clock"></i> 경매가 진행 중입니다.
+                        </div>
+                    ) : status === "종료" ? (
+                        <div style={{fontSize: "20px", color: "#d9534f", fontWeight: "bold"}}>
+                            <i className="bi bi-x-circle"></i> 경매가 종료되었습니다.
+                        </div>
+                    ) : status === "판매완료" ? (
+                        <div style={{fontSize: "20px", color: "#5cb85c", fontWeight: "bold"}}>
+                            <i className="bi bi-check-circle"></i> 판매가 완료되었습니다.
+                        </div>
+                    ) : status === "포기" ? (
+                        <div style={{fontSize: "20px", color: "#d9534f", fontWeight: "bold"}}>
+                            <i className="bi bi-x-octagon"></i> 경매가 포기되었습니다.
                         </div>
                     ) : (
-                        <div style={{fontSize: "24px", color: "red", fontWeight: "bold"}}>
-                            경매가 종료 되었습니다.
+                        <div style={{fontSize: "16px", color: "#666", fontWeight: "bold"}}>
+                            상태: {status || "알 수 없음"}
                         </div>
                     )}
                 </div>
@@ -706,8 +873,8 @@ function ImageboardView() {
                 <button className="btn btn-secondary" onClick={handleList}>
                     <i className="bi bi-list"></i> 목록
                 </button>
-                {/* 작성자만 수정 및 경매 포기 버튼 표시 */}
-                {isAuthor() && imageboardData.status !== "포기" && (
+                {/* 작성자만 수정 및 경매 포기 버튼 표시 (진행중인 경우) */}
+                {isAuthor() && imageboardData.status !== "포기" && status === "진행중" && (
                     <>
                         &nbsp;
                         <button 
@@ -724,6 +891,54 @@ function ImageboardView() {
                         &nbsp;
                         <button className="btn btn-danger" onClick={handleCancelAuction}>
                             <i className="bi bi-x-circle"></i> 경매 포기
+                        </button>
+                    </>
+                )}
+                {/* 작성자만 재등록 및 삭제 버튼 표시 (경매 종료된 경우) */}
+                {isAuthor() && status === "종료" && (
+                    <>
+                        &nbsp;
+                        <button 
+                            className="btn btn-success" 
+                            onClick={handleReRegister}
+                            style={{
+                                backgroundColor: "#28a745",
+                                borderColor: "#28a745",
+                                color: "#fff"
+                            }}
+                        >
+                            <i className="bi bi-arrow-repeat"></i> 재등록
+                        </button>
+                        &nbsp;
+                        <button 
+                            className="btn btn-danger" 
+                            onClick={handleDelete}
+                        >
+                            <i className="bi bi-trash"></i> 경매 삭제
+                        </button>
+                    </>
+                )}
+                {/* 작성자만 판매정보상세 및 삭제 버튼 표시 (판매완료된 경우) */}
+                {isAuthor() && status === "판매완료" && (
+                    <>
+                        &nbsp;
+                        <button 
+                            className="btn btn-info" 
+                            onClick={() => navigate("/member/memberInfo")}
+                            style={{
+                                backgroundColor: "#17a2b8",
+                                borderColor: "#17a2b8",
+                                color: "#fff"
+                            }}
+                        >
+                            <i className="bi bi-person-circle"></i> 판매정보상세
+                        </button>
+                        &nbsp;
+                        <button 
+                            className="btn btn-danger" 
+                            onClick={handleDelete}
+                        >
+                            <i className="bi bi-trash"></i> 경매 삭제
                         </button>
                     </>
                 )}

@@ -2,6 +2,7 @@ package com.example.backend.entity;
 
 import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -17,18 +18,30 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Member {
+	@Column(name = "NAME")
 	private String name;
 	@Id
+	@Column(name = "ID")
 	private String id;
+	@Column(name = "NICKNAME")
 	private String nickname;  // 닉네임 필드 추가
+	@Column(name = "PWD")
 	private String pwd;
+	@Column(name = "GENDER")
 	private String gender;
+	@Column(name = "EMAIL1")
 	private String email1;
+	@Column(name = "EMAIL2")
 	private String email2;
+	@Column(name = "TEL1")
 	private String tel1;
+	@Column(name = "TEL2")
 	private String tel2;
+	@Column(name = "TEL3")
 	private String tel3;
+	@Column(name = "ADDR")
 	private String addr;
 	@Temporal(TemporalType.DATE)  // 년월일 저장 설정
+	@Column(name = "LOGTIME")
 	private Date logtime;
 }

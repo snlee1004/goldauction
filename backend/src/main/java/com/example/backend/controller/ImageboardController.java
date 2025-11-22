@@ -2,6 +2,8 @@ package com.example.backend.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +11,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +26,6 @@ import com.example.backend.service.ImageboardImagesService;
 import com.example.backend.service.BidService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class ImageboardController {
 	@Autowired
 	ImageboardService service;
@@ -71,7 +71,86 @@ public class ImageboardController {
 				dto.setMaxBidPrice(null);
 			}
 		}
-		if(auctionPeriod != null) dto.setAuctionPeriod(auctionPeriod);
+		
+		// 경매 시작일 설정 (현재 날짜)
+		Date startDate = new Date();
+		dto.setAuctionStartDate(startDate);
+		
+		// 경매 종료일 처리 (날짜/시간 형식 또는 "7일후" 형식)
+		if(auctionPeriod != null && !auctionPeriod.isEmpty()) {
+			Date endDate = null;
+			try {
+				// ISO 8601 형식 (예: "2025-11-25T14:30:00" 또는 "2025-11-25T14:30") 파싱 시도
+				if(auctionPeriod.contains("T")) {
+					// 여러 형식 시도
+					String[] formats = {
+						"yyyy-MM-dd'T'HH:mm:ss",
+						"yyyy-MM-dd'T'HH:mm",
+						"yyyy-MM-dd'T'HH:mm:ss.SSS"
+					};
+					
+					boolean parsed = false;
+					for(String format : formats) {
+						try {
+							SimpleDateFormat sdf = new SimpleDateFormat(format);
+							sdf.setLenient(false);
+							endDate = sdf.parse(auctionPeriod);
+							System.out.println("날짜/시간 형식 파싱 성공 (" + format + "): " + endDate);
+							parsed = true;
+							break;
+						} catch(ParseException pe) {
+							// 다음 형식 시도
+							continue;
+						}
+					}
+					
+					if(!parsed) {
+						throw new ParseException("날짜/시간 형식을 파싱할 수 없습니다: " + auctionPeriod, 0);
+					}
+				} else if(auctionPeriod.matches("\\d{4}-\\d{2}-\\d{2}")) {
+					// 날짜만 있는 경우 (예: "2025-11-25")
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+					sdf.setLenient(false);
+					endDate = sdf.parse(auctionPeriod);
+					// 시간을 23:59:59로 설정
+					java.util.Calendar cal = java.util.Calendar.getInstance();
+					cal.setTime(endDate);
+					cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
+					cal.set(java.util.Calendar.MINUTE, 59);
+					cal.set(java.util.Calendar.SECOND, 59);
+					endDate = cal.getTime();
+					System.out.println("날짜 형식 파싱 성공: " + endDate);
+				} else {
+					// "7일후", "14일후" 형식인 경우 (기존 로직 사용)
+					dto.setAuctionPeriod(auctionPeriod);
+					System.out.println("기간 형식으로 처리: " + auctionPeriod);
+				}
+				
+				if(endDate != null) {
+					// 종료일이 시작일보다 이전이면 안됨
+					if(endDate.before(startDate)) {
+						System.err.println("경매 종료일이 시작일보다 이전입니다. 시작일로 설정합니다.");
+						// 시작일로부터 7일 후로 설정
+						java.util.Calendar cal = java.util.Calendar.getInstance();
+						cal.setTime(startDate);
+						cal.add(java.util.Calendar.DAY_OF_MONTH, 7);
+						endDate = cal.getTime();
+					}
+					dto.setAuctionEndDate(endDate);
+					// auctionPeriod는 원래 형식 유지 (디버깅용)
+					dto.setAuctionPeriod(auctionPeriod);
+					System.out.println("경매 종료일 최종 설정: " + endDate);
+				}
+			} catch(ParseException e) {
+				System.err.println("날짜 파싱 오류: " + auctionPeriod + " - " + e.getMessage());
+				e.printStackTrace();
+				// 파싱 실패 시 기존 로직 사용 ("7일후" 형식)
+				dto.setAuctionPeriod(auctionPeriod);
+			}
+		} else {
+			dto.setAuctionPeriod(auctionPeriod);
+		}
+		
 		if(transactionMethod != null) dto.setTransactionMethod(transactionMethod);
 		if(description != null) dto.setImageContent(description);
 		if(imageId != null) dto.setImageId(imageId);
@@ -146,99 +225,263 @@ public class ImageboardController {
 			@RequestParam(value="pg", defaultValue="1") int pg,
 			@RequestParam(value="keyword", required=false) String keyword,
 			@RequestParam(value="category", required=false) String category) {
-		// 1. 데이터 처리
-		// 목록 : 5개
-		int endNum = pg * 5;
-		int startNum = endNum - 4;
-		List<Imageboard> list;
-		int totalA;
 		
-		// 검색어와 카테고리 처리
-		String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : "";
-		String searchCategory = (category != null && !category.trim().isEmpty()) ? category.trim() : null;
-		
-		if(!searchKeyword.isEmpty() || searchCategory != null) {
-			// 검색어 또는 카테고리가 있으면 필터링된 목록
-			list = service.imageboardListByKeywordAndCategory(searchKeyword, searchCategory, startNum, endNum);
-			totalA = service.getCountByKeywordAndCategory(searchKeyword, searchCategory);
-		} else if(!searchKeyword.isEmpty()) {
-			// 검색어만 있으면 검색 목록
-			list = service.imageboardListByKeyword(searchKeyword, startNum, endNum);
-			totalA = service.getCountByKeyword(searchKeyword);
-		} else {
-			// 전체 목록
-			list = service.imageboardList(startNum, endNum);
-			totalA = service.getCount();
-		}
-		
-		// 페이징 : 3블럭
-		int totalP = (totalA + 4) / 5;
-		int startPage = (pg-1)/3*3 + 1;
-		int endPage = startPage + 2;
-		if(endPage > totalP) endPage = totalP;
-		
-		// 각 항목에 입찰인수 및 최고 입찰 금액 추가
-		List<Map<String, Object>> itemsWithBidCount = new java.util.ArrayList<>();
-		for(Imageboard item : list) {
-			Map<String, Object> itemMap = new HashMap<>();
-			itemMap.put("seq", item.getSeq());
-			itemMap.put("imageid", item.getImageid());
-			itemMap.put("imagename", item.getImagename());
-			itemMap.put("imageprice", item.getImageprice());
-			itemMap.put("imageqty", item.getImageqty());
-			itemMap.put("imagecontent", item.getImagecontent());
-			itemMap.put("image1", item.getImage1());
-			itemMap.put("category", item.getCategory());
-			itemMap.put("auctionPeriod", item.getAuctionPeriod());
-			itemMap.put("transactionMethod", item.getTransactionMethod());
-			itemMap.put("auctionStartDate", item.getAuctionStartDate());
-			itemMap.put("auctionEndDate", item.getAuctionEndDate());
-			itemMap.put("status", item.getStatus());
-			itemMap.put("logtime", item.getLogtime());
-			
-			// 입찰인수 조회 (예외 처리)
-			try {
-				int bidCount = bidService.getBidCountByImageboardSeq(item.getSeq());
-				itemMap.put("bidCount", bidCount);
-			} catch(Exception e) {
-				System.out.println("입찰인수 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
-				itemMap.put("bidCount", 0);
-			}
-			
-			// 최고 입찰 금액 조회 (예외 처리)
-			try {
-				Integer maxBidAmount = bidService.getMaxBidAmountByImageboardSeq(item.getSeq());
-				itemMap.put("maxBidAmount", maxBidAmount != null && maxBidAmount > 0 ? maxBidAmount : 0);
-			} catch(Exception e) {
-				System.out.println("최고 입찰 금액 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
-				itemMap.put("maxBidAmount", 0);
-			}
-			
-			itemsWithBidCount.add(itemMap);
-		}
-		
-		// 2. 결과 응답
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("rt", "OK");
-		map.put("total", list.size());
-		map.put("pg", pg);
-		map.put("totalP", totalP);
-		map.put("startPage", startPage);
-		map.put("endPage", endPage);
-		map.put("items", itemsWithBidCount);
+		
+		try {
+			System.out.println("목록 조회 시작 - pg: " + pg + ", keyword: " + keyword + ", category: " + category);
+			
+			// 1. 데이터 처리
+			// 목록 : 5개
+			int endNum = pg * 5;
+			int startNum = endNum - 4;
+			List<Imageboard> list;
+			int totalA;
+			
+			// 검색어와 카테고리 처리
+			String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : "";
+			String searchCategory = (category != null && !category.trim().isEmpty()) ? category.trim() : null;
+			
+			if(!searchKeyword.isEmpty() || searchCategory != null) {
+				// 검색어 또는 카테고리가 있으면 필터링된 목록
+				System.out.println("필터링된 목록 조회 - keyword: " + searchKeyword + ", category: " + searchCategory);
+				list = service.imageboardListByKeywordAndCategory(searchKeyword, searchCategory, startNum, endNum);
+				totalA = service.getCountByKeywordAndCategory(searchKeyword, searchCategory);
+			} else if(!searchKeyword.isEmpty()) {
+				// 검색어만 있으면 검색 목록
+				System.out.println("검색 목록 조회 - keyword: " + searchKeyword);
+				list = service.imageboardListByKeyword(searchKeyword, startNum, endNum);
+				totalA = service.getCountByKeyword(searchKeyword);
+			} else {
+				// 전체 목록
+				System.out.println("전체 목록 조회");
+				list = service.imageboardList(startNum, endNum);
+				totalA = service.getCount();
+			}
+			
+			System.out.println("조회된 데이터 개수: " + (list != null ? list.size() : 0) + ", 총 개수: " + totalA);
+		
+			// 페이징 : 3블럭
+			int totalP = (totalA + 4) / 5;
+			int startPage = (pg-1)/3*3 + 1;
+			int endPage = startPage + 2;
+			if(endPage > totalP) endPage = totalP;
+			
+			// 각 항목에 입찰인수 및 최고 입찰 금액 추가
+			List<Map<String, Object>> itemsWithBidCount = new java.util.ArrayList<>();
+			Date now = new Date(); // 현재 시간
+			
+			if(list != null) {
+				for(Imageboard item : list) {
+					Map<String, Object> itemMap = new HashMap<>();
+					itemMap.put("seq", item.getSeq());
+					itemMap.put("imageid", item.getImageid());
+					itemMap.put("imagename", item.getImagename());
+					itemMap.put("imageprice", item.getImageprice());
+					itemMap.put("imageqty", item.getImageqty());
+					itemMap.put("imagecontent", item.getImagecontent());
+					itemMap.put("image1", item.getImage1());
+					itemMap.put("category", item.getCategory());
+					itemMap.put("auctionPeriod", item.getAuctionPeriod());
+					itemMap.put("transactionMethod", item.getTransactionMethod());
+					itemMap.put("auctionStartDate", item.getAuctionStartDate());
+					itemMap.put("auctionEndDate", item.getAuctionEndDate());
+					
+					// 경매 상태 확인 및 업데이트
+					String currentStatus = item.getStatus();
+					
+					// 상태가 "포기"나 "판매완료"가 아닌 경우에만 종료일 확인
+					if(currentStatus != null && !currentStatus.equals("포기") && !currentStatus.equals("판매완료")) {
+						Date endDate = item.getAuctionEndDate();
+						
+						// 경매 종료일이 있고, 현재 시간이 종료일을 지났으면 상태를 "종료"로 변경
+						if(endDate != null && now.after(endDate)) {
+							// 날짜 비교 (시간 제외)
+							java.util.Calendar endCal = java.util.Calendar.getInstance();
+							endCal.setTime(endDate);
+							endCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+							endCal.set(java.util.Calendar.MINUTE, 0);
+							endCal.set(java.util.Calendar.SECOND, 0);
+							endCal.set(java.util.Calendar.MILLISECOND, 0);
+							
+							java.util.Calendar nowCal = java.util.Calendar.getInstance();
+							nowCal.setTime(now);
+							nowCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+							nowCal.set(java.util.Calendar.MINUTE, 0);
+							nowCal.set(java.util.Calendar.SECOND, 0);
+							nowCal.set(java.util.Calendar.MILLISECOND, 0);
+							
+							// 종료일이 지났으면 상태를 "종료"로 변경
+							if(nowCal.after(endCal) || nowCal.equals(endCal)) {
+								currentStatus = "종료";
+								System.out.println("경매 종료 감지 (seq: " + item.getSeq() + ") - 상태를 '종료'로 변경");
+								
+								// DB에도 상태 업데이트 (비동기로 처리하거나 별도로 처리 가능)
+								try {
+									// 상태가 "진행중"인 경우에만 DB 업데이트
+									if(item.getStatus() != null && item.getStatus().equals("진행중")) {
+										ImageboardDTO updateDto = new ImageboardDTO();
+										updateDto.setSeq(item.getSeq());
+										updateDto.setImageId(item.getImageid());
+										updateDto.setImageName(item.getImagename());
+										updateDto.setImagePrice(item.getImageprice());
+										updateDto.setImageQty(item.getImageqty());
+										updateDto.setImageContent(item.getImagecontent());
+										updateDto.setImage1(item.getImage1());
+										updateDto.setCategory(item.getCategory());
+										updateDto.setAuctionPeriod(item.getAuctionPeriod());
+										updateDto.setTransactionMethod(item.getTransactionMethod());
+										updateDto.setAuctionStartDate(item.getAuctionStartDate());
+										updateDto.setAuctionEndDate(item.getAuctionEndDate());
+										updateDto.setStatus("종료");
+										updateDto.setLogtime(item.getLogtime());
+										service.imageboardModify(updateDto);
+										System.out.println("DB 상태 업데이트 완료 (seq: " + item.getSeq() + ")");
+									}
+								} catch(Exception e) {
+									System.err.println("DB 상태 업데이트 실패 (seq: " + item.getSeq() + "): " + e.getMessage());
+									// DB 업데이트 실패해도 반환값은 "종료"로 설정
+								}
+							}
+						}
+					}
+					
+					itemMap.put("status", currentStatus);
+					itemMap.put("logtime", item.getLogtime());
+					
+					// 입찰인수 조회 (예외 처리)
+					try {
+						int bidCount = bidService.getBidCountByImageboardSeq(item.getSeq());
+						itemMap.put("bidCount", bidCount);
+					} catch(Exception e) {
+						System.out.println("입찰인수 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+						e.printStackTrace();
+						itemMap.put("bidCount", 0);
+					}
+					
+					// 최고 입찰 금액 조회 (예외 처리)
+					try {
+						Integer maxBidAmount = bidService.getMaxBidAmountByImageboardSeq(item.getSeq());
+						itemMap.put("maxBidAmount", maxBidAmount != null && maxBidAmount > 0 ? maxBidAmount : 0);
+					} catch(Exception e) {
+						System.out.println("최고 입찰 금액 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+						e.printStackTrace();
+						itemMap.put("maxBidAmount", 0);
+					}
+					
+					itemsWithBidCount.add(itemMap);
+				}
+			}
+			
+			// 2. 결과 응답
+			map.put("rt", "OK");
+			map.put("total", list != null ? list.size() : 0);
+			map.put("pg", pg);
+			map.put("totalP", totalP);
+			map.put("startPage", startPage);
+			map.put("endPage", endPage);
+			map.put("items", itemsWithBidCount);
+			System.out.println("목록 조회 완료 - 반환할 항목 수: " + itemsWithBidCount.size());
+			
+		} catch(Exception e) {
+			System.err.println("목록 조회 중 오류 발생: " + e.getMessage());
+			e.printStackTrace();
+			map.put("rt", "FAIL");
+			map.put("msg", "데이터를 불러오는 중 오류가 발생했습니다: " + e.getMessage());
+			map.put("items", new java.util.ArrayList<>());
+			map.put("total", 0);
+			map.put("pg", pg);
+			map.put("totalP", 0);
+			map.put("startPage", 1);
+			map.put("endPage", 1);
+		}
+		
 		return map;
 	}
 	// 3. 상세보기
 	@GetMapping("/imageboard/imageboardView")
 	public Map<String, Object> imageboardView(@RequestParam("seq") int seq) {
+		System.out.println("상세보기 조회 시작 - seq: " + seq);
 		Imageboard imageboard = service.imageboardView(seq);
+		
 		// 2. 결과 응답
 		Map<String, Object> map = new HashMap<String, Object>();
 		if(imageboard != null) {
+			System.out.println("상세보기 데이터 조회 성공:");
+			System.out.println("  - 상태: " + imageboard.getStatus());
+			System.out.println("  - 경매 시작일: " + imageboard.getAuctionStartDate());
+			System.out.println("  - 경매 종료일: " + imageboard.getAuctionEndDate());
+			System.out.println("  - 상품명: " + imageboard.getImagename());
+			
+			// 경매 상태 확인 및 업데이트
+			String currentStatus = imageboard.getStatus();
+			Date now = new Date();
+			
+			// 상태가 "포기"나 "판매완료"가 아닌 경우에만 종료일 확인
+			if(currentStatus != null && !currentStatus.equals("포기") && !currentStatus.equals("판매완료")) {
+				Date endDate = imageboard.getAuctionEndDate();
+				
+				// 경매 종료일이 있고, 현재 시간이 종료일을 지났으면 상태를 "종료"로 변경
+				if(endDate != null && now.after(endDate)) {
+					// 날짜 비교 (시간 제외)
+					java.util.Calendar endCal = java.util.Calendar.getInstance();
+					endCal.setTime(endDate);
+					endCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+					endCal.set(java.util.Calendar.MINUTE, 0);
+					endCal.set(java.util.Calendar.SECOND, 0);
+					endCal.set(java.util.Calendar.MILLISECOND, 0);
+					
+					java.util.Calendar nowCal = java.util.Calendar.getInstance();
+					nowCal.setTime(now);
+					nowCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+					nowCal.set(java.util.Calendar.MINUTE, 0);
+					nowCal.set(java.util.Calendar.SECOND, 0);
+					nowCal.set(java.util.Calendar.MILLISECOND, 0);
+					
+					// 종료일이 지났으면 상태를 "종료"로 변경
+					if(nowCal.after(endCal) || nowCal.equals(endCal)) {
+						currentStatus = "종료";
+						System.out.println("경매 종료 감지 (seq: " + seq + ") - 상태를 '종료'로 변경");
+						
+						// DB에도 상태 업데이트
+						try {
+							// 상태가 "진행중"인 경우에만 DB 업데이트
+							if(imageboard.getStatus() != null && imageboard.getStatus().equals("진행중")) {
+								ImageboardDTO updateDto = new ImageboardDTO();
+								updateDto.setSeq(imageboard.getSeq());
+								updateDto.setImageId(imageboard.getImageid());
+								updateDto.setImageName(imageboard.getImagename());
+								updateDto.setImagePrice(imageboard.getImageprice());
+								updateDto.setImageQty(imageboard.getImageqty());
+								updateDto.setImageContent(imageboard.getImagecontent());
+								updateDto.setImage1(imageboard.getImage1());
+								updateDto.setCategory(imageboard.getCategory());
+								updateDto.setAuctionPeriod(imageboard.getAuctionPeriod());
+								updateDto.setTransactionMethod(imageboard.getTransactionMethod());
+								updateDto.setAuctionStartDate(imageboard.getAuctionStartDate());
+								updateDto.setAuctionEndDate(imageboard.getAuctionEndDate());
+								updateDto.setStatus("종료");
+								updateDto.setLogtime(imageboard.getLogtime());
+								service.imageboardModify(updateDto);
+								System.out.println("DB 상태 업데이트 완료 (seq: " + seq + ")");
+								
+								// 업데이트된 데이터 다시 조회
+								imageboard = service.imageboardView(seq);
+							}
+						} catch(Exception e) {
+							System.err.println("DB 상태 업데이트 실패 (seq: " + seq + "): " + e.getMessage());
+							// DB 업데이트 실패해도 반환값은 "종료"로 설정
+							imageboard.setStatus("종료");
+						}
+					}
+				}
+			}
+			
 			map.put("rt", "OK");
 			map.put("total", 1);
 			map.put("item", imageboard);
 		} else {
+			System.out.println("상세보기 데이터 조회 실패 - seq: " + seq);
 			map.put("rt", "FAIL");
 			map.put("msg", "해당 게시글이 존재하지 않습니다.");
 		}

@@ -2,6 +2,7 @@ package com.example.backend.entity;
 
 import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,11 +27,16 @@ public class ImageboardImages {
 	@SequenceGenerator(name = "IMAGEBOARD_IMAGES_SEQUENCE_GENERATOR",
 					   sequenceName = "SEQ_IMAGEBOARD_IMAGES1",
 					   initialValue = 1, allocationSize = 1)
+	@Column(name = "IMG_SEQ")
 	private int imgSeq;  // 이미지 번호 (PK)
+	@Column(name = "IMAGEBOARD_SEQ")
 	private int imageboardSeq;  // 게시글 번호 (FK)
+	@Column(name = "IMAGE_PATH")
 	private String imagePath;  // 이미지 파일 경로
+	@Column(name = "IMAGE_ORDER")
 	private int imageOrder;  // 이미지 순서 (1: 대표이미지)
 	@Temporal(TemporalType.DATE)
+	@Column(name = "UPLOAD_DATE")
 	private Date uploadDate;  // 업로드 일시
 }
 
