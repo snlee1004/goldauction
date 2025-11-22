@@ -110,7 +110,7 @@ function ManagerInfo() {
                                 fontSize: "13px"
                             }}
                         >
-                            회원 관리 페이지로 이동
+                            회원정보 상세 관리
                         </Link>
                     </div>
                 </div>
@@ -133,7 +133,13 @@ function ManagerInfo() {
                     }}>
                         팝업창 관리
                     </h3>
-                    <div style={{textAlign: "center", marginTop: "15px"}}>
+                    <div style={{
+                        textAlign: "center", 
+                        marginTop: "15px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px"
+                    }}>
                         <Link
                             to="/popup/manage"
                             style={{
@@ -146,7 +152,35 @@ function ManagerInfo() {
                                 fontSize: "13px"
                             }}
                         >
-                            팝업 관리 페이지로 이동
+                            팝업 상세 관리
+                        </Link>
+                        <Link
+                            to="/chart/manage"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            chart 그래프 관리
+                        </Link>
+                        <Link
+                            to="/chatbot/manage"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            챗봇관리
                         </Link>
                     </div>
                 </div>
