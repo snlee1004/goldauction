@@ -19,124 +19,92 @@ public class NewsController {
 	// 딥서치 뉴스 API 키
 	private static final String DEEPSEARCH_API_KEY = "27827029bf844344aa0360f9f954e70f";
 	
-	// 딥서치 뉴스 API 프록시 - 국내 거시경제 브리핑
+	// 딥서치 뉴스 API 프록시 - 국내 뉴스
 	@GetMapping("/news/gold")
-	public Map<String, Object> getGoldNews(@RequestParam(value = "display", defaultValue = "2") int display) {
+	public Map<String, Object> getGoldNews(
+			@RequestParam(value = "query", required = false) String query,
+			@RequestParam(value = "display", defaultValue = "10") int display) {
 		Map<String, Object> result = new HashMap<>();
 		
 		try {
-			// 딥서치 뉴스 API 호출 - 국내 거시경제 브리핑 (구독 필요)
-			// 엔드포인트: https://api-v2.deepsearch.com/v1/briefings/macro/kr
-			// 파라미터: page_size, api_key
-			// 주의: 이 API는 추가 구독이 필요합니다. 구독이 없으면 global-articles API를 사용합니다.
+			// 검색어가 없으면 기본값 사용
+			if(query == null || query.trim().isEmpty()) {
+				query = "금 시세 경제";
+			}
 			
-			String apiUrl = "https://api-v2.deepsearch.com/v1/briefings/macro/kr?api_key=" 
-							+ DEEPSEARCH_API_KEY
+			// 딥서치 뉴스 API 호출 - global-articles (국내 뉴스 포함)
+			// 엔드포인트: https://api-v2.deepsearch.com/v1/global-articles
+			// 인증: Authorization Bearer 헤더 사용
+			String apiUrl = "https://api-v2.deepsearch.com/v1/global-articles"
+							+ "?query=" + java.net.URLEncoder.encode(query, "UTF-8")
 							+ "&page_size=" + display;
-			boolean useBriefingApi = true; // 브리핑 API 사용 여부
 			
-			// HTTP 헤더 설정
+			// HTTP 헤더 설정 (Authorization Bearer 사용)
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + DEEPSEARCH_API_KEY);
 			
 			HttpEntity<String> entity = new HttpEntity<>(headers);
 			
 			// RestTemplate을 사용하여 API 호출
 			RestTemplate restTemplate = new RestTemplate();
-			ResponseEntity<String> response = null;
-			
-			try {
-				// 먼저 브리핑 API 시도
-				response = restTemplate.exchange(
-					apiUrl,
-					HttpMethod.GET,
-					entity,
-					String.class
-				);
-			} catch(org.springframework.web.client.HttpClientErrorException e) {
-				// 403 Forbidden 에러 발생 시 global-articles API로 대체
-				if(e.getStatusCode().value() == 403) {
-					useBriefingApi = false;
-					apiUrl = "https://api-v2.deepsearch.com/v1/global-articles?api_key=" 
-							+ DEEPSEARCH_API_KEY
-							+ "&query=" + java.net.URLEncoder.encode("금 시세 경제", "UTF-8")
-							+ "&limit=" + display;
-					// global-articles API 재시도
-					response = restTemplate.exchange(
-						apiUrl,
-						HttpMethod.GET,
-						entity,
-						String.class
-					);
-				} else {
-					// 다른 에러는 그대로 throw
-					throw e;
-				}
-			}
+			ResponseEntity<String> response = restTemplate.exchange(
+				apiUrl,
+				HttpMethod.GET,
+				entity,
+				String.class
+			);
 			
 			if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
 				// JSON 문자열을 Map으로 변환
 				ObjectMapper objectMapper = new ObjectMapper();
+				@SuppressWarnings("unchecked")
 				Map<String, Object> responseData = objectMapper.readValue(response.getBody(), Map.class);
 				
 				java.util.List<Map<String, Object>> items = new java.util.ArrayList<>();
 				
-				if(useBriefingApi) {
-					// 국내 거시경제 브리핑 API 응답 형식에 맞게 데이터 변환
-					// 응답 구조: { "detail": {...}, "data": [...] }
-					if(responseData.containsKey("data") && responseData.get("data") instanceof java.util.List) {
-						@SuppressWarnings("unchecked")
-						java.util.List<Map<String, Object>> briefings = (java.util.List<Map<String, Object>>) responseData.get("data");
+				// global-articles API 응답 형식에 맞게 데이터 변환
+				// 응답 구조: { "data": [...], "total_items": ..., "page": ... }
+				java.util.List<Map<String, Object>> articles = null;
+				
+				if(responseData.containsKey("data") && responseData.get("data") instanceof java.util.List) {
+					@SuppressWarnings("unchecked")
+					java.util.List<Map<String, Object>> data = (java.util.List<Map<String, Object>>) responseData.get("data");
+					articles = data;
+				}
+				
+				if(articles != null) {
+					for(Map<String, Object> article : articles) {
+						Map<String, Object> item = new HashMap<>();
 						
-						for(Map<String, Object> briefing : briefings) {
-							Map<String, Object> item = new HashMap<>();
-							// 브리핑 정보를 뉴스 형식으로 변환
-							String category = (String) briefing.getOrDefault("category", "");
-							String keyTrends = (String) briefing.getOrDefault("key_trends", "");
-							String title = category + ": " + keyTrends;
-							
-							item.put("title", title);
-							item.put("description", briefing.getOrDefault("key_indicators", 
-									briefing.getOrDefault("key_trends", "")));
-							item.put("link", "");
-							String createdAt = (String) briefing.getOrDefault("created_at", "");
-							item.put("pubDate", createdAt);
-							item.put("originallink", "");
-							item.put("category", category);
-							item.put("full_briefing", briefing.getOrDefault("full_briefing", ""));
-							
-							items.add(item);
-						}
-					}
-				} else {
-					// global-articles API 응답 형식에 맞게 데이터 변환
-					java.util.List<Map<String, Object>> articles = null;
-					
-					if(responseData.containsKey("data") && responseData.get("data") instanceof java.util.List) {
+						// 제목
+						item.put("title", article.getOrDefault("title", ""));
+						
+						// 설명 (summary 우선, 없으면 빈 문자열)
+						item.put("description", article.getOrDefault("summary", ""));
+						
+						// 링크
+						String contentUrl = (String) article.getOrDefault("content_url", "");
+						item.put("link", contentUrl);
+						item.put("originallink", contentUrl);
+						
+						// 발행일
+						String publishedAt = (String) article.getOrDefault("published_at", "");
+						item.put("pubDate", publishedAt);
+						
+						// 출판사
+						item.put("publisher", article.getOrDefault("publisher", ""));
+						
+						// 섹션 (카테고리)
 						@SuppressWarnings("unchecked")
-						java.util.List<Map<String, Object>> data = (java.util.List<Map<String, Object>>) responseData.get("data");
-						articles = data;
-					} else if(responseData.containsKey("articles") && responseData.get("articles") instanceof java.util.List) {
-						@SuppressWarnings("unchecked")
-						java.util.List<Map<String, Object>> articlesList = (java.util.List<Map<String, Object>>) responseData.get("articles");
-						articles = articlesList;
-					}
-					
-					if(articles != null) {
-						for(Map<String, Object> article : articles) {
-							Map<String, Object> item = new HashMap<>();
-							item.put("title", article.getOrDefault("title", article.getOrDefault("headline", "")));
-							item.put("description", article.getOrDefault("description", 
-									article.getOrDefault("summary", 
-									article.getOrDefault("content", ""))));
-							item.put("link", article.getOrDefault("url", 
-									article.getOrDefault("link", "")));
-							item.put("pubDate", article.getOrDefault("publishedAt", 
-									article.getOrDefault("date", "")));
-							item.put("originallink", article.getOrDefault("url", 
-									article.getOrDefault("link", "")));
-							items.add(item);
+						java.util.List<String> sections = (java.util.List<String>) article.getOrDefault("sections", new java.util.ArrayList<>());
+						if(sections != null && !sections.isEmpty()) {
+							item.put("category", sections.get(0));
+						} else {
+							item.put("category", "");
 						}
+						
+						items.add(item);
 					}
 				}
 				

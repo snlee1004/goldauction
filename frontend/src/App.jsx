@@ -21,6 +21,8 @@ import MemberList from "./membercontrol/MemberList";
 import MemberModify from "./membercontrol/MemberModify";
 import MemberSuspend from "./membercontrol/MemberSuspend";
 import PopupManage from "./popup/PopupManage";
+import ChartSetManage from "./chart/ChartSetManage";
+import ChartSetEditor from "./chart/ChartSetEditor";
 import Intro from "./Intro";
 
 function App() {
@@ -69,6 +71,10 @@ function App() {
                                 element={<MemberSuspend/>} />
                             <Route path="/popup/manage" 
                                 element={<PopupManage/>} />
+                            <Route path="/chart/manage" 
+                                element={<ChartSetManage/>} />
+                            <Route path="/chart/editor" 
+                                element={<ChartSetEditor/>} />
                         </Routes>
                     </div>
                 </div>

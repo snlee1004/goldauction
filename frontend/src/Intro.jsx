@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -42,6 +42,12 @@ function Intro() {
     const [showPopup, setShowPopup] = useState(false);
     const [currentPopup, setCurrentPopup] = useState(null);
     const [currentPopupIndex, setCurrentPopupIndex] = useState(0);
+    
+    // 차트셋 관련 상태
+    const [currentChartSet, setCurrentChartSet] = useState("chartSet_1");
+    const [ChartComponent, setChartComponent] = useState(null);
+    const [NewsComponent, setNewsComponent] = useState(null);
+    const [chartComponentsLoaded, setChartComponentsLoaded] = useState(false);
     
     // 입찰 베스트 목록 조회 (입찰자 수 기준 정렬)
     const fetchBestBids = async () => {
@@ -242,6 +248,75 @@ function Intro() {
         }
     };
     
+    // 현재 적용된 차트셋 조회 및 컴포넌트 로드
+    useEffect(() => {
+        const loadChartSet = async () => {
+            try {
+                const response = await fetch("http://localhost:8080/chart/current");
+                if(response.ok) {
+                    const data = await response.json();
+                    if(data.rt === "OK" && data.name) {
+                        const chartSetName = data.name;
+                        setCurrentChartSet(chartSetName);
+                        
+                        // 차트셋 컴포넌트 동적 import
+                        try {
+                            const chartModule = await import(`./chart/${chartSetName}/Chart.jsx`);
+                            const newsModule = await import(`./chart/${chartSetName}/News.jsx`);
+                            setChartComponent(() => chartModule.default);
+                            setNewsComponent(() => newsModule.default);
+                            setChartComponentsLoaded(true);
+                            console.log("차트셋 로드 성공:", chartSetName);
+                        } catch(err) {
+                            console.error("차트셋 컴포넌트 로드 실패, 기본값 사용:", err);
+                            // 기본값 사용
+                            try {
+                                const chartModule = await import(`./chart/chartSet_1/Chart.jsx`);
+                                const newsModule = await import(`./chart/chartSet_1/News.jsx`);
+                                setChartComponent(() => chartModule.default);
+                                setNewsComponent(() => newsModule.default);
+                                setChartComponentsLoaded(true);
+                                console.log("기본 차트셋 로드 성공: chartSet_1");
+                            } catch(importErr) {
+                                console.error("기본 차트셋 로드 실패:", importErr);
+                            }
+                        }
+                    } else {
+                        // 응답이 OK가 아니면 기본값 사용
+                        console.log("차트셋 응답이 없음, 기본값 사용");
+                        const chartModule = await import(`./chart/chartSet_1/Chart.jsx`);
+                        const newsModule = await import(`./chart/chartSet_1/News.jsx`);
+                        setChartComponent(() => chartModule.default);
+                        setNewsComponent(() => newsModule.default);
+                        setChartComponentsLoaded(true);
+                    }
+                } else {
+                    // 응답 실패 시 기본값 사용
+                    console.log("차트셋 API 응답 실패, 기본값 사용");
+                    const chartModule = await import(`./chart/chartSet_1/Chart.jsx`);
+                    const newsModule = await import(`./chart/chartSet_1/News.jsx`);
+                    setChartComponent(() => chartModule.default);
+                    setNewsComponent(() => newsModule.default);
+                    setChartComponentsLoaded(true);
+                }
+            } catch(err) {
+                console.error("차트셋 조회 오류:", err);
+                // 기본값 사용
+                try {
+                    const chartModule = await import(`./chart/chartSet_1/Chart.jsx`);
+                    const newsModule = await import(`./chart/chartSet_1/News.jsx`);
+                    setChartComponent(() => chartModule.default);
+                    setNewsComponent(() => newsModule.default);
+                    setChartComponentsLoaded(true);
+                    console.log("기본 차트셋 로드 성공 (오류 후): chartSet_1");
+                } catch(importErr) {
+                    console.error("기본 차트셋 로드 실패:", importErr);
+                }
+            }
+        };
+        loadChartSet();
+    }, []);
+
     // 경매 목록 조회 및 뉴스 조회
     useEffect(() => {
         setLoading(true);
@@ -811,236 +886,39 @@ function Intro() {
                     </div>
                 </div>
             ) : (
-                // GOLD 탭: 기존 레이아웃
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "20px",
-                    marginBottom: "40px"
-                }}>
-                    {/* 왼쪽 패널: 국내 시세 */}
+                // GOLD 탭: 차트셋 컴포넌트 사용
+                chartComponentsLoaded && ChartComponent && NewsComponent ? (
                     <div style={{
-                        border: "1px solid #ffeb99",
-                        borderRadius: "8px",
-                        padding: "20px",
-                        backgroundColor: "#fff"
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "20px",
+                        marginBottom: "40px"
                     }}>
-                        <div style={{
-                            marginBottom: "15px"
-                        }}>
-                            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
-                                국제 금 시세 (KRW/3.75g)
-                            </h3>
-                        </div>
-                    
-                    {/* 기간 선택 탭 */}
-                    <div style={{
-                        display: "flex",
-                        gap: "5px",
-                        marginBottom: "20px"
-                    }}>
-                        {["1개월", "5개월", "1년", "3년"].map(period => (
-                            <button
-                                key={period}
-                                onClick={() => setDomesticPeriod(period)}
-                                style={{
-                                    padding: "4px 8px",
-                                    backgroundColor: domesticPeriod === period ? "#007bff" : "#f0f0f0",
-                                    color: domesticPeriod === period ? "#fff" : "#333",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: "pointer",
-                                    fontSize: "10px"
-                                }}
-                            >
-                                {period}
-                            </button>
-                        ))}
+                        <ChartComponent 
+                            domesticPeriod={domesticPeriod}
+                            setDomesticPeriod={setDomesticPeriod}
+                        />
+                        <NewsComponent 
+                            newsList={newsList}
+                            newsLoading={newsLoading}
+                            newsError={newsError}
+                        />
                     </div>
-                    
-                    {/* TradingView Mini Chart - 국내 금시세 (KRW) */}
-                    {/* API 키 없이 TradingView 위젯 사용 */}
-                    <div style={{ marginBottom: "20px", height: "250px" }}>
-                        <div style={{ width: "100%", height: "100%" }}>
-                            {(() => {
-                                // 기간에 따라 interval 조정
-                                const getInterval = (period) => {
-                                    switch(period) {
-                                        case "1개월": return "D";
-                                        case "5개월": return "W";
-                                        case "1년": return "M";
-                                        case "3년": return "12M";
-                                        default: return "D";
-                                    }
-                                };
-                                
-                                const interval = getInterval(domesticPeriod);
-                                // 한국 금시세는 TradingView에서 직접 제공하지 않으므로
-                                // 국제 금시세를 KRW로 변환하거나, 다른 방법 사용
-                                // 일단 국제 금시세를 기반으로 표시 (실제로는 한국 금시장 데이터 필요)
-                                const widgetUrl = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_domestic_${domesticPeriod}&symbol=OANDA:XAUUSD&interval=${interval}&symboledit=1&saveimage=0&toolbarbg=f1f3f6&studies=[]&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=kr&utm_source=www.koreagoldx.co.kr&utm_medium=widget&utm_campaign=chart&utm_term=OANDA:XAUUSD`;
-                                
-                                return (
-                                    <iframe
-                                        key={domesticPeriod}
-                                        src={widgetUrl}
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            border: "none",
-                                            borderRadius: "4px"
-                                        }}
-                                        title="국내 금시세 차트"
-                                    />
-                                );
-                            })()}
+                ) : (
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "20px",
+                        marginBottom: "40px"
+                    }}>
+                        <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+                            차트 로딩 중...
+                        </div>
+                        <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+                            뉴스 로딩 중...
                         </div>
                     </div>
-                    
-                    {/* 데이터 출처 표기 */}
-                    <div style={{
-                        marginTop: "10px",
-                        textAlign: "center",
-                        fontSize: "11px",
-                        color: "#999"
-                    }}>
-                        데이터 출처: TradingView
-                    </div>
-                </div>
-
-                {/* 오른쪽 패널: 네이버 경제 뉴스 */}
-                <div style={{
-                    border: "1px solid #b3ffb3",
-                    borderRadius: "8px",
-                    padding: "20px",
-                    backgroundColor: "#fff"
-                }}>
-                    <div style={{
-                        marginBottom: "15px"
-                    }}>
-                        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
-                            경제 뉴스 브리핑
-                        </h3>
-                    </div>
-                    
-                    {/* 네이버 뉴스 목록 */}
-                    <div style={{
-                        maxHeight: "250px",
-                        overflowY: "auto"
-                    }}>
-                        {newsLoading ? (
-                            <div style={{
-                                padding: "20px",
-                                textAlign: "center",
-                                color: "#666"
-                            }}>
-                                뉴스를 불러오는 중...
-                            </div>
-                        ) : newsError ? (
-                            <div style={{
-                                padding: "20px",
-                                textAlign: "center",
-                                color: "#dc3545",
-                                fontSize: "12px"
-                            }}>
-                                <div style={{ marginBottom: "10px" }}>⚠️ {newsError}</div>
-                                <div style={{ fontSize: "11px", color: "#999" }}>
-                                    브라우저 콘솔을 확인해주세요.
-                                </div>
-                            </div>
-                        ) : newsList.length === 0 ? (
-                            <div style={{
-                                padding: "20px",
-                                textAlign: "center",
-                                color: "#666"
-                            }}>
-                                뉴스가 없습니다.
-                            </div>
-                        ) : (
-                            <div style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "15px"
-                            }}>
-                                {newsList.map((news, index) => {
-                                    // HTML 태그 제거 및 텍스트만 추출
-                                    const cleanTitle = news.title.replace(/<[^>]*>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                                    const cleanDescription = news.description ? news.description.replace(/<[^>]*>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>') : '';
-                                    
-                                    // 출처 추출
-                                    let source = '뉴스 출처';
-                                    try {
-                                        if(news.originallink) {
-                                            source = new URL(news.originallink).hostname;
-                                        } else if(news.link) {
-                                            source = new URL(news.link).hostname;
-                                        }
-                                    } catch(e) {
-                                        source = '뉴스 출처';
-                                    }
-                                    
-                                    return (
-                                        <div
-                                            key={index}
-                                            style={{
-                                                padding: "12px",
-                                                border: "1px solid #e0e0e0",
-                                                borderRadius: "6px"
-                                            }}
-                                        >
-                                            {/* 타이틀 */}
-                                            <div style={{
-                                                fontSize: "13px",
-                                                fontWeight: "bold",
-                                                marginBottom: "8px",
-                                                color: "#333",
-                                                lineHeight: "1.4"
-                                            }}>
-                                                {cleanTitle}
-                                            </div>
-                                            
-                                            {/* 내용 (2줄로 제한) */}
-                                            {cleanDescription && (
-                                                <div style={{
-                                                    fontSize: "11px",
-                                                    color: "#666",
-                                                    marginBottom: "8px",
-                                                    lineHeight: "1.4",
-                                                    display: "-webkit-box",
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: "vertical",
-                                                    overflow: "hidden",
-                                                    textOverflow: "ellipsis"
-                                                }}>
-                                                    {cleanDescription}
-                                                </div>
-                                            )}
-                                            
-                                            {/* 출처 */}
-                                            <div style={{
-                                                fontSize: "10px",
-                                                color: "#999"
-                                            }}>
-                                                <span>{source}</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                    
-                    {/* 데이터 출처 표기 */}
-                    <div style={{
-                        marginTop: "15px",
-                        textAlign: "center",
-                        fontSize: "11px",
-                        color: "#999"
-                    }}>
-                        데이터 출처: <a href="https://news.deepsearch.com/" target="_blank" rel="noopener noreferrer" style={{ color: "#999", textDecoration: "none" }}>https://news.deepsearch.com/</a>
-                    </div>
-                </div>
-            </div>
+                )
             )}
 
             {/* 하단 경매 목록 */}

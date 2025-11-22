@@ -163,7 +163,8 @@ function ManagerInfo() {
                                 backgroundColor: "#337ab7",
                                 color: "#fff",
                                 borderRadius: "4px",
-                                fontSize: "13px"
+                                fontSize: "13px",
+                                marginBottom: "8px"
                             }}
                         >
                             chart 그래프 관리

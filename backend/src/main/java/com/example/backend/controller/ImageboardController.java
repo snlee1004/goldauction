@@ -668,20 +668,47 @@ public class ImageboardController {
 				allList = new java.util.ArrayList<>();
 			}
 			
-			// 상태별로 분류
-			List<Imageboard> activeList = new java.util.ArrayList<>(); // 진행중
-			List<Imageboard> completedList = new java.util.ArrayList<>(); // 종료/판매완료
-			List<Imageboard> canceledList = new java.util.ArrayList<>(); // 포기
+			// 상태별로 분류 및 입찰 수 추가
+			List<Map<String, Object>> activeList = new java.util.ArrayList<>(); // 진행중
+			List<Map<String, Object>> completedList = new java.util.ArrayList<>(); // 종료/판매완료
+			List<Map<String, Object>> canceledList = new java.util.ArrayList<>(); // 포기
 			
 			for(Imageboard item : allList) {
 				if(item == null) continue;
+				
+				// Imageboard를 Map으로 변환하여 입찰 수 추가
+				Map<String, Object> itemMap = new HashMap<>();
+				itemMap.put("seq", item.getSeq());
+				itemMap.put("imageid", item.getImageid());
+				itemMap.put("imagename", item.getImagename());
+				itemMap.put("imageprice", item.getImageprice());
+				itemMap.put("imageqty", item.getImageqty());
+				itemMap.put("imagecontent", item.getImagecontent());
+				itemMap.put("image1", item.getImage1());
+				itemMap.put("category", item.getCategory());
+				itemMap.put("auctionPeriod", item.getAuctionPeriod());
+				itemMap.put("transactionMethod", item.getTransactionMethod());
+				itemMap.put("auctionStartDate", item.getAuctionStartDate());
+				itemMap.put("auctionEndDate", item.getAuctionEndDate());
+				itemMap.put("status", item.getStatus());
+				itemMap.put("logtime", item.getLogtime());
+				
+				// 입찰 수 조회
+				try {
+					int bidCount = bidService.getBidCountByImageboardSeq(item.getSeq());
+					itemMap.put("bidCount", bidCount);
+				} catch(Exception e) {
+					System.out.println("입찰 수 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+					itemMap.put("bidCount", 0);
+				}
+				
 				String status = item.getStatus();
 				if(status == null || status.isEmpty() || status.equals("진행중")) {
-					activeList.add(item);
+					activeList.add(itemMap);
 				} else if(status.equals("종료") || status.equals("판매완료")) {
-					completedList.add(item);
+					completedList.add(itemMap);
 				} else if(status.equals("포기")) {
-					canceledList.add(item);
+					canceledList.add(itemMap);
 				}
 			}
 			

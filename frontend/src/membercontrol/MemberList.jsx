@@ -223,7 +223,6 @@ function MemberList() {
                                 <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>아이디</th>
                                 <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>이름</th>
                                 <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>닉네임</th>
-                                <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>이메일</th>
                                 <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>전화번호</th>
                                 <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>상태</th>
                                 <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "13px"}}>가입일</th>
@@ -233,7 +232,7 @@ function MemberList() {
                         <tbody>
                             {memberList.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" style={{padding: "20px", textAlign: "center", color: "#666"}}>
+                                    <td colSpan="7" style={{padding: "20px", textAlign: "center", color: "#666"}}>
                                         회원이 없습니다.
                                     </td>
                                 </tr>
@@ -243,9 +242,6 @@ function MemberList() {
                                         <td style={{padding: "10px", textAlign: "center", fontSize: "13px"}}>{member.id}</td>
                                         <td style={{padding: "10px", textAlign: "center", fontSize: "13px"}}>{member.name}</td>
                                         <td style={{padding: "10px", textAlign: "center", fontSize: "13px"}}>{member.nickname || "-"}</td>
-                                        <td style={{padding: "10px", textAlign: "center", fontSize: "13px"}}>
-                                            {member.email1 && member.email2 ? `${member.email1}@${member.email2}` : "-"}
-                                        </td>
                                         <td style={{padding: "10px", textAlign: "center", fontSize: "13px"}}>
                                             {member.tel1 && member.tel2 && member.tel3 
                                                 ? `${member.tel1}-${member.tel2}-${member.tel3}` 
@@ -347,9 +343,9 @@ function MemberList() {
                 <button
                     onClick={() => navigate("/manager/managerInfo")}
                     className="btn btn-secondary"
-                    style={{padding: "6px 12px"}}
+                    style={{padding: "5px 12px"}}
                 >
-                    관리자 페이지로
+                    관리자 페이지
                 </button>
             </div>
         </div>

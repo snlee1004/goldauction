@@ -240,7 +240,8 @@ function MemberInfo() {
                                         <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상품명</th>
                                         <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>시작가격</th>
                                         <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>상태</th>
-                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>등록일</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>마감일</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center"}}>입찰수</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -255,7 +256,10 @@ function MemberInfo() {
                                                 </span>
                                             </td>
                                             <td style={{padding: "10px", textAlign: "center"}}>
-                                                {item.logtime ? new Date(item.logtime).toLocaleDateString() : "-"}
+                                                {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center"}}>
+                                                {item.bidCount || 0}
                                             </td>
                                         </tr>
                                     ))}

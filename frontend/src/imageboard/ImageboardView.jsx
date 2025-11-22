@@ -642,7 +642,7 @@ function ImageboardView() {
                                 <td style={{padding: "10px", fontSize: "13px"}}>{imageboardData.imagename || imageboardData.productname || "웰치스"}</td>
                             </tr>
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>단가</td>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>경매 시작가격</td>
                                 <td style={{padding: "10px", fontSize: "13px"}}>{unitPrice.toLocaleString()}</td>
                             </tr>
                             <tr style={{borderBottom: "1px solid #eee"}}>
