@@ -256,12 +256,33 @@ function ImageboardList() {
                                     if(status === "포기") {
                                         return {color: "#d9534f", fontWeight: "bold"};
                                     } else if(status === "판매완료") {
-                                        return {color: "#5cb85c", fontWeight: "bold"}; // 판매완료는 초록색
+                                        return {color: "#006400", fontWeight: "bold"}; // 판매완료는 아주 진한 초록색
                                     } else if(status === "종료") {
                                         return {color: "#d9534f", fontWeight: "bold"}; // 경매종료는 빨간색
                                     } else {
-                                        return {color: "#337ab7", fontWeight: "bold"};
+                                        // 진행중인 경우 아주 진한 파란색
+                                        return {color: "#000080", fontWeight: "bold"};
                                     }
+                                };
+                                
+                                // 진행중인지 확인하는 함수
+                                const isActive = () => {
+                                    if(status === "진행중" || (!status || status === "")) {
+                                        // 종료일이 있고 아직 지나지 않았으면 진행중
+                                        if(dto.auctionEndDate) {
+                                            try {
+                                                const endDate = new Date(dto.auctionEndDate);
+                                                endDate.setHours(0, 0, 0, 0);
+                                                const now = new Date();
+                                                now.setHours(0, 0, 0, 0);
+                                                return endDate >= now;
+                                            } catch(e) {
+                                                return true; // 날짜 파싱 실패 시 진행중으로 간주
+                                            }
+                                        }
+                                        return true; // 종료일이 없으면 진행중으로 간주
+                                    }
+                                    return false;
                                 };
                                 
                                 // 상태 표시 텍스트
@@ -317,16 +338,22 @@ function ImageboardList() {
                                         <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap"}}>
                                             {(() => {
                                                 const maxBid = dto.maxBidAmount !== undefined && dto.maxBidAmount !== null ? Number(dto.maxBidAmount) : 0;
-                                                if(maxBid > 0) {
-                                                    return (
-                                                        <span style={{color: "#d9534f", fontWeight: "bold"}}>
-                                                            {maxBid.toLocaleString()}원
-                                                        </span>
-                                                    );
-                                                } else {
-                                                    const startPrice = dto.imageprice !== undefined && dto.imageprice !== null ? Number(dto.imageprice) : 0;
-                                                    return <span>{startPrice.toLocaleString()}원</span>;
+                                                const startPrice = dto.imageprice !== undefined && dto.imageprice !== null ? Number(dto.imageprice) : 0;
+                                                const displayPrice = maxBid > 0 ? maxBid : startPrice;
+                                                
+                                                // 상태에 따라 색상 결정
+                                                let priceColor = "#d9534f"; // 기본값: 빨간색
+                                                if(status === "판매완료") {
+                                                    priceColor = "#006400"; // 판매완료는 아주 진한 초록색
+                                                } else if(isActive()) {
+                                                    priceColor = "#000080"; // 진행중은 아주 진한 파란색
                                                 }
+                                                
+                                                return (
+                                                    <span style={{color: priceColor, fontWeight: "bold"}}>
+                                                        {displayPrice.toLocaleString()}원
+                                                    </span>
+                                                );
                                             })()}
                                         </td>
                                         <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle", whiteSpace: "nowrap", width: "120px"}}>

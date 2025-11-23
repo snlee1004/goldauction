@@ -1,36 +1,50 @@
 /* header.css - 헤더 컴포넌트 스타일 - 최신 트렌드 디자인 */
 
-/* 색상 변수 (일관된 색감) */
+/* ========== 색상 변수 정의 ========== */
+/* 일관된 색감을 위한 CSS 변수 설정 */
 :root {
-    --primary-orange: #FF6B35;
-    --primary-gold: #F7931E;
-    --secondary-blue: #4A90E2;
-    --background-light: #F8F9FA;
-    --text-dark: #2C3E50;
-    --text-gray: #6C757D;
-    --accent-gold: #FFD700;
-    --shadow-soft: rgba(0, 0, 0, 0.08);
-    --shadow-medium: rgba(0, 0, 0, 0.12);
-    --shadow-strong: rgba(0, 0, 0, 0.2);
+    --primary-orange: #FF6B35;      /* 주 색상 - 오렌지색 */
+    --primary-gold: #F7931E;         /* 주 금색 - 주황색 */
+    --secondary-blue: #4A90E2;      /* 보조 색상 - 파란색 */
+    --background-light: #F8F9FA;    /* 배경 밝은 회색 */
+    --text-dark: #2C3E50;           /* 텍스트 진한 색 */
+    --text-gray: #6C757D;           /* 텍스트 회색 */
+    --accent-gold: #FFD700;         /* 강조 색상 - 금색 */
+    --shadow-soft: rgba(0, 0, 0, 0.08);      /* 부드러운 그림자 */
+    --shadow-medium: rgba(0, 0, 0, 0.12);    /* 중간 그림자 */
+    --shadow-strong: rgba(0, 0, 0, 0.2);      /* 강한 그림자 */
 }
 
-/* navbar-custom 스타일 (실제 헤더 JSX에서 사용하는 클래스) */
+/* ========== 네비게이션 바 메인 스타일 ========== */
+/* 실제 헤더 JSX에서 사용하는 클래스 */
 .navbar-custom {
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.95), rgba(247, 147, 30, 0.95)) !important;
+    /* 배경: 초록색 단색 (그라데이션 제거) */
+    background: linear-gradient(135deg, #005000, #0a860a, #005000) !important;
+    /* 배경 블러 효과 (Glassmorphism) */
     backdrop-filter: blur(20px) !important;
+    /* 그림자 효과 */
     box-shadow: 0 8px 32px var(--shadow-medium) !important;
+    /* 내부 여백 */
     padding: 12px 0 !important;
+    /* 최소 높이 설정 */
     min-height: 60px !important;
+    /* 고정 위치 (스크롤 시에도 상단 고정) */
     position: fixed !important;
     top: 0 !important;
+    /* 중앙 정렬을 위한 위치 조정 */
     left: 50% !important;
     transform: translateX(-50%) !important;
+    /* 너비 설정 */
     width: 100% !important;
     max-width: 800px !important;
+    /* 다른 요소 위에 표시되도록 z-index 설정 */
     z-index: 1000 !important;
+    /* 하단 테두리 */
     border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
+/* ========== 네비게이션 바 상단 장식선 ========== */
+/* 상단에 그라데이션 장식선 추가 */
 .navbar-custom::before {
     content: '';
     position: absolute;
@@ -38,89 +52,108 @@
     left: 0;
     width: 100%;
     height: 4px;
+    /* 오렌지색에서 금색으로 이어지는 그라데이션 */
     background: linear-gradient(90deg, var(--primary-orange), var(--primary-gold), var(--accent-gold));
 }
 
+/* ========== 컨테이너 레이아웃 ========== */
+/* 네비게이션 바 내부 컨테이너 스타일 */
 .navbar-custom .container-fluid {
+    /* Flexbox 레이아웃 */
     display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex-wrap: nowrap !important;
+    align-items: center !important;          /* 수직 중앙 정렬 */
+    justify-content: space-between !important;  /* 좌우 공간 분배 */
+    flex-wrap: nowrap !important;            /* 줄바꿈 방지 */
     width: 100% !important;
     max-width: 100% !important;
+    /* 내부 여백 */
     padding: 0 15px !important;
     margin: 0 !important;
-    gap: 10px !important;
+    gap: 10px !important;                    /* 요소 간 간격 */
 }
 
+/* ========== 브랜드 로고 스타일 ========== */
+/* 왼쪽 상단 브랜드명/로고 스타일 */
 .navbar-custom .navbar-brand {
     font-size: 24px !important;
-    font-weight: 900 !important;
-    color: #fff !important;
+    font-weight: 900 !important;            /* 매우 굵은 글꼴 */
+    color: #c9a222 !important;
     text-decoration: none !important;
+    /* 부드러운 애니메이션 효과 */
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    /* 텍스트 그림자 효과 */
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
-    letter-spacing: -0.5px !important;
+    letter-spacing: -0.5px !important;     /* 글자 간격 조정 */
     display: flex !important;
     align-items: center !important;
     line-height: 1.2 !important;
-    position: relative !important;
-    white-space: nowrap !important;
+    position: relative !important;          /* 하단 언더라인을 위한 위치 설정 */
+    white-space: nowrap !important;        /* 줄바꿈 방지 */
     margin-right: 10px !important;
 }
 
+/* ========== 브랜드 로고 하단 언더라인 ========== */
+/* 호버 시 나타나는 금색 언더라인 */
 .navbar-custom .navbar-brand::after {
     content: '';
     position: absolute;
     bottom: -5px;
     left: 0;
-    width: 0;
+    width: 0;                               /* 초기에는 보이지 않음 */
     height: 3px;
-    background: var(--accent-gold);
-    transition: width 0.3s ease;
+    background: var(--accent-gold);         /* 금색 */
+    transition: width 0.3s ease;            /* 너비 변화 애니메이션 */
     border-radius: 2px;
 }
 
+/* 브랜드 로고 호버 효과 */
 .navbar-custom .navbar-brand:hover {
-    transform: scale(1.05) !important;
-    text-shadow: 0 4px 20px rgba(255, 215, 0, 0.5) !important;
+    transform: scale(1.05) !important;      /* 약간 확대 */
+    text-shadow: 0 4px 20px rgba(255, 215, 0, 0.5) !important;  /* 금색 그림자 */
 }
 
+/* 호버 시 언더라인 전체 너비로 확장 */
 .navbar-custom .navbar-brand:hover::after {
     width: 100%;
 }
 
+/* ========== 네비게이션 메뉴 컨테이너 ========== */
 .navbar-custom .navbar-nav {
     display: flex !important;
-    flex-direction: row !important;
+    flex-direction: row !important;         /* 가로 방향 배치 */
     align-items: center !important;
-    gap: 5px !important;
-    flex-wrap: nowrap !important;
+    gap: 5px !important;                    /* 메뉴 항목 간 간격 */
+    flex-wrap: nowrap !important;           /* 줄바꿈 방지 */
 }
 
+/* ========== 네비게이션 메뉴 항목 ========== */
 .navbar-custom .nav-item {
     display: flex !important;
     align-items: center !important;
-    flex-shrink: 0 !important;
+    flex-shrink: 0 !important;             /* 축소 방지 */
 }
 
+/* ========== 네비게이션 링크 기본 스타일 ========== */
 .navbar-custom .nav-link {
     color: #fff !important;
     font-size: 14px !important;
-    font-weight: 600 !important;
+    font-weight: 600 !important;           /* 세미볼드 */
     margin: 0 4px !important;
     padding: 6px 12px !important;
-    border-radius: 50px !important;
+    border-radius: 50px !important;        /* 완전히 둥근 모서리 */
+    /* 부드러운 애니메이션 */
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    position: relative !important;
-    overflow: hidden !important;
+    position: relative !important;         /* 배경 효과를 위한 위치 설정 */
+    overflow: hidden !important;           /* 배경 효과가 넘치지 않도록 */
     display: flex !important;
     align-items: center !important;
     line-height: 1.2 !important;
     text-decoration: none !important;
-    white-space: nowrap !important;
+    white-space: nowrap !important;        /* 줄바꿈 방지 */
 }
 
+/* ========== 네비게이션 링크 배경 효과 ========== */
+/* 호버 시 왼쪽에서 오른쪽으로 확장되는 배경 효과 */
 .navbar-custom .nav-link::before {
     content: '';
     position: absolute;
@@ -128,146 +161,171 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: scaleX(0);
-    transform-origin: left;
+    background: rgba(255, 255, 255, 0.2);  /* 반투명 흰색 배경 */
+    transform: scaleX(0);                   /* 초기에는 보이지 않음 */
+    transform-origin: left;                /* 왼쪽에서 시작 */
     transition: transform 0.3s ease;
     border-radius: 50px;
 }
 
+/* 네비게이션 링크 호버 효과 */
 .navbar-custom .nav-link:hover {
     background: rgba(255, 255, 255, 0.15) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-2px) !important;  /* 위로 살짝 이동 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;  /* 그림자 효과 */
 }
 
+/* 호버 시 배경 효과 확장 */
 .navbar-custom .nav-link:hover::before {
-    transform: scaleX(1);
+    transform: scaleX(1);                   /* 전체 너비로 확장 */
 }
 
+/* 활성화된 링크 스타일 (현재 페이지) */
 .navbar-custom .nav-link.active {
-    background: rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.25) !important;  /* 더 진한 배경 */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-    font-weight: 700 !important;
+    font-weight: 700 !important;           /* 더 굵은 글꼴 */
 }
 
+/* 활성화된 링크의 배경 효과도 표시 */
 .navbar-custom .nav-link.active::before {
     transform: scaleX(1);
 }
 
-/* 공지사항 링크 스타일 */
+/* ========== 공지사항 링크 특별 스타일 ========== */
 .navbar-custom .nav-link.notice-link {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: rgba(255, 255, 255, 0.9) !important;  /* 약간 투명한 흰색 */
 }
 
 .navbar-custom .nav-link.notice-link:hover {
-    color: #fff !important;
+    color: #fff !important;                /* 호버 시 완전한 흰색 */
 }
 
-/* 경매 GO 중앙 배치 */
+/* ========== 중앙 배치 요소 (경매 GO) ========== */
+/* 네비게이션 바 중앙에 배치되는 요소 */
 .navbar-custom .navbar-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    position: absolute;                     /* 절대 위치 */
+    left: 50%;                             /* 왼쪽에서 50% */
+    transform: translateX(-50%);           /* 중앙 정렬 */
     display: flex;
     align-items: center;
-    z-index: 1;
+    z-index: 1;                            /* 다른 요소 위에 표시 */
 }
 
+/* 중앙 배치된 링크 스타일 */
 .navbar-custom .navbar-center .nav-link {
-    font-weight: 800 !important;
-    font-size: 1.1rem !important;
+    font-weight: 800 !important;           /* 매우 굵은 글꼴 */
+    font-size: 1.1rem !important;          /* 약간 큰 글자 크기 */
     padding: 6px 14px !important;
 }
 
-/* 로그인/로그아웃 버튼 스타일 */
+/* ========== 버튼 기본 스타일 ========== */
+/* 로그인/로그아웃 버튼 공통 스타일 */
 .navbar-custom .btn {
     margin-left: 8px !important;
     padding: 6px 14px !important;
-    border-radius: 50px !important;
+    border-radius: 50px !important;        /* 완전히 둥근 모서리 */
     font-weight: 600 !important;
+    /* 부드러운 애니메이션 */
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    text-transform: uppercase !important;
+    text-transform: uppercase !important;  /* 대문자 변환 */
     font-size: 11px !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 0.5px !important;      /* 글자 간격 */
     display: flex !important;
     align-items: center !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
 }
 
+/* ========== 로그아웃 버튼 스타일 ========== */
+/* outline-danger 스타일의 버튼 (로그아웃) */
 .navbar-custom .btn-outline-danger {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.2) !important;  /* 반투명 흰색 배경 */
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;  /* 반투명 테두리 */
     color: #fff !important;
-    backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;  /* 배경 블러 효과 */
     padding: 6px 12px !important;
     font-size: 11px !important;
 }
 
+/* 로그아웃 버튼 호버 효과 */
 .navbar-custom .btn-outline-danger:hover {
-    background: rgba(255, 255, 255, 0.3) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+    background: rgba(255, 255, 255, 0.3) !important;  /* 더 진한 배경 */
+    border-color: rgba(255, 255, 255, 0.5) !important;  /* 더 진한 테두리 */
+    transform: translateY(-2px) !important;  /* 위로 살짝 이동 */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;  /* 그림자 효과 */
 }
 
+/* 로그아웃 버튼 클릭 효과 */
 .navbar-custom .btn-outline-danger:active {
-    transform: translateY(0) !important;
+    transform: translateY(0) !important;    /* 원래 위치로 복귀 */
 }
 
-/* 토글 버튼 스타일 */
+/* ========== 모바일 토글 버튼 스타일 ========== */
+/* 모바일 화면에서 메뉴를 열고 닫는 버튼 */
 .navbar-custom .navbar-toggler {
-    border-color: rgba(255, 255, 255, 0.5) !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;  /* 반투명 흰색 테두리 */
+    background: rgba(255, 255, 255, 0.1) !important;      /* 반투명 흰색 배경 */
 }
 
+/* 토글 버튼 아이콘 색상 (흰색으로 변환) */
 .navbar-custom .navbar-toggler-icon {
-    filter: brightness(0) invert(1) !important;
+    filter: brightness(0) invert(1) !important;  /* 아이콘을 흰색으로 변환 */
 }
 
-/* 모바일 반응형 */
+/* ========================================
+   모바일 반응형 스타일
+   화면 너비 768px 이하에서 적용
+   ======================================== */
 @media (max-width: 768px) {
+    /* 네비게이션 바 모바일 스타일 */
     .navbar-custom {
-        padding: 10px 0 !important;
-        min-height: 55px !important;
+        padding: 10px 0 !important;        /* 여백 축소 */
+        min-height: 55px !important;       /* 높이 축소 */
     }
     
+    /* 컨테이너 모바일 스타일 */
     .navbar-custom .container-fluid {
-        padding: 0 10px !important;
-        gap: 5px !important;
+        padding: 0 10px !important;        /* 좌우 여백 축소 */
+        gap: 5px !important;               /* 요소 간 간격 축소 */
     }
     
+    /* 브랜드 로고 모바일 스타일 */
     .navbar-custom .navbar-brand {
-        font-size: 18px !important;
+        font-size: 18px !important;        /* 글자 크기 축소 */
         margin-right: 5px !important;
     }
     
+    /* 네비게이션 링크 모바일 스타일 */
     .navbar-custom .nav-link {
-        font-size: 12px !important;
-        margin: 2px 0 !important;
-        padding: 5px 10px !important;
+        font-size: 12px !important;        /* 글자 크기 축소 */
+        margin: 2px 0 !important;          /* 상하 여백 */
+        padding: 5px 10px !important;      /* 내부 여백 축소 */
     }
     
+    /* 버튼 모바일 스타일 */
     .navbar-custom .btn {
         margin: 4px 0 !important;
         width: auto !important;
-        padding: 5px 10px !important;
-        font-size: 10px !important;
+        padding: 5px 10px !important;      /* 내부 여백 축소 */
+        font-size: 10px !important;       /* 글자 크기 축소 */
     }
     
+    /* 왼쪽 정렬 메뉴 모바일 스타일 */
     .navbar-custom .navbar-nav.me-auto {
-        gap: 5px !important;
+        gap: 5px !important;               /* 요소 간 간격 축소 */
     }
     
+    /* 중앙 배치 요소 모바일 스타일 */
     .navbar-custom .navbar-center {
-        position: relative;
+        position: relative;                 /* 절대 위치 해제 */
         left: auto;
-        transform: none;
+        transform: none;                    /* 변환 효과 제거 */
     }
     
+    /* 중앙 링크 모바일 스타일 */
     .navbar-custom .navbar-center .nav-link {
-        font-size: 1rem !important;
-        padding: 5px 10px !important;
+        font-size: 1rem !important;       /* 글자 크기 조정 */
+        padding: 5px 10px !important;      /* 내부 여백 축소 */
     }
 }

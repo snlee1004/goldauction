@@ -55,6 +55,18 @@ function CssLoader() {
                                 // 동적 CSS를 head의 맨 끝에 추가하여 우선순위 높임
                                 document.head.appendChild(style);
                             });
+                            
+                            // member.css가 적용된 경우, 인라인 스타일의 color 속성을 제거하여 CSS가 적용되도록 함
+                            if(data.data.cssFiles.some(f => f.fileType === "member")) {
+                                setTimeout(() => {
+                                    const h4Elements = document.querySelectorAll('h4[style*="#337ab7"], h4[style*="#5cb85c"], h4[style*="#b3d9ff"], h4[style*="#d9534f"]');
+                                    h4Elements.forEach(h4 => {
+                                        if(h4.style) {
+                                            h4.style.removeProperty('color');
+                                        }
+                                    });
+                                }, 200);
+                            }
                         }
                     } else if(data.rt === "OK" && !data.data) {
                         // 적용된 CSS가 없는 경우 (default_set 또는 적용 해제 상태)

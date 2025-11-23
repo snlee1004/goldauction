@@ -1,263 +1,216 @@
-/* imageboard.css - 게시판(경매) 관련 모든 페이지 스타일 - 최신 트렌드 디자인 */
-
-/* 색상 변수 (일관된 색감) */
-:root {
-    --primary-orange: #FF6B35;
-    --primary-gold: #F7931E;
-    --secondary-blue: #4A90E2;
-    --background-light: #F8F9FA;
-    --text-dark: #2C3E50;
-    --text-gray: #6C757D;
-    --accent-gold: #FFD700;
-    --shadow-soft: rgba(0, 0, 0, 0.08);
-    --shadow-medium: rgba(0, 0, 0, 0.12);
-    --shadow-strong: rgba(0, 0, 0, 0.2);
-}
+/* imageboard.css - 게시판(경매) 관련 모든 페이지 스타일 */
 
 /* 경매 목록 페이지 스타일 */
 .imageboard-list-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 30px 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
+    padding: 20px;
 }
 
 .imageboard-item {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 8px 32px var(--shadow-soft);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative;
-    overflow: hidden;
-}
-
-.imageboard-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-orange), var(--primary-gold), var(--accent-gold));
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s ease;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    transition: box-shadow 0.3s ease;
 }
 
 .imageboard-item:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 48px var(--shadow-medium);
-    border-color: rgba(255, 107, 53, 0.3);
-}
-
-.imageboard-item:hover::before {
-    transform: scaleX(1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .imageboard-item-title {
-    font-size: 22px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 15px;
-    line-height: 1.4;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
 }
 
 .imageboard-item-price {
-    font-size: 28px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-orange), var(--accent-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 15px;
-    letter-spacing: -0.5px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #d9534f;
+    margin-bottom: 10px;
 }
 
 .imageboard-item-info {
     font-size: 14px;
-    color: var(--text-gray);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.imageboard-item-info::before {
-    content: '•';
-    color: var(--primary-gold);
-    font-weight: bold;
+    color: #666;
+    margin-bottom: 5px;
 }
 
 /* 경매 상세 페이지 스타일 */
 .imageboard-view-container {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 40px 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
+    padding: 20px;
 }
 
 .imageboard-view-title {
-    font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 25px;
-    line-height: 1.3;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
 }
 
 .imageboard-view-price {
-    font-size: 42px;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--primary-orange), var(--accent-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 25px;
-    letter-spacing: -1px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #d9534f;
+    margin-bottom: 20px;
 }
 
 .imageboard-view-description {
     font-size: 16px;
-    line-height: 1.8;
-    color: var(--text-dark);
-    margin-bottom: 30px;
-    padding: 25px;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    border-left: 4px solid var(--primary-gold);
-    box-shadow: 0 4px 16px var(--shadow-soft);
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 20px;
 }
 
 /* 입찰 버튼 스타일 */
 .bid-button {
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
+    background-color: #337ab7;
     color: #fff;
     border: none;
-    padding: 16px 32px;
-    font-size: 18px;
-    font-weight: 700;
-    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.bid-button::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+    transition: background-color 0.3s ease;
 }
 
 .bid-button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 32px rgba(255, 107, 53, 0.4);
-}
-
-.bid-button:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.bid-button:active {
-    transform: translateY(-1px) scale(1.02);
+    background-color: #286090;
 }
 
 .bid-button:disabled {
-    background: linear-gradient(135deg, #ccc, #999);
+    background-color: #ccc;
     cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
 }
 
 /* 경매 상태 배지 */
 .auction-status {
     display: inline-block;
-    padding: 8px 18px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 12px var(--shadow-soft);
-    transition: all 0.3s ease;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .auction-status.active {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background-color: #5cb85c;
     color: #fff;
 }
 
 .auction-status.ended {
-    background: linear-gradient(135deg, #f44336, #d32f2f);
+    background-color: #d9534f;
     color: #fff;
 }
 
 .auction-status.completed {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+    background-color: #5cb85c;
     color: #fff;
 }
 
-.auction-status:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px var(--shadow-medium);
+/* ========== ImageboardList.jsx 호버 효과 ========== */
+
+/* 테이블 행 호버 효과 - 강조 강화, 빠른 반응 */
+body:not([data-manager-page]) .container table.table tbody tr {
+    transition: background-color 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+body:not([data-manager-page]) .container table.table tbody tr:hover {
+    background-color: rgba(179, 217, 255, 0.25) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 테이블 헤더 호버 효과 */
+body:not([data-manager-page]) .container table.table thead tr {
+    transition: background-color 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+body:not([data-manager-page]) .container table.table thead tr:hover {
+    background-color: rgba(179, 217, 255, 0.95) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 이미지 호버 효과 - 강조 강화, 빠른 반응, 초록색 테두리 */
+body:not([data-manager-page]) .container table.table tbody tr td img {
+    transition: filter 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease, border 0.1s ease !important;
+    display: block !important;
+    margin: 0 auto !important;
+    border: 2px solid transparent !important;
+}
+
+body:not([data-manager-page]) .container table.table tbody tr:hover td img {
+    filter: brightness(1.2) contrast(1.1) !important;
+    box-shadow: 0 6px 20px rgba(51, 122, 183, 0.4) !important;
+    opacity: 1 !important;
+    border: 2px solid #5cb85c !important;
+}
+
+/* 링크 호버 효과 - 강조 강화, 빠른 반응 */
+body:not([data-manager-page]) .container table.table tbody tr td a {
+    transition: color 0.1s ease, font-weight 0.1s ease !important;
+}
+
+body:not([data-manager-page]) .container table.table tbody tr:hover td a {
+    color: #286090 !important;
+    font-weight: bold !important;
+}
+
+/* 검색 입력 필드 포커스 효과 - 강조 강화, 빠른 반응 */
+body:not([data-manager-page]) .container input.form-control:focus,
+body:not([data-manager-page]) .container select.form-control:focus {
+    box-shadow: 0 0 0 4px rgba(51, 122, 183, 0.25) !important;
+    border-color: #286090 !important;
+    border-width: 2px !important;
+    transition: box-shadow 0.1s ease, border-color 0.1s ease !important;
+}
+
+/* 검색 버튼 호버 효과 - 강조 강화, 빠른 반응 */
+body:not([data-manager-page]) .container button.btn-primary {
+    transition: background-color 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+body:not([data-manager-page]) .container button.btn-primary:hover {
+    background-color: #23527c !important;
+    box-shadow: 0 6px 20px rgba(51, 122, 183, 0.5) !important;
+}
+
+/* 페이징 호버 효과 - 강조 강화, 빠른 반응 */
+body:not([data-manager-page]) .container > div[style*="textAlign: center"] span {
+    transition: color 0.1s ease, font-weight 0.1s ease, background-color 0.1s ease !important;
+    cursor: pointer !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+}
+
+body:not([data-manager-page]) .container > div[style*="textAlign: center"] span:hover {
+    color: #23527c !important;
+    font-weight: bold !important;
+    background-color: rgba(51, 122, 183, 0.1) !important;
+    text-decoration: underline !important;
 }
 
 /* 모바일 반응형 */
 @media (max-width: 768px) {
     .imageboard-list-container,
     .imageboard-view-container {
-        padding: 20px 15px;
+        padding: 10px;
     }
     
     .imageboard-item {
-        padding: 20px;
-        border-radius: 15px;
-    }
-    
-    .imageboard-item-title {
-        font-size: 18px;
-    }
-    
-    .imageboard-item-price {
-        font-size: 24px;
+        padding: 15px;
     }
     
     .imageboard-view-title {
-        font-size: 24px;
+        font-size: 20px;
     }
     
     .imageboard-view-price {
-        font-size: 32px;
-    }
-    
-    .imageboard-view-description {
-        padding: 20px;
-        font-size: 14px;
-    }
-    
-    .bid-button {
-        padding: 14px 28px;
-        font-size: 16px;
+        font-size: 24px;
     }
 }
+

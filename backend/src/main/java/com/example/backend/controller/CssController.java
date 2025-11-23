@@ -672,19 +672,74 @@ public class CssController {
 	public Map<String, Object> getCssFileList(@RequestParam("setSeq") Integer setSeq) {
 		Map<String, Object> map = new HashMap<>();
 		try {
-			List<CssFile> list = cssFileService.getCssFileList(setSeq);
+			// 스타일셋 정보 조회
+			CssSet set = cssSetService.getCssSet(setSeq);
+			if(set == null) {
+				map.put("rt", "FAIL");
+				map.put("msg", "스타일셋을 찾을 수 없습니다.");
+				return map;
+			}
+			
+			// CSS 파일 타입 목록
+			String[] fileTypes = {"imageboard", "member", "header", "footer"};
+			
+			// CSS 파일 경로 설정
+			String baseCssPath;
+			if(cssPath != null && !cssPath.isEmpty()) {
+				baseCssPath = cssPath;
+			} else {
+				baseCssPath = System.getProperty("user.dir") + "/../frontend/src/css";
+			}
+			String setFolderPath = baseCssPath + "/" + set.getSetName();
+			
 			List<Map<String, Object>> items = new ArrayList<>();
-			for(CssFile file : list) {
+			
+			for(String fileType : fileTypes) {
+				String cssContent = null;
+				String fileName = fileType + ".css";
+				
+				// 파일 시스템에서 먼저 읽기 시도
+				try {
+					String filePath = setFolderPath + "/" + fileName;
+					File cssFile = new File(filePath);
+					if(cssFile.exists()) {
+						cssContent = new String(Files.readAllBytes(Paths.get(filePath)), "UTF-8");
+						System.out.println("파일 시스템에서 CSS 읽기 성공: " + filePath + " (길이: " + cssContent.length() + ")");
+					}
+				} catch(IOException e) {
+					System.err.println("파일 시스템에서 CSS 읽기 실패: " + fileName + " - " + e.getMessage());
+				}
+				
+				// 파일 시스템에 없으면 DB에서 읽기
+				if(cssContent == null || cssContent.trim().isEmpty()) {
+					CssFile file = cssFileService.getCssFileByType(setSeq, fileType);
+					if(file != null) {
+						cssContent = file.getCssContent();
+						System.out.println("DB에서 CSS 읽기 성공: " + fileName + " (길이: " + (cssContent != null ? cssContent.length() : 0) + ")");
+					}
+				}
+				
+				// DB에서 파일 정보 조회 (fileSeq 등)
+				CssFile dbFile = cssFileService.getCssFileByType(setSeq, fileType);
+				
 				Map<String, Object> item = new HashMap<>();
-				item.put("fileSeq", file.getFileSeq());
-				item.put("setSeq", file.getSetSeq());
-				item.put("fileName", file.getFileName());
-				item.put("cssContent", file.getCssContent());
-				item.put("fileType", file.getFileType());
-				item.put("createdDate", file.getCreatedDate());
-				item.put("modifiedDate", file.getModifiedDate());
+				if(dbFile != null) {
+					item.put("fileSeq", dbFile.getFileSeq());
+					item.put("setSeq", dbFile.getSetSeq());
+					item.put("createdDate", dbFile.getCreatedDate());
+					item.put("modifiedDate", dbFile.getModifiedDate());
+				} else {
+					item.put("fileSeq", null);
+					item.put("setSeq", setSeq);
+					item.put("createdDate", null);
+					item.put("modifiedDate", null);
+				}
+				item.put("fileName", fileName);
+				item.put("cssContent", cssContent != null ? cssContent : "");
+				item.put("fileType", fileType);
 				items.add(item);
 			}
+			
 			map.put("rt", "OK");
 			map.put("items", items);
 		} catch(Exception e) {

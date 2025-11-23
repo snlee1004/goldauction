@@ -789,7 +789,27 @@ function Intro() {
                                             {(() => {
                                                 // 상태에 따라 색상 결정
                                                 const status = item.status || "";
-                                                const priceColor = status === "판매완료" ? "#28a745" : "#d9534f";
+                                                let priceColor = "#d9534f"; // 기본값: 빨간색
+                                                
+                                                // 판매완료인 경우 초록색
+                                                if(status === "판매완료") {
+                                                    priceColor = "#28a745";
+                                                } 
+                                                // 진행중인 경우 아주 진한 파란색
+                                                else if(status === "진행중" || (!status && item.auctionEndDate)) {
+                                                    // 종료일이 있고 아직 지나지 않았으면 진행중
+                                                    if(item.auctionEndDate) {
+                                                        const endDate = new Date(item.auctionEndDate);
+                                                        endDate.setHours(0, 0, 0, 0);
+                                                        const now = new Date();
+                                                        now.setHours(0, 0, 0, 0);
+                                                        if(endDate >= now) {
+                                                            priceColor = "#000080"; // 아주 진한 파란색
+                                                        }
+                                                    } else if(status === "진행중") {
+                                                        priceColor = "#000080"; // 아주 진한 파란색
+                                                    }
+                                                }
                                                 
                                                 // 입찰이 진행된 경우 최고 입찰금액, 그렇지 않으면 최초 등록 금액 표시
                                                 const maxBid = item.maxBidAmount !== undefined && item.maxBidAmount !== null && Number(item.maxBidAmount) > 0 
@@ -882,7 +902,27 @@ function Intro() {
                                             {(() => {
                                                 // 상태에 따라 색상 결정
                                                 const status = item.status || "";
-                                                const priceColor = status === "판매완료" ? "#28a745" : "#d9534f";
+                                                let priceColor = "#d9534f"; // 기본값: 빨간색
+                                                
+                                                // 판매완료인 경우 초록색
+                                                if(status === "판매완료") {
+                                                    priceColor = "#28a745";
+                                                } 
+                                                // 진행중인 경우 아주 진한 파란색
+                                                else if(status === "진행중" || (!status && item.auctionEndDate)) {
+                                                    // 종료일이 있고 아직 지나지 않았으면 진행중
+                                                    if(item.auctionEndDate) {
+                                                        const endDate = new Date(item.auctionEndDate);
+                                                        endDate.setHours(0, 0, 0, 0);
+                                                        const now = new Date();
+                                                        now.setHours(0, 0, 0, 0);
+                                                        if(endDate >= now) {
+                                                            priceColor = "#000080"; // 아주 진한 파란색
+                                                        }
+                                                    } else if(status === "진행중") {
+                                                        priceColor = "#000080"; // 아주 진한 파란색
+                                                    }
+                                                }
                                                 
                                                 // 입찰이 진행된 경우 최고 입찰금액, 그렇지 않으면 최초 등록 금액 표시
                                                 const maxBid = item.maxBidAmount !== undefined && item.maxBidAmount !== null && Number(item.maxBidAmount) > 0 

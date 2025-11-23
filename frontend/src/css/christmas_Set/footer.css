@@ -20,7 +20,7 @@
     max-width: 100% !important;
     margin-top: 40px !important;
     padding: 30px 0 15px !important;
-    background: linear-gradient(135deg, #005000, #0a860a, #005000) !important;
+    background: linear-gradient(135deg, #FF6B35, #f14a0d, #FF6B35) !important;
     background-color: transparent !important; /* 기존 background-color 덮어쓰기 */
     backdrop-filter: blur(20px) !important;
     flex-shrink: 0 !important;

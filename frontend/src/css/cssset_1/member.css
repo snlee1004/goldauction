@@ -1,258 +1,471 @@
-/* member.css - 회원 관련 모든 페이지 스타일 - 최신 트렌드 디자인 */
-
-/* 색상 변수 (일관된 색감) */
-:root {
-    --primary-orange: #FF6B35;
-    --primary-gold: #F7931E;
-    --secondary-blue: #4A90E2;
-    --background-light: #F8F9FA;
-    --text-dark: #2C3E50;
-    --text-gray: #6C757D;
-    --accent-gold: #FFD700;
-    --shadow-soft: rgba(0, 0, 0, 0.08);
-    --shadow-medium: rgba(0, 0, 0, 0.12);
-    --shadow-strong: rgba(0, 0, 0, 0.2);
-}
+/* member.css - 회원 관련 모든 페이지 스타일 */
 
 /* 회원 가입/로그인 폼 스타일 */
 .member-form-container {
     max-width: 500px;
-    margin: 60px auto;
-    padding: 40px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 25px;
-    box-shadow: 0 20px 60px var(--shadow-medium);
-    position: relative;
-    overflow: hidden;
-}
-
-.member-form-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background: linear-gradient(90deg, var(--primary-orange), var(--primary-gold), var(--accent-gold));
+    margin: 50px auto;
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .member-form-title {
-    font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
     text-align: center;
-    letter-spacing: -1px;
 }
 
 .member-form-group {
-    margin-bottom: 25px;
-    position: relative;
+    margin-bottom: 20px;
 }
 
 .member-form-label {
     display: block;
     font-size: 14px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
 }
 
 .member-form-input {
     width: 100%;
-    padding: 14px 18px;
-    border: 2px solid rgba(108, 117, 125, 0.2);
-    border-radius: 12px;
-    font-size: 15px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
 }
 
 .member-form-input:focus {
     outline: none;
-    border-color: var(--primary-gold);
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 0 0 4px rgba(247, 147, 30, 0.1);
-    transform: translateY(-2px);
-}
-
-.member-form-input::placeholder {
-    color: var(--text-gray);
-    opacity: 0.6;
+    border-color: #337ab7;
 }
 
 .member-form-button {
     width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
+    padding: 12px;
+    background-color: #337ab7;
     color: #fff;
     border: none;
-    border-radius: 12px;
+    border-radius: 4px;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    overflow: hidden;
-}
-
-.member-form-button::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+    transition: background-color 0.3s ease;
 }
 
 .member-form-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(255, 107, 53, 0.4);
-}
-
-.member-form-button:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.member-form-button:active {
-    transform: translateY(-1px);
+    background-color: #286090;
 }
 
 /* 회원 정보 페이지 스타일 */
 .member-info-container {
     max-width: 800px;
-    margin: 60px auto;
-    padding: 40px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 25px;
-    box-shadow: 0 20px 60px var(--shadow-medium);
+    margin: 50px auto;
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
 }
 
 .member-info-title {
-    font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 35px;
-    padding-bottom: 15px;
-    border-bottom: 3px solid;
-    border-image: linear-gradient(90deg, var(--primary-orange), var(--primary-gold)) 1;
-    letter-spacing: -1px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #337ab7;
+    padding-bottom: 10px;
 }
 
 .member-info-item {
     display: flex;
-    padding: 20px 0;
-    border-bottom: 1px solid rgba(108, 117, 125, 0.1);
-    transition: all 0.3s ease;
-}
-
-.member-info-item:hover {
-    background: rgba(255, 107, 53, 0.05);
-    padding-left: 15px;
-    border-radius: 10px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
 }
 
 .member-info-label {
-    width: 180px;
-    font-weight: 700;
-    color: var(--text-gray);
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.5px;
+    width: 150px;
+    font-weight: bold;
+    color: #666;
 }
 
 .member-info-value {
     flex: 1;
-    color: var(--text-dark);
-    font-weight: 500;
-    font-size: 15px;
+    color: #333;
 }
 
 /* 회원 목록 스타일 */
 .member-list-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 30px 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
+    padding: 20px;
 }
 
 .member-list-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px var(--shadow-medium);
+    border-collapse: collapse;
+    background-color: #fff;
 }
 
 .member-list-table th {
-    background: linear-gradient(135deg, var(--primary-orange), var(--primary-gold));
-    color: #fff;
-    padding: 18px;
+    background-color: #f8f9fa;
+    padding: 12px;
     text-align: left;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 1px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.member-list-table th:first-child {
-    border-top-left-radius: 20px;
-}
-
-.member-list-table th:last-child {
-    border-top-right-radius: 20px;
+    font-weight: bold;
+    color: #333;
+    border-bottom: 2px solid #ddd;
 }
 
 .member-list-table td {
-    padding: 18px;
-    border-bottom: 1px solid rgba(108, 117, 125, 0.1);
-    color: var(--text-dark);
-    font-size: 14px;
-}
-
-.member-list-table tr:last-child td {
-    border-bottom: none;
-}
-
-.member-list-table tr {
-    transition: all 0.3s ease;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
 }
 
 .member-list-table tr:hover {
-    background: rgba(255, 107, 53, 0.08);
-    transform: scale(1.01);
+    background-color: #f8f9fa;
 }
 
-.member-list-table tr:last-child:hover {
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
+/* ========== 회원정보 수정 폼 스타일 ========== */
+/* ModifyForm 전용 스타일 - 살짝 애니메이션 효과 */
+
+/* 애니메이션 키프레임 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 회원정보 수정 폼 컨테이너 */
+body:not([data-manager-page]) .container[style*="maxWidth"] {
+    animation: fadeInUp 0.4s ease-out !important;
+}
+
+/* 회원정보 수정 폼 테이블 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    animation: fadeIn 0.3s ease-out !important;
+}
+
+/* 테이블 행 순차 등장 효과 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr {
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    animation: fadeInUp 0.3s ease-out !important;
+    animation-fill-mode: both !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:nth-child(1) {
+    animation-delay: 0.05s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:nth-child(2) {
+    animation-delay: 0.1s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:nth-child(3) {
+    animation-delay: 0.15s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:nth-child(4) {
+    animation-delay: 0.2s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:nth-child(5) {
+    animation-delay: 0.25s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:nth-child(n+6) {
+    animation-delay: 0.3s !important;
+}
+
+/* 칸 간격 제거 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr td {
+    padding: 4px 2px !important;  /* 칸 간격 최소화 */
+    border: none !important;
+    vertical-align: middle !important;
+    margin: 0 !important;
+}
+
+/* 라벨 셀 스타일 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr td[align="left"] {
+    padding: 8px 4px !important;
+    width: 150px !important;
+}
+
+/* 입력 필드 크기 조정 및 살짝 애니메이션 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="text"],
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="password"] {
+    width: 220px !important;  /* 적당한 크기로 고정 */
+    max-width: 100% !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    transition: all 0.2s ease !important;  /* 부드러운 트랜지션 */
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="text"]:focus,
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="password"]:focus {
+    outline: none !important;
+    border-color: #337ab7 !important;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.1) !important;
+    transform: translateY(-1px) !important;  /* 살짝 위로 이동 */
+}
+
+/* 이메일 입력 필드는 작게 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="text"][size="12"] {
+    width: 130px !important;
+}
+
+/* 전화번호 입력 필드는 더 작게 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="text"][size="8"] {
+    width: 90px !important;
+}
+
+/* 주소 입력 필드는 넓게 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="text"][size="30"] {
+    width: 320px !important;
+}
+
+/* select 박스 크기 조정 및 살짝 애니메이션 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table select {
+    width: 150px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    box-sizing: border-box !important;
+    margin-left: 5px !important;
+    transition: all 0.2s ease !important;  /* 부드러운 트랜지션 */
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table select:focus {
+    outline: none !important;
+    border-color: #337ab7 !important;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.1) !important;
+    transform: translateY(-1px) !important;  /* 살짝 위로 이동 */
+}
+
+/* 버튼 중앙 정렬 및 살짝 애니메이션 */
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:last-child td {
+    text-align: center !important;
+    padding: 20px 10px !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:last-child td .btn {
+    margin: 0 8px !important;
+    padding: 10px 24px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;  /* 부드러운 트랜지션 */
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:last-child td .btn:hover {
+    transform: translateY(-2px) !important;  /* 살짝 위로 이동 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth"] table.table tbody tr:last-child td .btn:active {
+    transform: translateY(0) !important;
+}
+
+/* ========== MemberInfo.jsx 전용 애니메이션 효과 ========== */
+
+/* MemberInfo 컨테이너 전체 페이드인 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] {
+    animation: fadeInUp 0.5s ease-out !important;
+}
+
+/* 회원 정보 박스 (테이블이 포함된 div) */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type {
+    animation: slideInLeft 0.6s ease-out !important;
+    transition: all 0.3s ease !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 회원 정보 테이블 행 순차 등장 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr {
+    animation: fadeInUp 0.4s ease-out !important;
+    animation-fill-mode: both !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr:nth-child(1) {
+    animation-delay: 0.1s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr:nth-child(2) {
+    animation-delay: 0.15s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr:nth-child(3) {
+    animation-delay: 0.2s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr:nth-child(4) {
+    animation-delay: 0.25s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr:nth-child(5) {
+    animation-delay: 0.3s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="border: 2px solid"]:first-of-type table tbody tr:nth-child(n+6) {
+    animation-delay: 0.35s !important;
+}
+
+/* 회원정보 수정 버튼 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="textAlign: center"] button.btn-primary {
+    animation: scaleIn 0.5s ease-out 0.4s both !important;
+    transition: all 0.3s ease !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="textAlign: center"] button.btn-primary:hover {
+    transform: translateY(-3px) scale(1.05) !important;
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4) !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="textAlign: center"] button.btn-primary:active {
+    transform: translateY(-1px) scale(1.02) !important;
+}
+
+/* 각 섹션 제목 (h4) */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] h4 {
+    animation: slideInRight 0.5s ease-out !important;
+    transition: all 0.3s ease !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] h4:nth-of-type(1) {
+    animation-delay: 0.5s !important;
+    animation-fill-mode: both !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] h4:nth-of-type(2) {
+    animation-delay: 0.6s !important;
+    animation-fill-mode: both !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] h4:nth-of-type(3) {
+    animation-delay: 0.7s !important;
+    animation-fill-mode: both !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] h4:nth-of-type(4) {
+    animation-delay: 0.8s !important;
+    animation-fill-mode: both !important;
+}
+
+/* 경매 목록 박스 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"] {
+    animation: fadeInUp 0.5s ease-out !important;
+    transition: all 0.3s ease !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"]:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 경매 목록 테이블 행 호버 효과 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"] table tbody tr {
+    transition: all 0.2s ease !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"] table tbody tr:hover {
+    background-color: rgba(51, 122, 183, 0.05) !important;
+    transform: translateX(3px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 경매 목록 테이블 행 순차 등장 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"] table tbody tr {
+    animation: fadeInUp 0.3s ease-out !important;
+    animation-fill-mode: both !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"]:nth-of-type(1) table tbody tr:nth-child(1) {
+    animation-delay: 0.1s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"]:nth-of-type(1) table tbody tr:nth-child(2) {
+    animation-delay: 0.15s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"]:nth-of-type(1) table tbody tr:nth-child(3) {
+    animation-delay: 0.2s !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="border: 2px solid"]:nth-of-type(1) table tbody tr:nth-child(n+4) {
+    animation-delay: 0.25s !important;
+}
+
+/* 빈 목록 메시지 */
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="padding: 20px"] {
+    animation: fadeIn 0.4s ease-out !important;
+    transition: all 0.3s ease !important;
+}
+
+body:not([data-manager-page]) .container[style*="maxWidth: 800px"] > div[style*="marginBottom: 30px"] > div[style*="padding: 20px"]:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
 /* 모바일 반응형 */
@@ -260,18 +473,12 @@
     .member-form-container,
     .member-info-container,
     .member-list-container {
-        padding: 25px 20px;
-        margin: 30px auto;
-        border-radius: 20px;
-    }
-    
-    .member-form-title {
-        font-size: 24px;
+        padding: 15px;
+        margin: 20px auto;
     }
     
     .member-info-item {
         flex-direction: column;
-        gap: 8px;
     }
     
     .member-info-label {
@@ -281,15 +488,23 @@
     
     .member-list-table {
         font-size: 12px;
-        border-radius: 15px;
     }
     
     .member-list-table th,
     .member-list-table td {
-        padding: 12px 8px;
+        padding: 8px;
     }
     
-    .member-list-table th {
-        font-size: 10px;
+    /* 모바일에서 입력 필드 크기 조정 */
+    body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="text"],
+    body:not([data-manager-page]) .container[style*="maxWidth"] table.table input[type="password"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    body:not([data-manager-page]) .container[style*="maxWidth"] table.table select {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 }
+
