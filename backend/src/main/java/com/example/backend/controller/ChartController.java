@@ -3,6 +3,9 @@ package com.example.backend.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -305,6 +308,61 @@ public class ChartController {
 			e.printStackTrace();
 			map.put("rt", "OK");
 			map.put("name", "chartSet_1"); // 오류 시 기본값
+		}
+		return map;
+	}
+	
+	// 차트셋 복사
+	@PostMapping("/chart/copy")
+	public Map<String, Object> copyChartSet(@RequestBody Map<String, Object> params) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			String sourceName = params.get("sourceName").toString();
+			String targetName = params.get("targetName").toString();
+			
+			String basePath = getChartBasePath();
+			String sourcePath = basePath + "/" + sourceName;
+			String targetPath = basePath + "/" + targetName;
+			
+			File sourceDir = new File(sourcePath);
+			File targetDir = new File(targetPath);
+			
+			// 소스 차트셋 존재 확인
+			if(!sourceDir.exists()) {
+				map.put("rt", "FAIL");
+				map.put("msg", "복사할 차트셋을 찾을 수 없습니다: " + sourceName);
+				return map;
+			}
+			
+			// 대상 차트셋이 이미 존재하는지 확인
+			if(targetDir.exists()) {
+				map.put("rt", "FAIL");
+				map.put("msg", "이미 존재하는 차트셋입니다: " + targetName);
+				return map;
+			}
+			
+			// 대상 폴더 생성
+			targetDir.mkdirs();
+			
+			// 파일 복사
+			File[] sourceFiles = sourceDir.listFiles();
+			if(sourceFiles != null) {
+				for(File sourceFile : sourceFiles) {
+					if(sourceFile.isFile()) {
+						Path sourceFilePath = sourceFile.toPath();
+						Path targetFilePath = Paths.get(targetPath, sourceFile.getName());
+						Files.copy(sourceFilePath, targetFilePath, StandardCopyOption.REPLACE_EXISTING);
+					}
+				}
+			}
+			
+			map.put("rt", "OK");
+			map.put("msg", "차트셋이 복사되었습니다.");
+		} catch(Exception e) {
+			System.err.println("차트셋 복사 오류: " + e.getMessage());
+			e.printStackTrace();
+			map.put("rt", "FAIL");
+			map.put("msg", "차트셋 복사 중 오류가 발생했습니다: " + e.getMessage());
 		}
 		return map;
 	}

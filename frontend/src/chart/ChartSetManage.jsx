@@ -100,6 +100,56 @@ function ChartSetManage() {
         }
     };
 
+    // 차트셋 복사
+    const handleCopy = async (sourceName) => {
+        // 복사할 차트셋 이름 입력 받기
+        const targetName = window.prompt(`${sourceName} 차트셋을 복사할 새 차트셋 이름을 입력하세요:`, `chartSet_${Date.now()}`);
+        
+        if(!targetName || targetName.trim() === "") {
+            return;
+        }
+
+        const trimmedTargetName = targetName.trim();
+
+        // 차트셋 이름 유효성 검사
+        if(!/^chartSet_\w+$/.test(trimmedTargetName)) {
+            alert("차트셋 이름은 'chartSet_'로 시작해야 합니다.");
+            return;
+        }
+
+        // 이미 존재하는 차트셋인지 확인
+        if(chartSetList.some(set => set.name === trimmedTargetName)) {
+            alert("이미 존재하는 차트셋 이름입니다.");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/chart/copy", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    sourceName: sourceName,
+                    targetName: trimmedTargetName
+                })
+            });
+
+            if(response.ok) {
+                const data = await response.json();
+                if(data.rt === "OK") {
+                    alert("차트셋이 복사되었습니다.");
+                    fetchChartSetList();
+                } else {
+                    alert("차트셋 복사 실패: " + (data.msg || "알 수 없는 오류"));
+                }
+            }
+        } catch(err) {
+            console.error("차트셋 복사 오류:", err);
+            alert("차트셋 복사 중 오류가 발생했습니다.");
+        }
+    };
+
     useEffect(() => {
         fetchChartSetList();
         fetchCurrentChartSet();
@@ -220,6 +270,20 @@ function ChartSetManage() {
                                 >
                                     수정
                                 </Link>
+                                <button
+                                    onClick={() => handleCopy(chartSet.name)}
+                                    style={{
+                                        padding: "6px 12px",
+                                        backgroundColor: "#17a2b8",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        fontSize: "12px",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    복사
+                                </button>
                                 <button
                                     onClick={() => handleApply(chartSet.name)}
                                     style={{

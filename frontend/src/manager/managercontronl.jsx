@@ -131,7 +131,7 @@ function ManagerInfo() {
                         borderBottom: "2px solid #337ab7",
                         paddingBottom: "10px"
                     }}>
-                        팝업창 관리
+                        팝업창 & Chart 관리
                     </h3>
                     <div style={{
                         textAlign: "center", 
@@ -296,7 +296,7 @@ function ManagerInfo() {
                         borderBottom: "2px solid #337ab7",
                         paddingBottom: "10px"
                     }}>
-                        CSS 관리
+                        천체 CSS 관리
                     </h3>
                     <ul style={{
                         listStyle: "none",
@@ -307,25 +307,13 @@ function ManagerInfo() {
                             padding: "8px 0",
                             borderBottom: "1px solid #eee"
                         }}>
+                            골드옥션 CSS 관리
+                        </li>
+                        <li style={{
+                            padding: "8px 0",
+                            borderBottom: "1px solid #eee"
+                        }}>
                             게시판 CSS 관리
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            imageboard CSS 관리
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            챗봇관리
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            ??
                         </li>
                     </ul>
                 </div>
