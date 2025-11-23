@@ -185,10 +185,33 @@ public class ChartController {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
 			String name = params.get("name").toString();
+			String originalName = params.get("originalName") != null ? params.get("originalName").toString() : "";
 			String chartCode = params.get("chartCode") != null ? params.get("chartCode").toString() : "";
 			String newsCode = params.get("newsCode") != null ? params.get("newsCode").toString() : "";
 			String cssCode = params.get("cssCode") != null ? params.get("cssCode").toString() : "";
 			
+			// 이름이 변경되었는지 확인
+			boolean nameChanged = !originalName.isEmpty() && !originalName.equals(name);
+			
+			// 원래 폴더 경로
+			String originalPath = null;
+			if(nameChanged) {
+				originalPath = getChartBasePath() + "/" + originalName;
+				File originalDir = new File(originalPath);
+				if(originalDir.exists() && originalDir.isDirectory()) {
+					// 원래 폴더가 존재하면 새 이름으로 변경
+					String newPath = getChartBasePath() + "/" + name;
+					File newDir = new File(newPath);
+					if(newDir.exists()) {
+						// 새 이름의 폴더가 이미 존재하면 삭제
+						deleteDirectory(newDir);
+					}
+					// 폴더 이름 변경
+					originalDir.renameTo(newDir);
+				}
+			}
+			
+			// 새 폴더 경로
 			String chartSetPath = getChartBasePath() + "/" + name;
 			File chartSetDir = new File(chartSetPath);
 			if(!chartSetDir.exists()) {
@@ -228,6 +251,23 @@ public class ChartController {
 			map.put("msg", "차트셋 저장 중 오류가 발생했습니다: " + e.getMessage());
 		}
 		return map;
+	}
+	
+	// 디렉토리 삭제 헬퍼 메서드
+	private void deleteDirectory(File directory) {
+		if(directory.exists()) {
+			File[] files = directory.listFiles();
+			if(files != null) {
+				for(File file : files) {
+					if(file.isDirectory()) {
+						deleteDirectory(file);
+					} else {
+						file.delete();
+					}
+				}
+			}
+			directory.delete();
+		}
 	}
 	
 	// 차트셋 삭제

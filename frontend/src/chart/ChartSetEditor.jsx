@@ -12,6 +12,7 @@ function ChartSetEditor() {
         newsCode: "",
         cssCode: ""
     });
+    const [originalName, setOriginalName] = useState(chartSetName || ""); // 원래 이름 저장
     const [activeTab, setActiveTab] = useState("chart");
     const [loading, setLoading] = useState(false);
 
@@ -39,8 +40,10 @@ function ChartSetEditor() {
                         newsCodeLength: data.item.newsCode?.length || 0,
                         cssCodeLength: data.item.cssCode?.length || 0
                     });
+                    const itemName = data.item.name || "";
+                    setOriginalName(itemName); // 원래 이름 저장
                     setFormData({
-                        name: data.item.name || "",
+                        name: itemName,
                         chartCode: data.item.chartCode || "",
                         newsCode: data.item.newsCode || "",
                         cssCode: data.item.cssCode || ""
@@ -79,12 +82,18 @@ function ChartSetEditor() {
         }
 
         try {
+            // 원래 이름과 새 이름을 함께 전송
+            const saveData = {
+                ...formData,
+                originalName: originalName // 원래 이름 추가
+            };
+            
             const response = await fetch("http://localhost:8080/chart/save", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(saveData)
             });
 
             if(response.ok) {

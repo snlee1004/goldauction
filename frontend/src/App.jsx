@@ -23,12 +23,16 @@ import MemberSuspend from "./membercontrol/MemberSuspend";
 import PopupManage from "./popup/PopupManage";
 import ChartSetManage from "./chart/ChartSetManage";
 import ChartSetEditor from "./chart/ChartSetEditor";
+import CssSetManage from "./manager/CssSetManage";
+import CssSetEditor from "./manager/CssSetEditor";
+import CssLoader from "./layouts/CssLoader";
 import Intro from "./Intro";
 
 function App() {
     return (
         <BrowserRouter>
             <div className="app-container">
+                <CssLoader />
                 <div className="app-content">
                     <NavbarComponent />
 
@@ -75,6 +79,10 @@ function App() {
                                 element={<ChartSetManage/>} />
                             <Route path="/chart/editor" 
                                 element={<ChartSetEditor/>} />
+                            <Route path="/manager/cssSetManage" 
+                                element={<CssSetManage/>} />
+                            <Route path="/manager/cssSetEditor" 
+                                element={<CssSetEditor/>} />
                         </Routes>
                     </div>
                 </div>

@@ -1,8 +1,10 @@
 .navbar-custom {
     background-color: #D4AF37 !important;
+    background: #D4AF37 !important; /* 애니메이션 없는 단색 배경 */
     color: #000 !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: center !important;
     position: fixed !important;
     top: 0 !important;
     left: 50% !important;
@@ -13,17 +15,24 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
     box-sizing: border-box !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 15px 0 !important;
+}
+
+/* 헤더 호버 효과 */
+.navbar-custom:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    transform: translateX(-50%) translateY(-2px) !important;
 }
 
 .navbar-custom .container-fluid {
     display: flex !important;
     align-items: center !important;
+    justify-content: center !important;
     flex-wrap: wrap !important;
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 15px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
 }
 
 .navbar-custom .navbar-nav {
@@ -43,6 +52,30 @@
     display: flex !important;
     align-items: center !important;
     line-height: 1 !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+}
+
+/* 로고 호버 효과 */
+.navbar-custom .navbar-brand:hover {
+    transform: scale(1.1) !important;
+    color: #004d00 !important;
+    text-shadow: 0 2px 8px rgba(0, 51, 0, 0.3) !important;
+}
+
+.navbar-custom .navbar-brand::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #003300, #004d00);
+    transition: width 0.3s ease;
+}
+
+.navbar-custom .navbar-brand:hover::after {
+    width: 100%;
 }
 
 .navbar-custom .nav-link {
@@ -50,11 +83,45 @@
     display: flex !important;
     align-items: center !important;
     line-height: 1 !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+    padding: 5px 10px !important;
+    border-radius: 4px !important;
+}
+
+/* 네비게이션 링크 호버 효과 */
+.navbar-custom .nav-link:hover {
+    color: #003300 !important;
+    background-color: rgba(0, 51, 0, 0.1) !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 2px 8px rgba(0, 51, 0, 0.2) !important;
+}
+
+.navbar-custom .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #003300, transparent);
+    transition: width 0.3s ease;
+}
+
+.navbar-custom .nav-link:hover::before {
+    width: 80%;
 }
 
 /* 공지사항 링크 회색 */
 .navbar-custom .nav-link.notice-link {
     color: #666 !important;
+    transition: all 0.3s ease !important;
+}
+
+.navbar-custom .nav-link.notice-link:hover {
+    color: #333 !important;
+    background-color: rgba(102, 102, 102, 0.1) !important;
 }
 
 .navbar-custom .navbar-toggler {
@@ -73,6 +140,40 @@
     display: flex !important;
     align-items: center !important;
     line-height: 1 !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* 로그아웃 버튼 호버 효과 */
+.navbar-custom .btn-outline-danger::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.navbar-custom .btn-outline-danger:hover {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+}
+
+.navbar-custom .btn-outline-danger:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.navbar-custom .btn-outline-danger:active {
+    transform: translateY(0) scale(1) !important;
 }
 
 /* 경매 GO 중앙 배치 */
@@ -82,6 +183,25 @@
     transform: translateX(-50%);
     display: flex;
     align-items: center;
+}
+
+/* 경매 GO 링크 애니메이션 */
+.navbar-custom .navbar-center .nav-link {
+    animation: pulse 2s ease-in-out infinite !important;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.navbar-custom .navbar-center .nav-link:hover {
+    animation: none !important;
+    transform: scale(1.15) !important;
 }
 
 /* 반응형 디자인 - 모바일 */

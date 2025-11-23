@@ -22,7 +22,7 @@ CSS 선택은 관리자 페이지에서만 가능합니다.
         ├── member.css
         ├── header.css
         └── footer.css
-    └── cssset_2/
+    └── default_set/
         ├── imageboard.css
         ├── member.css
         ├── header.css
@@ -30,6 +30,13 @@ CSS 선택은 관리자 페이지에서만 가능합니다.
   ```
 
 ### 스타일셋 구성 요소
+전체적용 버튼 , 회원 적용 , 이미지보드 적용, 상단 하단 버튼을 구성해줘
+전체css 적용 버튼 : member 폴더 안에  모든 jxs + 이미지 보드적용 : imageboard 폴더안에 모든 jsx + 상/하단 css 은 layouts 안의  헤더 풋터 jsx 
+상단하단 버튼 : 상단 하단은 layouts 안의  헤더 풋터 jsx
+회원 css 버튼 : member 폴더 안에  모든 jxs
+이미지 보드 버튼 : imageboard 폴더안에 모든 jsx 
+적용 가능하게 
+다시 구성하고 코드 해줘 
 1. **imageboard.css**: 게시판(경매) 관련 모든 페이지 스타일
 2. **member.css**: 회원 관련 모든 페이지 스타일
 3. **header.css**: 헤더 컴포넌트 스타일

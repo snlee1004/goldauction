@@ -1,0 +1,146 @@
+/* Footer 반응형 스타일 */
+.footer-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 5px !important; /* 상단 간격 최소화 */
+    padding: 15px 0 !important; /* 상하 패딩 줄임 */
+    background-color: #D4AF37 !important;
+    background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%) !important;
+    background-size: 200% 200% !important;
+    flex-shrink: 0 !important; /* Footer 크기 고정 */
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    animation: footerGradient 10s ease infinite !important;
+    transition: all 0.3s ease !important;
+}
+
+/* 푸터 배경 그라데이션 애니메이션 */
+@keyframes footerGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* 푸터 호버 효과 */
+.footer-container:hover {
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.footer-divider {
+    margin: 0 0 15px 0;
+    border: 0;
+    border-top: 1px solid #000;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 푸터 구분선 애니메이션 */
+.footer-divider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #003300, transparent);
+    animation: dividerSlide 3s ease-in-out infinite;
+}
+
+@keyframes dividerSlide {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+.footer-content {
+    text-align: center !important;
+    padding: 0 15px !important;
+    width: 100% !important;
+}
+
+.footer-text {
+    margin: 0 !important;
+    color: #000 !important;
+    font-size: 14px !important;
+    text-align: center !important;
+}
+
+.footer-text a {
+    color: #000;
+    text-decoration: none;
+    margin: 0 5px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* 푸터 링크 호버 효과 */
+.footer-text a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #003300, transparent);
+    transition: width 0.3s ease;
+}
+
+.footer-text a:hover {
+    color: #003300;
+    text-decoration: none;
+    transform: translateY(-2px) scale(1.1);
+    background-color: rgba(0, 51, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 51, 0, 0.2);
+}
+
+.footer-text a:hover::before {
+    width: 100%;
+}
+
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+    .footer-container {
+        margin-top: 8px;
+        padding: 12px 0;
+    }
+    
+    .footer-text {
+        font-size: 12px;
+    }
+    
+    .footer-content {
+        padding: 0 10px;
+    }
+}
+
+/* 반응형 디자인 - 태블릿 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .footer-container {
+        margin-top: 10px;
+        padding: 15px 0;
+    }
+}
+
+/* 반응형 디자인 - 데스크톱 */
+@media (min-width: 1025px) {
+    .footer-container {
+        margin-top: 10px;
+        padding: 15px 0;
+    }
+}
+

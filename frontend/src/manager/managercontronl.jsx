@@ -298,24 +298,47 @@ function ManagerInfo() {
                     }}>
                         천체 CSS 관리
                     </h3>
-                    <ul style={{
-                        listStyle: "none",
-                        padding: 0,
-                        margin: 0
+                    <div style={{
+                        textAlign: "center", 
+                        marginTop: "15px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px"
                     }}>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
+                        <Link
+                            to="/manager/cssSetManage"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
                             골드옥션 CSS 관리
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
+                        </Link>
+                        <Link
+                            to="#"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                // 게시판 CSS 관리 기능은 추후 구현 예정
+                                alert("게시판 CSS 관리 기능은 추후 구현 예정입니다.");
+                            }}
+                        >
                             게시판 CSS 관리
-                        </li>
-                    </ul>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* 6. 공동구매*이벤트* 게시판 */}

@@ -255,21 +255,24 @@ function ChartSetManage() {
                                 gap: "8px",
                                 flexWrap: "wrap"
                             }}>
-                                <Link
-                                    to="/chart/editor"
-                                    state={{ chartSetName: chartSet.name }}
-                                    style={{
-                                        textDecoration: "none",
-                                        display: "inline-block",
-                                        padding: "6px 12px",
-                                        backgroundColor: "#337ab7",
-                                        color: "#fff",
-                                        borderRadius: "4px",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    수정
-                                </Link>
+                                {/* chartSet_1은 수정 버튼 숨김 */}
+                                {chartSet.name !== "chartSet_1" && (
+                                    <Link
+                                        to="/chart/editor"
+                                        state={{ chartSetName: chartSet.name }}
+                                        style={{
+                                            textDecoration: "none",
+                                            display: "inline-block",
+                                            padding: "6px 12px",
+                                            backgroundColor: "#337ab7",
+                                            color: "#fff",
+                                            borderRadius: "4px",
+                                            fontSize: "12px"
+                                        }}
+                                    >
+                                        수정
+                                    </Link>
+                                )}
                                 <button
                                     onClick={() => handleCopy(chartSet.name)}
                                     style={{
@@ -299,20 +302,23 @@ function ChartSetManage() {
                                 >
                                     {currentChartSet === chartSet.name ? "적용됨" : "적용"}
                                 </button>
-                                <button
-                                    onClick={() => handleDelete(chartSet.name)}
-                                    style={{
-                                        padding: "6px 12px",
-                                        backgroundColor: "#dc3545",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        fontSize: "12px",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    삭제
-                                </button>
+                                {/* chartSet_1은 삭제 버튼 숨김 */}
+                                {chartSet.name !== "chartSet_1" && (
+                                    <button
+                                        onClick={() => handleDelete(chartSet.name)}
+                                        style={{
+                                            padding: "6px 12px",
+                                            backgroundColor: "#dc3545",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            fontSize: "12px",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        삭제
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
