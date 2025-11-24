@@ -59,35 +59,6 @@ root/
 - **입찰수가 많은 항목**은 최상단 리스트에 표시
 - JavaScript 로직이 필요하면 `script/intro.js`에 추가
 
-### 3. CSS 관리 시스템 규칙
-
-**CSS 스타일셋 구조**:
-- **스타일셋**: imageboard + member + header + footer의 스타일을 묶어서 관리
-- **스타일셋 구성 요소**:
-  - `imageboard.css`: 게시판(경매) 관련 모든 페이지 스타일
-  - `member.css`: 회원 관련 모든 페이지 스타일
-  - `header.css`: 헤더 컴포넌트 스타일
-  - `footer.css`: 푸터 컴포넌트 스타일
-
-**CSS 적용 범위**:
-1. **전체 페이지 적용 (FULL)**: imageboard + member + header + footer 모두 적용
-2. **부분 페이지 적용**: 
-   - `HEADER_FOOTER`: header + footer만 적용
-   - `IMAGEBOARD_MEMBER`: imageboard + member만 적용
-3. **모바일 반응형**: 항상 적용 (모든 스타일셋에 포함)
-
-**CSS 관리 규칙**:
-- CSS 파일은 DB에 CLOB 타입으로 저장
-- 프론트엔드에서 동적으로 CSS를 적용하려면 `<style>` 태그 동적 생성 필요
-- React 컴포넌트에서 `useEffect`를 사용하여 현재 적용된 스타일셋의 CSS를 동적으로 로드
-- 적용 범위에 따라 필요한 CSS 파일만 선택적으로 로드
-- 모바일 반응형 CSS는 모든 스타일셋에 자동 포함
-- CSS 선택은 관리자 페이지에서만 가능
-- 보안을 위해 관리자 권한 체크 필수
-
-**CSS 관리 페이지**:
-- `CssSetManage.jsx`: 스타일셋 목록, 선택 및 적용
-- `CssSetEditor.jsx`: 스타일셋 편집 (각 CSS 파일별 편집 탭)
 
 ### 4. 테스트
 - **기능 구현 후 순차적으로 다음 지시사항** 확인

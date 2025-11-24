@@ -13,7 +13,6 @@
     padding: 20px;
     margin-bottom: 20px;
     background-color: #fff;
-    transition: box-shadow 0.3s ease;
 }
 
 .imageboard-item:hover {
@@ -77,7 +76,6 @@
     font-size: 16px;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
 .bid-button:hover {
@@ -115,29 +113,20 @@
 
 /* ========== ImageboardList.jsx 호버 효과 ========== */
 
-/* 테이블 행 호버 효과 - 강조 강화, 빠른 반응 */
-body:not([data-manager-page]) .container table.table tbody tr {
-    transition: background-color 0.1s ease, box-shadow 0.1s ease !important;
-}
-
+/* 테이블 행 호버 효과 */
 body:not([data-manager-page]) .container table.table tbody tr:hover {
     background-color: rgba(179, 217, 255, 0.25) !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* 테이블 헤더 호버 효과 */
-body:not([data-manager-page]) .container table.table thead tr {
-    transition: background-color 0.1s ease, box-shadow 0.1s ease !important;
-}
-
 body:not([data-manager-page]) .container table.table thead tr:hover {
     background-color: rgba(179, 217, 255, 0.95) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* 이미지 호버 효과 - 강조 강화, 빠른 반응, 초록색 테두리 */
+/* 이미지 호버 효과 - 초록색 테두리 */
 body:not([data-manager-page]) .container table.table tbody tr td img {
-    transition: filter 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease, border 0.1s ease !important;
     display: block !important;
     margin: 0 auto !important;
     border: 2px solid transparent !important;
@@ -150,38 +139,28 @@ body:not([data-manager-page]) .container table.table tbody tr:hover td img {
     border: 2px solid #5cb85c !important;
 }
 
-/* 링크 호버 효과 - 강조 강화, 빠른 반응 */
-body:not([data-manager-page]) .container table.table tbody tr td a {
-    transition: color 0.1s ease, font-weight 0.1s ease !important;
-}
-
+/* 링크 호버 효과 */
 body:not([data-manager-page]) .container table.table tbody tr:hover td a {
     color: #286090 !important;
     font-weight: bold !important;
 }
 
-/* 검색 입력 필드 포커스 효과 - 강조 강화, 빠른 반응 */
+/* 검색 입력 필드 포커스 효과 */
 body:not([data-manager-page]) .container input.form-control:focus,
 body:not([data-manager-page]) .container select.form-control:focus {
     box-shadow: 0 0 0 4px rgba(51, 122, 183, 0.25) !important;
     border-color: #286090 !important;
     border-width: 2px !important;
-    transition: box-shadow 0.1s ease, border-color 0.1s ease !important;
 }
 
-/* 검색 버튼 호버 효과 - 강조 강화, 빠른 반응 */
-body:not([data-manager-page]) .container button.btn-primary {
-    transition: background-color 0.1s ease, box-shadow 0.1s ease !important;
-}
-
+/* 검색 버튼 호버 효과 */
 body:not([data-manager-page]) .container button.btn-primary:hover {
     background-color: #23527c !important;
     box-shadow: 0 6px 20px rgba(51, 122, 183, 0.5) !important;
 }
 
-/* 페이징 호버 효과 - 강조 강화, 빠른 반응 */
+/* 페이징 호버 효과 */
 body:not([data-manager-page]) .container > div[style*="textAlign: center"] span {
-    transition: color 0.1s ease, font-weight 0.1s ease, background-color 0.1s ease !important;
     cursor: pointer !important;
     padding: 2px 6px !important;
     border-radius: 4px !important;
