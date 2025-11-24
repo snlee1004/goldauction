@@ -1,7 +1,22 @@
 # Gold Auction Database Schema (Oracle DB)
 
-## 개요
-골드 경매 시스템의 Oracle 데이터베이스 테이블 구조 및 SQL 쿼리 문서입니다.
+## 📋 개요
+골드 경매 시스템의 Oracle 데이터베이스 테이블 구조, SQL 쿼리, 샘플 데이터 및 필드 매핑 문서입니다.
+
+---
+
+## 📊 테이블 목록
+
+1. **MEMBER1** - 회원 테이블
+2. **IMAGEBOARD1** - 경매 게시글 테이블
+3. **IMAGEBOARD_IMAGES1** - 경매 게시글 이미지 테이블
+4. **BID1** - 입찰 테이블
+5. **NOTICE1** - 공지사항 테이블
+6. **POPUP1** - 팝업 테이블
+7. **MANAGER1** - 관리자 테이블
+8. **CSS_SET1** - CSS 스타일셋 테이블
+9. **CSS_FILE1** - CSS 파일 테이블
+10. **CSS_APPLY1** - CSS 적용 설정 테이블
 
 ---
 
@@ -36,7 +51,6 @@ CREATE INDEX IDX_MEMBER1_SUSPENDED ON MEMBER1(IS_SUSPENDED);
 ```
 
 ### 기존 테이블에 계정 정지 필드 추가 (ALTER TABLE)
-
 기존에 MEMBER1 테이블이 이미 생성되어 있는 경우, 아래 SQL을 실행하여 계정 정지 관련 필드를 추가할 수 있습니다:
 
 ```sql
@@ -111,6 +125,7 @@ CREATE TABLE IMAGEBOARD1 (
     AUCTION_START_DATE DATE DEFAULT SYSDATE, -- 경매 시작일
     AUCTION_END_DATE DATE,                   -- 경매 종료일 (계산된 날짜)
     STATUS VARCHAR2(20) DEFAULT '진행중',    -- 상태 (진행중, 판매완료, 종료)
+    MAX_BID_PRICE NUMBER DEFAULT NULL,       -- 최고 낙찰 가격 (즉시 구매 가격, 선택사항)
     LOGTIME DATE DEFAULT SYSDATE,            -- 등록일시
     CONSTRAINT FK_IMAGEBOARD1_MEMBER1 FOREIGN KEY (IMAGEID) REFERENCES MEMBER1(ID)
 );
@@ -121,6 +136,21 @@ CREATE INDEX IDX_IMAGEBOARD1_IMAGEID ON IMAGEBOARD1(IMAGEID);
 CREATE INDEX IDX_IMAGEBOARD1_CATEGORY ON IMAGEBOARD1(CATEGORY);
 CREATE INDEX IDX_IMAGEBOARD1_STATUS ON IMAGEBOARD1(STATUS);
 CREATE INDEX IDX_IMAGEBOARD1_END_DATE ON IMAGEBOARD1(AUCTION_END_DATE);
+```
+
+### 기존 IMAGEBOARD1 테이블에 MAX_BID_PRICE 필드 추가 (ALTER TABLE)
+기존에 IMAGEBOARD1 테이블이 이미 생성되어 있는 경우, 아래 SQL을 실행하여 최고 낙찰 가격 필드를 추가할 수 있습니다:
+
+```sql
+-- 1. IMAGEBOARD1 테이블에 MAX_BID_PRICE 컬럼 추가
+ALTER TABLE IMAGEBOARD1 
+ADD MAX_BID_PRICE NUMBER DEFAULT NULL;
+
+-- 2. 컬럼 설명 추가 (주석)
+COMMENT ON COLUMN IMAGEBOARD1.MAX_BID_PRICE IS '최고 낙찰 가격 (즉시 구매 가격, 선택사항)';
+
+-- 3. 인덱스 생성 (선택사항 - 최고 낙찰 가격으로 검색이 필요한 경우)
+-- CREATE INDEX IDX_IMAGEBOARD1_MAX_BID_PRICE ON IMAGEBOARD1(MAX_BID_PRICE);
 ```
 
 ### 샘플 데이터 삽입
@@ -221,7 +251,7 @@ VALUES (SEQ_BID1.NEXTVAL, 1, 'kim456', 3000, SYSDATE - 63, '유효');
 
 ---
 
-## 5. 공지사항 테이블 (NOTICE1) - 선택사항
+## 5. 공지사항 테이블 (NOTICE1)
 
 ### 테이블 생성
 ```sql
@@ -250,7 +280,168 @@ CREATE INDEX IDX_NOTICE1_WRITER ON NOTICE1(WRITER_ID);
 
 ---
 
-## 6. 주요 쿼리 예제
+## 6. 팝업 테이블 (POPUP1)
+
+### 테이블 생성
+```sql
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_POPUP1
+START WITH 1
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+
+-- 팝업 테이블 생성
+CREATE TABLE POPUP1 (
+    POPUP_SEQ NUMBER PRIMARY KEY,            -- 팝업 번호 (PK, 시퀀스)
+    POPUP_TITLE VARCHAR2(200),                -- 팝업 제목
+    POPUP_CONTENT CLOB,                      -- 팝업 내용
+    BACKGROUND_IMAGE VARCHAR2(200),          -- 백그라운드 이미지 경로
+    IS_VISIBLE VARCHAR2(1) DEFAULT 'N',     -- 노출 여부 (Y: 노출, N: 비노출)
+    POPUP_TYPE VARCHAR2(50),                 -- 팝업 타입 (이벤트, 초특가, 공지사항)
+    START_DATE DATE,                         -- 노출 시작일
+    END_DATE DATE,                           -- 노출 종료일
+    LOGTIME DATE DEFAULT SYSDATE             -- 등록일시
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_POPUP1_SEQ ON POPUP1(POPUP_SEQ);
+CREATE INDEX IDX_POPUP1_VISIBLE ON POPUP1(IS_VISIBLE);
+CREATE INDEX IDX_POPUP1_TYPE ON POPUP1(POPUP_TYPE);
+```
+
+### 샘플 데이터 삽입
+```sql
+-- 팝업 샘플 데이터
+INSERT INTO POPUP1 (POPUP_SEQ, POPUP_TITLE, POPUP_CONTENT, BACKGROUND_IMAGE, IS_VISIBLE, POPUP_TYPE, START_DATE, END_DATE, LOGTIME)
+VALUES (SEQ_POPUP1.NEXTVAL, '신규 회원 이벤트', '신규 회원 가입 시 특별 혜택을 드립니다!', 'event_bg.jpg', 'Y', '이벤트', SYSDATE, SYSDATE + 30, SYSDATE);
+
+INSERT INTO POPUP1 (POPUP_SEQ, POPUP_TITLE, POPUP_CONTENT, BACKGROUND_IMAGE, IS_VISIBLE, POPUP_TYPE, START_DATE, END_DATE, LOGTIME)
+VALUES (SEQ_POPUP1.NEXTVAL, '초특가 경매 안내', '한정 기간 초특가 경매가 진행 중입니다.', 'special_bg.jpg', 'N', '초특가', SYSDATE, SYSDATE + 7, SYSDATE);
+```
+
+---
+
+## 7. 관리자 테이블 (MANAGER1)
+
+### 테이블 생성
+```sql
+-- 관리자 테이블 생성
+CREATE TABLE MANAGER1 (
+    MANAGER_ID VARCHAR2(50) PRIMARY KEY,        -- 관리자 ID (PK)
+    MANAGER_NAME VARCHAR2(50) NOT NULL,          -- 관리자 이름
+    MANAGER_PWD VARCHAR2(100) NOT NULL,          -- 비밀번호
+    MANAGER_EMAIL VARCHAR2(100),                 -- 이메일
+    MANAGER_TEL VARCHAR2(20),                    -- 전화번호
+    MANAGER_ROLE VARCHAR2(20) DEFAULT '관리자',  -- 권한 (관리자, 슈퍼관리자)
+    LOGTIME DATE DEFAULT SYSDATE,                -- 등록일시
+    LAST_LOGIN DATE                              -- 마지막 로그인 시간
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_MANAGER1_ID ON MANAGER1(MANAGER_ID);
+CREATE INDEX IDX_MANAGER1_ROLE ON MANAGER1(MANAGER_ROLE);
+```
+
+### 샘플 데이터 삽입
+```sql
+-- 관리자 샘플 데이터
+INSERT INTO MANAGER1 (MANAGER_ID, MANAGER_NAME, MANAGER_PWD, MANAGER_EMAIL, MANAGER_TEL, MANAGER_ROLE, LOGTIME, LAST_LOGIN)
+VALUES ('admin', '관리자', '1111', 'admin@goldauction.com', '010-1234-5678', '슈퍼관리자', SYSDATE, NULL);
+
+INSERT INTO MANAGER1 (MANAGER_ID, MANAGER_NAME, MANAGER_PWD, MANAGER_EMAIL, MANAGER_TEL, MANAGER_ROLE, LOGTIME, LAST_LOGIN)
+VALUES ('manager1', '일반관리자', '1111', 'manager1@goldauction.com', '010-2345-6789', '관리자', SYSDATE, NULL);
+```
+
+---
+
+## 8. CSS 스타일셋 테이블 (CSS_SET1)
+
+### 테이블 생성
+```sql
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_CSS_SET1
+START WITH 1
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+
+-- CSS 스타일셋 테이블 생성
+CREATE TABLE CSS_SET1 (
+    SET_SEQ NUMBER PRIMARY KEY,            -- 스타일셋 번호 (PK, 시퀀스)
+    SET_NAME VARCHAR2(200),                -- 스타일셋 이름 (예: default_set, GA_CSS_set1, cssset_1)
+    SET_DESCRIPTION VARCHAR2(500),         -- 스타일셋 설명
+    IS_ACTIVE VARCHAR2(1) DEFAULT 'N',    -- 활성화 여부 (Y: 활성, N: 비활성)
+    CREATED_DATE DATE DEFAULT SYSDATE,     -- 생성일시
+    MODIFIED_DATE DATE                     -- 수정일시
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_CSS_SET1_NAME ON CSS_SET1(SET_NAME);
+CREATE INDEX IDX_CSS_SET1_ACTIVE ON CSS_SET1(IS_ACTIVE);
+```
+
+---
+
+## 9. CSS 파일 테이블 (CSS_FILE1)
+
+### 테이블 생성
+```sql
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_CSS_FILE1
+START WITH 1
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+
+-- CSS 파일 테이블 생성
+CREATE TABLE CSS_FILE1 (
+    FILE_SEQ NUMBER PRIMARY KEY,           -- CSS 파일 번호 (PK, 시퀀스)
+    SET_SEQ NUMBER,                        -- 스타일셋 번호 (FK -> CSS_SET1.SET_SEQ)
+    FILE_NAME VARCHAR2(50),               -- CSS 파일명 (imageboard, member, header, footer)
+    CSS_CONTENT CLOB,                      -- CSS 코드 내용
+    FILE_TYPE VARCHAR2(20),               -- 파일 타입 (imageboard, member, header, footer)
+    CREATED_DATE DATE DEFAULT SYSDATE,     -- 생성일시
+    MODIFIED_DATE DATE,                    -- 수정일시
+    CONSTRAINT FK_CSS_FILE_SET FOREIGN KEY (SET_SEQ) REFERENCES CSS_SET1(SET_SEQ)
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_CSS_FILE1_SET ON CSS_FILE1(SET_SEQ);
+CREATE INDEX IDX_CSS_FILE1_TYPE ON CSS_FILE1(FILE_TYPE);
+```
+
+---
+
+## 10. CSS 적용 설정 테이블 (CSS_APPLY1)
+
+### 테이블 생성
+```sql
+-- 시퀀스 생성
+CREATE SEQUENCE SEQ_CSS_APPLY1
+START WITH 1
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+
+-- CSS 적용 설정 테이블 생성
+CREATE TABLE CSS_APPLY1 (
+    APPLY_SEQ NUMBER PRIMARY KEY,          -- 적용 설정 번호 (PK, 시퀀스)
+    SET_SEQ NUMBER,                       -- 적용할 스타일셋 번호 (FK -> CSS_SET1.SET_SEQ)
+    APPLY_SCOPE VARCHAR2(20),              -- 적용 범위 (FULL: 전체, HEADER_FOOTER: 헤더/푸터만, IMAGEBOARD_MEMBER: 게시판/회원만)
+    IS_ACTIVE VARCHAR2(1) DEFAULT 'Y',    -- 활성화 여부 (Y: 활성, N: 비활성)
+    APPLIED_DATE DATE DEFAULT SYSDATE,     -- 적용일시
+    CONSTRAINT FK_CSS_APPLY_SET FOREIGN KEY (SET_SEQ) REFERENCES CSS_SET1(SET_SEQ)
+);
+
+-- 인덱스 생성
+CREATE INDEX IDX_CSS_APPLY1_SET ON CSS_APPLY1(SET_SEQ);
+CREATE INDEX IDX_CSS_APPLY1_ACTIVE ON CSS_APPLY1(IS_ACTIVE);
+```
+
+---
+
+## 📝 주요 쿼리 예제
 
 ### 회원 관련 쿼리
 
@@ -407,9 +598,73 @@ FROM BID1
 GROUP BY BIDDER_ID;
 ```
 
+### 팝업 관련 쿼리
+
+```sql
+-- 노출 중인 팝업 조회
+SELECT * FROM POPUP1 
+WHERE IS_VISIBLE = 'Y' 
+AND (START_DATE IS NULL OR START_DATE <= SYSDATE)
+AND (END_DATE IS NULL OR END_DATE >= SYSDATE)
+ORDER BY POPUP_SEQ;
+
+-- 팝업 노출 상태 변경
+UPDATE POPUP1 
+SET IS_VISIBLE = 'Y'
+WHERE POPUP_SEQ = ?;
+
+-- 팝업 비노출 상태 변경
+UPDATE POPUP1 
+SET IS_VISIBLE = 'N'
+WHERE POPUP_SEQ = ?;
+```
+
+### 관리자 관련 쿼리
+
+```sql
+-- 관리자 로그인 확인
+SELECT * FROM MANAGER1 WHERE MANAGER_ID = ? AND MANAGER_PWD = ?;
+
+-- 관리자 정보 조회
+SELECT * FROM MANAGER1 WHERE MANAGER_ID = ?;
+
+-- 관리자 정보 수정
+UPDATE MANAGER1 
+SET MANAGER_NAME = ?, MANAGER_PWD = ?, MANAGER_EMAIL = ?, MANAGER_TEL = ?
+WHERE MANAGER_ID = ?;
+
+-- 마지막 로그인 시간 업데이트
+UPDATE MANAGER1 
+SET LAST_LOGIN = SYSDATE
+WHERE MANAGER_ID = ?;
+```
+
 ---
 
-## 7. 뷰 생성 (선택사항)
+## 🔧 트리거 및 뷰
+
+### 트리거 생성 (선택사항)
+
+```sql
+-- 경매 종료일 자동 계산 트리거
+CREATE OR REPLACE TRIGGER TRG_IMAGEBOARD1_END_DATE
+BEFORE INSERT OR UPDATE ON IMAGEBOARD1
+FOR EACH ROW
+BEGIN
+    IF :NEW.AUCTION_PERIOD IS NOT NULL THEN
+        :NEW.AUCTION_END_DATE := 
+            CASE 
+                WHEN :NEW.AUCTION_PERIOD = '7일후' THEN :NEW.AUCTION_START_DATE + 7
+                WHEN :NEW.AUCTION_PERIOD = '14일후' THEN :NEW.AUCTION_START_DATE + 14
+                WHEN :NEW.AUCTION_PERIOD = '21일후' THEN :NEW.AUCTION_START_DATE + 21
+                WHEN :NEW.AUCTION_PERIOD = '30일후' THEN :NEW.AUCTION_START_DATE + 30
+            END;
+    END IF;
+END;
+/
+```
+
+### 뷰 생성 (선택사항)
 
 ```sql
 -- 경매 게시글 상세 정보 뷰 (이미지 포함)
@@ -437,144 +692,7 @@ LEFT JOIN MEMBER1 M ON IB.IMAGEID = M.ID;
 
 ---
 
-## 8. 트리거 생성 (선택사항)
-
-```sql
--- 경매 종료일 자동 계산 트리거
-CREATE OR REPLACE TRIGGER TRG_IMAGEBOARD1_END_DATE
-BEFORE INSERT OR UPDATE ON IMAGEBOARD1
-FOR EACH ROW
-BEGIN
-    IF :NEW.AUCTION_PERIOD IS NOT NULL THEN
-        :NEW.AUCTION_END_DATE := 
-            CASE 
-                WHEN :NEW.AUCTION_PERIOD = '7일후' THEN :NEW.AUCTION_START_DATE + 7
-                WHEN :NEW.AUCTION_PERIOD = '14일후' THEN :NEW.AUCTION_START_DATE + 14
-                WHEN :NEW.AUCTION_PERIOD = '21일후' THEN :NEW.AUCTION_START_DATE + 21
-                WHEN :NEW.AUCTION_PERIOD = '30일후' THEN :NEW.AUCTION_START_DATE + 30
-            END;
-    END IF;
-END;
-/
-```
-
----
-
-## 9. 팝업 테이블 (POPUP1)
-
-### 테이블 생성
-```sql
--- 시퀀스 생성
-CREATE SEQUENCE SEQ_POPUP1
-START WITH 1
-INCREMENT BY 1
-NOCACHE
-NOCYCLE;
-
--- 팝업 테이블 생성
-CREATE TABLE POPUP1 (
-    POPUP_SEQ NUMBER PRIMARY KEY,            -- 팝업 번호 (PK, 시퀀스)
-    POPUP_TITLE VARCHAR2(200),                -- 팝업 제목
-    POPUP_CONTENT CLOB,                      -- 팝업 내용
-    BACKGROUND_IMAGE VARCHAR2(200),          -- 백그라운드 이미지 경로
-    IS_VISIBLE VARCHAR2(1) DEFAULT 'N',     -- 노출 여부 (Y: 노출, N: 비노출)
-    POPUP_TYPE VARCHAR2(50),                 -- 팝업 타입 (이벤트, 초특가, 공지사항)
-    START_DATE DATE,                         -- 노출 시작일
-    END_DATE DATE,                           -- 노출 종료일
-    LOGTIME DATE DEFAULT SYSDATE             -- 등록일시
-);
-
--- 인덱스 생성
-CREATE INDEX IDX_POPUP1_SEQ ON POPUP1(POPUP_SEQ);
-CREATE INDEX IDX_POPUP1_VISIBLE ON POPUP1(IS_VISIBLE);
-CREATE INDEX IDX_POPUP1_TYPE ON POPUP1(POPUP_TYPE);
-```
-
-### 샘플 데이터 삽입
-```sql
--- 팝업 샘플 데이터
-INSERT INTO POPUP1 (POPUP_SEQ, POPUP_TITLE, POPUP_CONTENT, BACKGROUND_IMAGE, IS_VISIBLE, POPUP_TYPE, START_DATE, END_DATE, LOGTIME)
-VALUES (SEQ_POPUP1.NEXTVAL, '신규 회원 이벤트', '신규 회원 가입 시 특별 혜택을 드립니다!', 'event_bg.jpg', 'Y', '이벤트', SYSDATE, SYSDATE + 30, SYSDATE);
-
-INSERT INTO POPUP1 (POPUP_SEQ, POPUP_TITLE, POPUP_CONTENT, BACKGROUND_IMAGE, IS_VISIBLE, POPUP_TYPE, START_DATE, END_DATE, LOGTIME)
-VALUES (SEQ_POPUP1.NEXTVAL, '초특가 경매 안내', '한정 기간 초특가 경매가 진행 중입니다.', 'special_bg.jpg', 'N', '초특가', SYSDATE, SYSDATE + 7, SYSDATE);
-```
-
-### 팝업 관련 쿼리
-```sql
--- 노출 중인 팝업 조회
-SELECT * FROM POPUP1 
-WHERE IS_VISIBLE = 'Y' 
-AND (START_DATE IS NULL OR START_DATE <= SYSDATE)
-AND (END_DATE IS NULL OR END_DATE >= SYSDATE)
-ORDER BY POPUP_SEQ;
-
--- 팝업 노출 상태 변경
-UPDATE POPUP1 
-SET IS_VISIBLE = 'Y'
-WHERE POPUP_SEQ = ?;
-
--- 팝업 비노출 상태 변경
-UPDATE POPUP1 
-SET IS_VISIBLE = 'N'
-WHERE POPUP_SEQ = ?;
-```
-
----
-
-## 10. 관리자 테이블 (MANAGER1)
-
-### 테이블 생성
-```sql
--- 관리자 테이블 생성
-CREATE TABLE MANAGER1 (
-    MANAGER_ID VARCHAR2(50) PRIMARY KEY,        -- 관리자 ID (PK)
-    MANAGER_NAME VARCHAR2(50) NOT NULL,          -- 관리자 이름
-    MANAGER_PWD VARCHAR2(100) NOT NULL,          -- 비밀번호
-    MANAGER_EMAIL VARCHAR2(100),                 -- 이메일
-    MANAGER_TEL VARCHAR2(20),                    -- 전화번호
-    MANAGER_ROLE VARCHAR2(20) DEFAULT '관리자',  -- 권한 (관리자, 슈퍼관리자)
-    LOGTIME DATE DEFAULT SYSDATE,                -- 등록일시
-    LAST_LOGIN DATE                              -- 마지막 로그인 시간
-);
-
--- 인덱스 생성
-CREATE INDEX IDX_MANAGER1_ID ON MANAGER1(MANAGER_ID);
-CREATE INDEX IDX_MANAGER1_ROLE ON MANAGER1(MANAGER_ROLE);
-```
-
-### 샘플 데이터 삽입
-```sql
--- 관리자 샘플 데이터
-INSERT INTO MANAGER1 (MANAGER_ID, MANAGER_NAME, MANAGER_PWD, MANAGER_EMAIL, MANAGER_TEL, MANAGER_ROLE, LOGTIME, LAST_LOGIN)
-VALUES ('admin', '관리자', '1111', 'admin@goldauction.com', '010-1234-5678', '슈퍼관리자', SYSDATE, NULL);
-
-INSERT INTO MANAGER1 (MANAGER_ID, MANAGER_NAME, MANAGER_PWD, MANAGER_EMAIL, MANAGER_TEL, MANAGER_ROLE, LOGTIME, LAST_LOGIN)
-VALUES ('manager1', '일반관리자', '1111', 'manager1@goldauction.com', '010-2345-6789', '관리자', SYSDATE, NULL);
-```
-
-### 관리자 관련 쿼리
-```sql
--- 관리자 로그인 확인
-SELECT * FROM MANAGER1 WHERE MANAGER_ID = ? AND MANAGER_PWD = ?;
-
--- 관리자 정보 조회
-SELECT * FROM MANAGER1 WHERE MANAGER_ID = ?;
-
--- 관리자 정보 수정
-UPDATE MANAGER1 
-SET MANAGER_NAME = ?, MANAGER_PWD = ?, MANAGER_EMAIL = ?, MANAGER_TEL = ?
-WHERE MANAGER_ID = ?;
-
--- 마지막 로그인 시간 업데이트
-UPDATE MANAGER1 
-SET LAST_LOGIN = SYSDATE
-WHERE MANAGER_ID = ?;
-```
-
----
-
-## 10. 테이블 삭제 순서 (주의: 데이터 삭제됨)
+## 🗑️ 테이블 삭제 순서 (주의: 데이터 삭제됨)
 
 ```sql
 -- 외래키 제약조건 때문에 역순으로 삭제
@@ -582,7 +700,11 @@ DROP TABLE BID1;
 DROP TABLE IMAGEBOARD_IMAGES1;
 DROP TABLE IMAGEBOARD1;
 DROP TABLE NOTICE1;
+DROP TABLE POPUP1;
 DROP TABLE MANAGER1;
+DROP TABLE CSS_APPLY1;
+DROP TABLE CSS_FILE1;
+DROP TABLE CSS_SET1;
 DROP TABLE MEMBER1;
 
 -- 시퀀스 삭제
@@ -590,11 +712,15 @@ DROP SEQUENCE SEQ_BID1;
 DROP SEQUENCE SEQ_IMAGEBOARD_IMAGES1;
 DROP SEQUENCE SEQ_IMAGEBOARD1;
 DROP SEQUENCE SEQ_NOTICE1;
+DROP SEQUENCE SEQ_POPUP1;
+DROP SEQUENCE SEQ_CSS_APPLY1;
+DROP SEQUENCE SEQ_CSS_FILE1;
+DROP SEQUENCE SEQ_CSS_SET1;
 ```
 
 ---
 
-## 11. 필드 매핑 정리
+## 🔗 필드 매핑 정리
 
 ### WriteForm.jsx → MEMBER1 테이블
 - name → NAME
@@ -629,7 +755,34 @@ DROP SEQUENCE SEQ_NOTICE1;
 
 ---
 
-## 12. 주의사항
+## 📦 IMAGEBOARD1 샘플 데이터 삽입
+
+```sql
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 10g', 1200000, 1, '고순도 99.9% 골드바입니다.', 'img_001.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버바 100g', 45000, 1, '92.5% 정제된 실버바입니다.', 'img_002.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 코인', 980000, 1, '순도 높은 플래티넘 코인입니다.', 'img_003.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 원석 1캐럿', 3500000, 1, '투명도와 광채가 뛰어난 다이아몬드 원석입니다.', 'img_004.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 팔찌 18K', 270000, 1, '18K 귀금속 팔찌입니다.', 'img_005.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '한국 기념주화', 85000, 1, '한국 조폐공사 발행 기념주화입니다.', 'img_006.jpg', '주화', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 골드 분말', 150000, 1, '금은정련 고순도 골드 파우더입니다.', 'img_007.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드 코인 24K', 890000, 1, '24K 순금 골드 코인입니다.', 'img_008.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버 메달', 25000, 1, '투자용 실버 메달입니다.', 'img_009.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 반지 PT950', 720000, 1, '플래티넘 PT950 백금 반지입니다.', 'img_010.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 목걸이 1캐럿', 5800000, 1, '1캐럿 다이아몬드 목걸이입니다.', 'img_011.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 귀걸이 14K', 180000, 1, '14K 귀금속 귀걸이입니다.', 'img_012.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '기념 금화 한정판', 310000, 1, '한정판 기념 금화입니다.', 'img_013.jpg', '주화', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 은 분말', 60000, 1, '정련된 고순도 은 분말입니다.', 'img_014.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 5g', 650000, 1, '보관이 편한 5g 골드바입니다.', 'img_015.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버 코인', 30000, 1, '투자용 실버 코인입니다.', 'img_016.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 팔찌', 820000, 1, '백금으로 제작된 고품질 팔찌입니다.', 'img_017.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 반지 0.5캐럿', 2400000, 1, '고품질 0.5캐럿 다이아 반지입니다.', 'img_018.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 체인 18K', 350000, 1, '18K 귀금속 체인 목걸이입니다.', 'img_019.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 금속 샘플', 200000, 1, '금·은 정련된 금속 샘플입니다.', 'img_020.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
+```
+
+---
+
+## ⚠️ 주의사항
 
 1. **비밀번호 암호화**: 실제 운영 환경에서는 PWD 필드에 평문 비밀번호를 저장하지 말고 해시값을 저장해야 합니다.
 2. **이미지 파일 저장**: 이미지 파일은 서버 파일 시스템에 저장하고, DB에는 파일 경로만 저장합니다.
@@ -639,54 +792,16 @@ DROP SEQUENCE SEQ_NOTICE1;
 
 ---
 
-## 13. 추가 개선 사항
+## 🚀 추가 개선 사항
 
 1. **입찰 알림 기능**: 입찰 시 이메일/알림 발송을 위한 알림 테이블 추가 고려
 2. **경매 관심 목록**: 사용자별 관심 경매 저장을 위한 관심목록 테이블 추가 고려
 3. **리뷰/평가 기능**: 거래 완료 후 리뷰 작성 기능을 위한 리뷰 테이블 추가 고려
 4. **채팅 기능**: 거래자 간 소통을 위한 채팅 테이블 추가 고려
 
+---
 
-## 14. IMAGEBOARD1 샘플 데이터 삽입
--- 1. IMAGEBOARD1
+## 📖 참고 문서
 
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 10g', 1200000, 1, '고순도 99.9% 골드바입니다.', 'img_001.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버바 100g', 45000, 1, '92.5% 정제된 실버바입니다.', 'img_002.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 코인', 980000, 1, '순도 높은 플래티넘 코인입니다.', 'img_003.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 원석 1캐럿', 3500000, 1, '투명도와 광채가 뛰어난 다이아몬드 원석입니다.', 'img_004.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 팔찌 18K', 270000, 1, '18K 귀금속 팔찌입니다.', 'img_005.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '한국 기념주화', 85000, 1, '한국 조폐공사 발행 기념주화입니다.', 'img_006.jpg', '주화', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 골드 분말', 150000, 1, '금은정련 고순도 골드 파우더입니다.', 'img_007.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드 코인 24K', 890000, 1, '24K 순금 골드 코인입니다.', 'img_008.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버 메달', 25000, 1, '투자용 실버 메달입니다.', 'img_009.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 반지 PT950', 720000, 1, '플래티넘 PT950 백금 반지입니다.', 'img_010.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 목걸이 1캐럿', 5800000, 1, '1캐럿 다이아몬드 목걸이입니다.', 'img_011.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 귀걸이 14K', 180000, 1, '14K 귀금속 귀걸이입니다.', 'img_012.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '기념 금화 한정판', 310000, 1, '한정판 기념 금화입니다.', 'img_013.jpg', '주화', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 은 분말', 60000, 1, '정련된 고순도 은 분말입니다.', 'img_014.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '골드바 5g', 650000, 1, '보관이 편한 5g 골드바입니다.', 'img_015.jpg', '골드', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '실버 코인', 30000, 1, '투자용 실버 코인입니다.', 'img_016.jpg', '실버', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '백금 팔찌', 820000, 1, '백금으로 제작된 고품질 팔찌입니다.', 'img_017.jpg', '백금', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '다이아 반지 0.5캐럿', 2400000, 1, '고품질 0.5캐럿 다이아 반지입니다.', 'img_018.jpg', '다이아', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '귀금속 체인 18K', 350000, 1, '18K 귀금속 체인 목걸이입니다.', 'img_019.jpg', '귀금속', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-
-INSERT INTO IMAGEBOARD1 VALUES (SEQ_IMAGEBOARD1.NEXTVAL, 'sell1', '정련 금속 샘플', 200000, 1, '금·은 정련된 금속 샘플입니다.', 'img_020.jpg', '금은정련', '7일후', '직거래', SYSDATE, SYSDATE+7, '진행중', SYSDATE);
-```
+- **CODING_GUIDELINES.md**: 프로젝트 코딩 가이드라인 및 프로젝트 구조
+- **CSS.md**: CSS 관리 및 스타일셋 구조
