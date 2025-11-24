@@ -45,9 +45,19 @@ public class BoardDAO {
 		return boardRepository.findByIsActiveOrderByDisplayOrderAscBoardSeqAsc("Y");
 	}
 	
+	// 게시판 목록 조회 (모든 게시판, 활성화 여부 무관)
+	public List<Board> getAllBoardList() {
+		return boardRepository.findAllByOrderByDisplayOrderAscBoardSeqAsc();
+	}
+	
 	// 게시판 타입별 목록 조회
 	public List<Board> getBoardListByType(String boardType) {
 		return boardRepository.findByBoardTypeAndIsActiveOrderByDisplayOrderAscBoardSeqAsc(boardType, "Y");
+	}
+	
+	// 게시판 타입별 목록 조회 (모든 게시판, 활성화 여부 무관)
+	public List<Board> getAllBoardListByType(String boardType) {
+		return boardRepository.findByBoardTypeOrderByDisplayOrderAscBoardSeqAsc(boardType);
 	}
 	
 	// 게시판 상세 조회

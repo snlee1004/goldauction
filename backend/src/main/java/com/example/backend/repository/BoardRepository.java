@@ -26,5 +26,11 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 	
 	// 활성화된 게시판 수 조회
 	long countByIsActive(String isActive);
+	
+	// 모든 게시판 목록 조회 (활성화 여부 무관)
+	List<Board> findAllByOrderByDisplayOrderAscBoardSeqAsc();
+	
+	// 게시판 타입별 모든 게시판 목록 조회 (활성화 여부 무관)
+	List<Board> findByBoardTypeOrderByDisplayOrderAscBoardSeqAsc(String boardType);
 }
 

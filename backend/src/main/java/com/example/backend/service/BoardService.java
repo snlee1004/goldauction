@@ -24,9 +24,19 @@ public class BoardService {
 		return dao.getBoardList();
 	}
 	
+	// 게시판 목록 조회 (모든 게시판, 활성화 여부 무관)
+	public List<Board> getAllBoardList() {
+		return dao.getAllBoardList();
+	}
+	
 	// 게시판 타입별 목록 조회
 	public List<Board> getBoardListByType(String boardType) {
 		return dao.getBoardListByType(boardType);
+	}
+	
+	// 게시판 타입별 목록 조회 (모든 게시판, 활성화 여부 무관)
+	public List<Board> getAllBoardListByType(String boardType) {
+		return dao.getAllBoardListByType(boardType);
 	}
 	
 	// 게시판 상세 조회

@@ -35,6 +35,7 @@ import PostView from "./board/PostView";
 import PostModifyForm from "./board/PostModifyForm";
 import ProfanityFilterManage from "./board/ProfanityFilterManage";
 import EventProductManage from "./board/EventProductManage";
+import EventProductView from "./board/EventProductView";
 import BoardManage from "./board/BoardManage";
 import EventBoardManage from "./board/EventBoardManage";
 import BoardStatistics from "./board/BoardStatistics";
@@ -111,6 +112,8 @@ function App() {
                                 element={<ProfanityFilterManage/>} />
                             <Route path="/board/:boardSeq/products/manage" 
                                 element={<EventProductManage/>} />
+                            <Route path="/event/product/:productSeq" 
+                                element={<EventProductView/>} />
                             <Route path="/board/:boardSeq/manage" 
                                 element={<BoardManage/>} />
                             <Route path="/board/:boardSeq/event/manage" 

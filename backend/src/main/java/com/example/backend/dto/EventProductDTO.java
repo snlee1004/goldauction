@@ -26,7 +26,7 @@ public class EventProductDTO {
 	public EventProduct toEntity() {
 		return new EventProduct(productSeq, boardSeq, productName, productDescription,
 							  originalPrice, salePrice, stockQuantity, soldQuantity,
-							  endDate, eventStatus, deliveryInfo, isDeleted, createdDate, updatedDate);
+							  endDate, eventStatus, deliveryInfo, isDeleted, createdDate, updatedDate, null);
 	}
 }
 

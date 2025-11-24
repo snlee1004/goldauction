@@ -11,6 +11,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -68,5 +69,8 @@ public class EventProduct {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "UPDATED_DATE")
 	private Date updatedDate;  // 수정일
+	
+	@Transient
+	private String mainImagePath;  // 대표 이미지 경로 (조회용)
 }
 

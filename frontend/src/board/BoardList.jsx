@@ -180,14 +180,30 @@ function BoardList() {
                                     }}
                                     onClick={() => navigate(`/board/${board.boardSeq}/posts`)}
                                 >
-                                    <h3 style={{
-                                        marginBottom: "10px",
-                                        fontSize: "18px",
-                                        fontWeight: "bold",
-                                        color: "#337ab7"
+                                    <div style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                        marginBottom: "10px"
                                     }}>
-                                        {board.boardName}
-                                    </h3>
+                                        <h3 style={{
+                                            margin: 0,
+                                            fontSize: "18px",
+                                            fontWeight: "bold",
+                                            color: "#337ab7"
+                                        }}>
+                                            {board.boardName}
+                                        </h3>
+                                        {board.isActive === "N" && (
+                                            <span style={{
+                                                fontSize: "12px",
+                                                color: "#dc3545",
+                                                fontWeight: "bold"
+                                            }}>
+                                                비활성화
+                                            </span>
+                                        )}
+                                    </div>
                                     {board.boardDescription && (
                                         <p style={{
                                             marginBottom: "10px",

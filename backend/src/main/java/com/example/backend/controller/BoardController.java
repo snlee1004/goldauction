@@ -36,7 +36,7 @@ public class BoardController {
 		return map;
 	}
 	
-	// 게시판 목록 조회
+	// 게시판 목록 조회 (모든 게시판 포함, 활성화 여부 무관)
 	@GetMapping("/board/list")
 	public Map<String, Object> getBoardList(@RequestParam(value = "boardType", required = false) String boardType) {
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -45,11 +45,11 @@ public class BoardController {
 			List<Board> list;
 			
 			if(boardType != null && !boardType.isEmpty()) {
-				// 타입별 조회
-				list = service.getBoardListByType(boardType);
+				// 타입별 조회 (모든 게시판 포함)
+				list = service.getAllBoardListByType(boardType);
 			} else {
-				// 전체 조회
-				list = service.getBoardList();
+				// 전체 조회 (모든 게시판 포함)
+				list = service.getAllBoardList();
 			}
 			
 			map.put("rt", "OK");
