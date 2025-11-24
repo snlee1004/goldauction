@@ -4,6 +4,11 @@ import { useNavigate, Link } from "react-router-dom";
 function ManagerInfo() {
     const navigate = useNavigate();
     const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
+    const [stats, setStats] = useState(null);
+    const [recentPosts, setRecentPosts] = useState([]);
+    const [recentOrders, setRecentOrders] = useState([]);
+    const [boardStats, setBoardStats] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
@@ -16,7 +21,48 @@ function ManagerInfo() {
             navigate("/manager/loginForm");
             return;
         }
+        
+        // 대시보드 데이터 로드
+        fetchDashboardData();
     }, [navigate]);
+
+    // 대시보드 데이터 조회
+    const fetchDashboardData = async () => {
+        setLoading(true);
+        try {
+            // 통계 조회
+            const statsResponse = await fetch("http://localhost:8080/admin/dashboard/stats");
+            const statsData = await statsResponse.json();
+            if(statsData.rt === "OK") {
+                setStats(statsData);
+            }
+
+            // 최근 게시글 조회
+            const postsResponse = await fetch("http://localhost:8080/admin/dashboard/recent-posts?limit=5");
+            const postsData = await postsResponse.json();
+            if(postsData.rt === "OK") {
+                setRecentPosts(postsData.list || []);
+            }
+
+            // 최근 주문 조회
+            const ordersResponse = await fetch("http://localhost:8080/admin/dashboard/recent-orders?limit=5");
+            const ordersData = await ordersResponse.json();
+            if(ordersData.rt === "OK") {
+                setRecentOrders(ordersData.list || []);
+            }
+
+            // 게시판별 통계 조회
+            const boardStatsResponse = await fetch("http://localhost:8080/admin/dashboard/board-stats");
+            const boardStatsData = await boardStatsResponse.json();
+            if(boardStatsData.rt === "OK") {
+                setBoardStats(boardStatsData.list || []);
+            }
+        } catch(err) {
+            console.error("대시보드 데이터 조회 오류:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // 로그아웃 처리
     const handleLogout = () => {
@@ -71,6 +117,77 @@ function ManagerInfo() {
                 {/* 오른쪽 공간 (균형을 위해) */}
                 <div style={{width: "100px"}}></div>
             </div>
+
+            {/* 대시보드 통계 카드 */}
+            {!loading && stats && (
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "8px",
+                    marginBottom: "15px"
+                }}>
+                    <div style={{
+                        padding: "8px",
+                        backgroundColor: "#fff",
+                        borderRadius: "4px",
+                        border: "1px solid #337ab7",
+                        textAlign: "center"
+                    }}>
+                        <div style={{ fontSize: "16px", fontWeight: "bold", color: "#337ab7", marginBottom: "2px" }}>
+                            {stats.totalBoards || 0}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#666" }}>전체 게시판</div>
+                        <div style={{ fontSize: "9px", color: "#999", marginTop: "2px" }}>
+                            (활성: {stats.activeBoards || 0})
+                        </div>
+                    </div>
+                    <div style={{
+                        padding: "8px",
+                        backgroundColor: "#fff",
+                        borderRadius: "4px",
+                        border: "1px solid #28a745",
+                        textAlign: "center"
+                    }}>
+                        <div style={{ fontSize: "16px", fontWeight: "bold", color: "#28a745", marginBottom: "2px" }}>
+                            {stats.totalPosts || 0}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#666" }}>전체 게시글</div>
+                        <div style={{ fontSize: "9px", color: "#999", marginTop: "2px" }}>
+                            (오늘: {stats.todayPosts || 0})
+                        </div>
+                    </div>
+                    <div style={{
+                        padding: "8px",
+                        backgroundColor: "#fff",
+                        borderRadius: "4px",
+                        border: "1px solid #ffc107",
+                        textAlign: "center"
+                    }}>
+                        <div style={{ fontSize: "16px", fontWeight: "bold", color: "#ffc107", marginBottom: "2px" }}>
+                            {stats.totalComments || 0}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#666" }}>전체 댓글</div>
+                        <div style={{ fontSize: "9px", color: "#999", marginTop: "2px" }}>
+                            (오늘: {stats.todayComments || 0})
+                        </div>
+                    </div>
+                    <div style={{
+                        padding: "8px",
+                        backgroundColor: "#fff",
+                        borderRadius: "4px",
+                        border: "1px solid #dc3545",
+                        textAlign: "center"
+                    }}>
+                        <div style={{ fontSize: "16px", fontWeight: "bold", color: "#dc3545", marginBottom: "2px" }}>
+                            {stats.totalOrders || 0}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#666" }}>전체 주문</div>
+                        <div style={{ fontSize: "9px", color: "#999", marginTop: "2px" }}>
+                            (오늘: {stats.todayOrders || 0})
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* 관리 기능 섹션들 - 2행 3열 그리드 */}
             <div style={{
@@ -204,36 +321,56 @@ function ManagerInfo() {
                     }}>
                         게시판관리
                     </h3>
-                    <ul style={{
-                        listStyle: "none",
-                        padding: 0,
-                        margin: 0
+                    <div style={{
+                        textAlign: "center", 
+                        marginTop: "15px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px"
                     }}>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
+                        <Link
+                            to="/board/create"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
                             게시판 생성
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 생성시 비속어 검색기능
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 수정
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 내용 수정
-                        </li>
-                    </ul>
+                        </Link>
+                        <Link
+                            to="/board/list"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            게시판 목록
+                        </Link>
+                        <Link
+                            to="/profanity/manage"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#dc3545",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            비속어 필터 관리
+                        </Link>
+                    </div>
                 </div>
 
                 {/* 4. 공지사항 관리 */}
@@ -391,6 +528,113 @@ function ManagerInfo() {
                     </ul>
                 </div>
             </div>
+
+            {/* 최근 활동 섹션 - 관리자 메뉴 아래 */}
+            {!loading && (recentPosts.length > 0 || recentOrders.length > 0) && (
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "20px",
+                    marginBottom: "30px"
+                }}>
+                    {/* 최근 게시글 */}
+                    {recentPosts.length > 0 && (
+                        <div style={{
+                            border: "2px solid #ccc",
+                            borderRadius: "8px",
+                            padding: "20px",
+                            backgroundColor: "#fff",
+                            display: "flex",
+                            flexDirection: "column",
+                            height: "100%"
+                        }}>
+                            <h3 style={{
+                                marginBottom: "15px",
+                                fontSize: "18px",
+                                fontWeight: "bold",
+                                color: "#337ab7",
+                                borderBottom: "2px solid #337ab7",
+                                paddingBottom: "10px",
+                                flexShrink: 0
+                            }}>
+                                최근 게시글
+                            </h3>
+                            <ul style={{ 
+                                listStyle: "none", 
+                                padding: 0, 
+                                margin: 0,
+                                overflowY: "auto",
+                                maxHeight: "240px", // 4줄 기준 (각 항목 약 60px * 4 = 240px)
+                                flex: 1
+                            }}>
+                                {recentPosts.map((post) => (
+                                    <li key={post.postSeq} style={{
+                                        padding: "10px 0",
+                                        borderBottom: "1px solid #eee"
+                                    }}>
+                                        <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "5px" }}>
+                                            {post.postTitle}
+                                        </div>
+                                        <div style={{ fontSize: "12px", color: "#666" }}>
+                                            {post.memberId} | {new Date(post.createdDate).toLocaleString()}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* 최근 주문 */}
+                    {recentOrders.length > 0 && (
+                        <div style={{
+                            border: "2px solid #ccc",
+                            borderRadius: "8px",
+                            padding: "20px",
+                            backgroundColor: "#fff",
+                            display: "flex",
+                            flexDirection: "column",
+                            height: "100%"
+                        }}>
+                            <h3 style={{
+                                marginBottom: "15px",
+                                fontSize: "18px",
+                                fontWeight: "bold",
+                                color: "#dc3545",
+                                borderBottom: "2px solid #dc3545",
+                                paddingBottom: "10px",
+                                flexShrink: 0
+                            }}>
+                                최근 주문
+                            </h3>
+                            <ul style={{ 
+                                listStyle: "none", 
+                                padding: 0, 
+                                margin: 0,
+                                overflowY: "auto",
+                                maxHeight: "280px", // 4줄 기준 (각 항목 약 70px * 4 = 280px, 주문은 3줄이므로 조금 더 높게)
+                                flex: 1
+                            }}>
+                                {recentOrders.map((order) => (
+                                    <li key={order.orderSeq} style={{
+                                        padding: "10px 0",
+                                        borderBottom: "1px solid #eee"
+                                    }}>
+                                        <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "5px" }}>
+                                            주문 #{order.orderSeq}
+                                        </div>
+                                        <div style={{ fontSize: "12px", color: "#666" }}>
+                                            {order.memberId} | ₩ {order.orderPrice?.toLocaleString() || 0} | {order.orderStatus}
+                                        </div>
+                                        <div style={{ fontSize: "11px", color: "#999", marginTop: "3px" }}>
+                                            {new Date(order.createdDate).toLocaleString()}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

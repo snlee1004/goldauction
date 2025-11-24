@@ -27,6 +27,18 @@ import CssSetManage from "./manager/CssSetManage";
 import CssSetEditor from "./manager/CssSetEditor";
 import CssLoader from "./layouts/CssLoader";
 import Intro from "./Intro";
+import BoardCreateForm from "./board/BoardCreateForm";
+import BoardList from "./board/BoardList";
+import PostList from "./board/PostList";
+import PostWriteForm from "./board/PostWriteForm";
+import PostView from "./board/PostView";
+import PostModifyForm from "./board/PostModifyForm";
+import ProfanityFilterManage from "./board/ProfanityFilterManage";
+import EventProductManage from "./board/EventProductManage";
+import BoardManage from "./board/BoardManage";
+import EventBoardManage from "./board/EventBoardManage";
+import BoardStatistics from "./board/BoardStatistics";
+import NotificationList from "./board/NotificationList";
 
 function App() {
     return (
@@ -83,6 +95,30 @@ function App() {
                                 element={<CssSetManage/>} />
                             <Route path="/manager/cssSetEditor" 
                                 element={<CssSetEditor/>} />
+                            <Route path="/board/create" 
+                                element={<BoardCreateForm/>} />
+                            <Route path="/board/list" 
+                                element={<BoardList/>} />
+                            <Route path="/board/:boardSeq/posts" 
+                                element={<PostList/>} />
+                            <Route path="/board/:boardSeq/post/write" 
+                                element={<PostWriteForm/>} />
+                            <Route path="/board/post/:postSeq" 
+                                element={<PostView/>} />
+                            <Route path="/board/post/:postSeq/modify" 
+                                element={<PostModifyForm/>} />
+                            <Route path="/profanity/manage" 
+                                element={<ProfanityFilterManage/>} />
+                            <Route path="/board/:boardSeq/products/manage" 
+                                element={<EventProductManage/>} />
+                            <Route path="/board/:boardSeq/manage" 
+                                element={<BoardManage/>} />
+                            <Route path="/board/:boardSeq/event/manage" 
+                                element={<EventBoardManage/>} />
+                            <Route path="/board/:boardSeq/statistics" 
+                                element={<BoardStatistics/>} />
+                            <Route path="/board/notifications" 
+                                element={<NotificationList/>} />
                         </Routes>
                     </div>
                 </div>
