@@ -11,6 +11,8 @@ function PostList() {
     const [selectedProduct, setSelectedProduct] = useState(null); // 댓글 작성할 상품 선택
     const [productComments, setProductComments] = useState({}); // 상품별 댓글 목록 {productSeq: [comments]}
     const [commentContent, setCommentContent] = useState(""); // 댓글 작성 내용
+    const [questionComments, setQuestionComments] = useState([]); // 질문게시판 댓글 목록
+    const [questionPostSeq, setQuestionPostSeq] = useState(null); // 질문게시판 전용 게시글 번호
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
@@ -37,10 +39,15 @@ function PostList() {
     }, [boardSeq]);
 
     useEffect(() => {
-        if(boardSeq) {
-            fetchPostList();
+        if(boardSeq && board) {
+            if(board.boardType === "질문게시판") {
+                // 질문게시판의 경우 댓글만 조회
+                fetchQuestionComments();
+            } else if(board.boardType !== "공구이벤트") {
+                fetchPostList();
+            }
         }
-    }, [boardSeq, page, isSearching, searchKeyword, showAdvancedSearch, advancedSearch]);
+    }, [boardSeq, page, isSearching, searchKeyword, showAdvancedSearch, advancedSearch, board]);
 
     // 게시판 상세 정보 조회
     const fetchBoardDetail = async () => {
@@ -173,6 +180,139 @@ function PostList() {
             }
         } catch(err) {
             console.error("상품 댓글 조회 오류:", err);
+        }
+    };
+
+    // 질문게시판 댓글 조회
+    const fetchQuestionComments = async () => {
+        try {
+            // 질문게시판 전용 게시글 찾기 또는 생성
+            let targetPostSeq = questionPostSeq;
+            
+            if(!targetPostSeq) {
+                // "질문게시판" 제목의 게시글 검색
+                const searchResponse = await fetch(`http://localhost:8080/board/post/search?boardSeq=${boardSeq}&keyword=질문게시판&page=0&size=1`);
+                const searchData = await searchResponse.json();
+                
+                if(searchData.rt === "OK" && searchData.list && searchData.list.length > 0) {
+                    targetPostSeq = searchData.list[0].postSeq;
+                    setQuestionPostSeq(targetPostSeq);
+                } else {
+                    // 게시글이 없으면 자동 생성
+                    const memId = sessionStorage.getItem("memId") || sessionStorage.getItem("managerId");
+                    if(memId) {
+                        const createResponse = await fetch("http://localhost:8080/board/post/write", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                boardSeq: parseInt(boardSeq),
+                                memberId: memId,
+                                postTitle: "질문게시판",
+                                postContent: "질문게시판 전용 게시글입니다.",
+                                isNotice: "N"
+                            })
+                        });
+                        const createData = await createResponse.json();
+                        if(createData.rt === "OK" && createData.postSeq) {
+                            targetPostSeq = createData.postSeq;
+                            setQuestionPostSeq(targetPostSeq);
+                        }
+                    }
+                }
+            }
+            
+            if(targetPostSeq) {
+                const commentResponse = await fetch(`http://localhost:8080/board/comment/list?postSeq=${targetPostSeq}`);
+                const commentData = await commentResponse.json();
+                
+                if(commentData.rt === "OK") {
+                    setQuestionComments(commentData.list || []);
+                }
+            }
+        } catch(err) {
+            console.error("질문게시판 댓글 조회 오류:", err);
+        }
+    };
+
+    // 질문게시판 댓글 작성
+    const handleQuestionCommentSubmit = async (e) => {
+        e.preventDefault();
+        
+        if(!commentContent.trim()) {
+            alert("댓글 내용을 입력해주세요.");
+            return;
+        }
+
+        const memId = sessionStorage.getItem("memId") || sessionStorage.getItem("managerId");
+        if(!memId) {
+            alert("로그인이 필요합니다.");
+            navigate("/member/loginForm");
+            return;
+        }
+
+        try {
+            // 질문게시판 전용 게시글 찾기 또는 생성
+            let targetPostSeq = questionPostSeq;
+            
+            if(!targetPostSeq) {
+                const searchResponse = await fetch(`http://localhost:8080/board/post/search?boardSeq=${boardSeq}&keyword=질문게시판&page=0&size=1`);
+                const searchData = await searchResponse.json();
+                
+                if(searchData.rt === "OK" && searchData.list && searchData.list.length > 0) {
+                    targetPostSeq = searchData.list[0].postSeq;
+                    setQuestionPostSeq(targetPostSeq);
+                } else {
+                    // 게시글 생성
+                    const createResponse = await fetch("http://localhost:8080/board/post/write", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            boardSeq: parseInt(boardSeq),
+                            memberId: memId,
+                            postTitle: "질문게시판",
+                            postContent: "질문게시판 전용 게시글입니다.",
+                            isNotice: "N"
+                        })
+                    });
+                    const createData = await createResponse.json();
+                    if(createData.rt === "OK" && createData.postSeq) {
+                        targetPostSeq = createData.postSeq;
+                        setQuestionPostSeq(targetPostSeq);
+                    } else {
+                        alert("게시글 생성에 실패했습니다.");
+                        return;
+                    }
+                }
+            }
+            
+            // 댓글 작성
+            const commentResponse = await fetch("http://localhost:8080/board/comment/write", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    postSeq: targetPostSeq,
+                    memberId: memId,
+                    commentContent: commentContent.trim()
+                })
+            });
+
+            const commentData = await commentResponse.json();
+            
+            if(commentData.rt === "OK") {
+                setCommentContent("");
+                fetchQuestionComments(); // 댓글 목록 새로고침
+            } else {
+                alert(commentData.msg || "댓글 작성에 실패했습니다.");
+            }
+        } catch(err) {
+            console.error("댓글 작성 오류:", err);
+            alert("댓글 작성 중 오류가 발생했습니다.");
         }
     };
 
@@ -409,47 +549,32 @@ function PostList() {
                 </div>
             )}
 
-            {/* 검색 영역 */}
-            <div style={{
-                marginBottom: "20px",
-                display: "flex",
-                gap: "10px"
-            }}>
-                <form onSubmit={handleSearch} style={{ flex: 1, display: "flex", gap: "10px" }}>
-                    <input
-                        type="text"
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        placeholder="제목 또는 내용으로 검색"
-                        style={{
-                            flex: 1,
-                            padding: "8px",
-                            border: "1px solid #ddd",
-                            borderRadius: "4px",
-                            fontSize: "14px"
-                        }}
-                    />
-                    <button
-                        type="submit"
-                        style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#337ab7",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "14px"
-                        }}
-                    >
-                        검색
-                    </button>
-                    {isSearching && (
+            {/* 검색 영역 (공동구매 게시판이 아닐 때만 표시) */}
+            {board && board.boardType !== "공구이벤트" && (
+                <div style={{
+                    marginBottom: "20px",
+                    display: "flex",
+                    gap: "10px"
+                }}>
+                    <form onSubmit={handleSearch} style={{ flex: 1, display: "flex", gap: "10px" }}>
+                        <input
+                            type="text"
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            placeholder="제목 또는 내용으로 검색"
+                            style={{
+                                flex: 1,
+                                padding: "8px",
+                                border: "1px solid #ddd",
+                                borderRadius: "4px",
+                                fontSize: "14px"
+                            }}
+                        />
                         <button
-                            type="button"
-                            onClick={handleResetSearch}
+                            type="submit"
                             style={{
                                 padding: "8px 16px",
-                                backgroundColor: "#6c757d",
+                                backgroundColor: "#337ab7",
                                 color: "#fff",
                                 border: "none",
                                 borderRadius: "4px",
@@ -457,11 +582,28 @@ function PostList() {
                                 fontSize: "14px"
                             }}
                         >
-                            초기화
+                            검색
                         </button>
-                    )}
-                </form>
-            </div>
+                        {isSearching && (
+                            <button
+                                type="button"
+                                onClick={handleResetSearch}
+                                style={{
+                                    padding: "8px 16px",
+                                    backgroundColor: "#6c757d",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    cursor: "pointer",
+                                    fontSize: "14px"
+                                }}
+                            >
+                                초기화
+                            </button>
+                        )}
+                    </form>
+                </div>
+            )}
 
             {/* 이벤트 게시판 상품 목록 영역 */}
             {board && board.boardType === "공구이벤트" && (
@@ -496,10 +638,8 @@ function PostList() {
                                 <div
                                     key={product.productSeq}
                                     onClick={() => {
-                                        // 상품 상세 페이지로 이동 (또는 상품 관련 게시글로 이동)
-                                        // 일단 상품 정보를 표시하는 페이지가 있다면 그곳으로 이동
-                                        // 없으면 게시글 목록에서 해당 상품 관련 게시글을 찾아서 표시
-                                        navigate(`/board/${boardSeq}/posts?productSeq=${product.productSeq}`);
+                                        // 상품 상세 페이지로 이동
+                                        navigate(`/event/product/${product.productSeq}`);
                                     }}
                                     style={{
                                         backgroundColor: "#fff",
@@ -616,242 +756,375 @@ function PostList() {
                 </div>
             )}
 
-            {/* 게시글 목록 */}
-            {loading && (
-                <div style={{textAlign: "center", padding: "20px"}}>
-                    <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            )}
+            {/* 게시글 목록 (공동구매 게시판이 아닐 때만 표시) */}
+            {board && board.boardType !== "공구이벤트" && (
+                <>
+                    {loading && (
+                        <div style={{textAlign: "center", padding: "20px"}}>
+                            <div className="spinner-border" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    )}
 
-            {error && (
-                <div style={{
-                    textAlign: "center",
-                    padding: "20px",
-                    color: "#d9534f",
-                    backgroundColor: "#f8d7da",
-                    borderRadius: "4px",
-                    marginBottom: "20px"
-                }}>
-                    {error}
-                </div>
-            )}
-
-            {!loading && !error && (
-                <div>
-                    <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "15px"
-                    }}>
-                        <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "#333" }}>
-                            게시글 목록
-                        </h3>
-                        {/* 이벤트 게시판이 아닐 때만 글쓰기 버튼 표시 */}
-                        {sessionStorage.getItem("memId") && board && board.boardType !== "공구이벤트" && (
-                            <Link
-                                to={`/board/${boardSeq}/post/write`}
-                                style={{
-                                    padding: "8px 16px",
-                                    backgroundColor: "#28a745",
-                                    color: "#fff",
-                                    textDecoration: "none",
-                                    borderRadius: "4px",
-                                    fontSize: "14px"
-                                }}
-                            >
-                                <i className="bi bi-pencil"></i> 글쓰기
-                            </Link>
-                        )}
-                    </div>
-
-                    {postList.length === 0 ? (
+                    {error && (
                         <div style={{
                             textAlign: "center",
-                            padding: "40px",
-                            color: "#666"
+                            padding: "20px",
+                            color: "#d9534f",
+                            backgroundColor: "#f8d7da",
+                            borderRadius: "4px",
+                            marginBottom: "20px"
                         }}>
-                            등록된 게시글이 없습니다.
+                            {error}
                         </div>
-                    ) : (
-                        <table style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            backgroundColor: "#fff",
-                            borderRadius: "8px",
-                            overflow: "hidden"
-                        }}>
-                            <thead>
-                                <tr style={{
-                                    backgroundColor: "#f8f9fa",
-                                    borderBottom: "2px solid #dee2e6"
-                                }}>
-                                    <th style={{
-                                        padding: "12px",
-                                        textAlign: "center",
-                                        width: "10%"
-                                    }}>번호</th>
-                                    <th style={{
-                                        padding: "12px",
-                                        textAlign: "left",
-                                        width: "50%"
-                                    }}>제목</th>
-                                    <th style={{
-                                        padding: "12px",
-                                        textAlign: "center",
-                                        width: "15%"
-                                    }}>작성자</th>
-                                    <th style={{
-                                        padding: "12px",
-                                        textAlign: "center",
-                                        width: "15%"
-                                    }}>작성일</th>
-                                    <th style={{
-                                        padding: "12px",
-                                        textAlign: "center",
-                                        width: "10%"
-                                    }}>조회수</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {postList.map((post, index) => (
-                                    <tr
-                                        key={post.postSeq}
-                                        style={{
-                                            borderBottom: "1px solid #dee2e6",
-                                            cursor: "pointer"
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = "#f8f9fa";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = "#fff";
-                                        }}
-                                        onClick={() => navigate(`/board/post/${post.postSeq}`)}
-                                    >
-                                        <td style={{
-                                            padding: "12px",
-                                            textAlign: "center",
-                                            color: "#666"
-                                        }}>
-                                            {postList.length - index + (page * 10)}
-                                        </td>
-                                        <td style={{
-                                            padding: "12px",
-                                            textAlign: "left"
-                                        }}>
-                                            <div style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: "8px"
-                                            }}>
-                                                {post.isNotice === "Y" && (
-                                                    <span style={{
-                                                        display: "inline-block",
-                                                        padding: "2px 8px",
-                                                        backgroundColor: "#fff3cd",
-                                                        color: "#8B0000",
-                                                        borderRadius: "4px",
-                                                        fontSize: "12px",
-                                                        fontWeight: "bold",
-                                                        border: "1px solid #8B0000"
-                                                    }}>
-                                                        [공지사항]
-                                                    </span>
-                                                )}
-                                                <span style={{
-                                                    color: post.isNotice === "Y" ? "#8B0000" : "#333",
-                                                    fontWeight: post.isNotice === "Y" ? "bold" : "normal"
-                                                }}>
-                                                    {post.postTitle}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td style={{
-                                            padding: "12px",
-                                            textAlign: "center",
-                                            color: "#666"
-                                        }}>
-                                            {post.memberId}
-                                        </td>
-                                        <td style={{
-                                            padding: "12px",
-                                            textAlign: "center",
-                                            color: "#666",
-                                            fontSize: "13px"
-                                        }}>
-                                            {new Date(post.createdDate).toLocaleDateString()}
-                                        </td>
-                                        <td style={{
-                                            padding: "12px",
-                                            textAlign: "center",
-                                            color: "#666"
-                                        }}>
-                                            {post.viewCount || 0}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
                     )}
 
-                    {/* 페이지네이션 */}
-                    {totalPages > 1 && (
-                        <div style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: "5px",
-                            marginTop: "20px"
-                        }}>
-                            <button
-                                onClick={() => handlePageChange(page - 1)}
-                                disabled={page === 0}
-                                style={{
-                                    padding: "8px 12px",
-                                    backgroundColor: page === 0 ? "#e9ecef" : "#337ab7",
-                                    color: page === 0 ? "#999" : "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: page === 0 ? "not-allowed" : "pointer"
-                                }}
-                            >
-                                이전
-                            </button>
-                            {[...Array(totalPages)].map((_, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => handlePageChange(i)}
-                                    style={{
-                                        padding: "8px 12px",
-                                        backgroundColor: page === i ? "#337ab7" : "#fff",
-                                        color: page === i ? "#fff" : "#333",
-                                        border: "1px solid #ddd",
-                                        borderRadius: "4px",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => handlePageChange(page + 1)}
-                                disabled={page >= totalPages - 1}
-                                style={{
-                                    padding: "8px 12px",
-                                    backgroundColor: page >= totalPages - 1 ? "#e9ecef" : "#337ab7",
-                                    color: page >= totalPages - 1 ? "#999" : "#fff",
-                                    border: "none",
-                                    borderRadius: "4px",
-                                    cursor: page >= totalPages - 1 ? "not-allowed" : "pointer"
-                                }}
-                            >
-                                다음
-                            </button>
+                    {!loading && !error && (
+                        <div>
+                            {/* 질문게시판인 경우 댓글만 표시 */}
+                            {board && board.boardType === "질문게시판" ? (
+                                <div>
+                                    <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "#333", marginBottom: "20px" }}>
+                                        질문과 답변
+                                    </h3>
+                                    
+                                    {/* 댓글 작성 폼 */}
+                                    {sessionStorage.getItem("memId") || sessionStorage.getItem("managerId") ? (
+                                        <form onSubmit={handleQuestionCommentSubmit} style={{
+                                            marginBottom: "30px",
+                                            padding: "20px",
+                                            backgroundColor: "#f8f9fa",
+                                            borderRadius: "8px",
+                                            border: "1px solid #dee2e6"
+                                        }}>
+                                            <label style={{
+                                                display: "block",
+                                                marginBottom: "10px",
+                                                fontWeight: "bold",
+                                                color: "#333"
+                                            }}>
+                                                질문 또는 답변 작성
+                                            </label>
+                                            <textarea
+                                                value={commentContent}
+                                                onChange={(e) => setCommentContent(e.target.value)}
+                                                placeholder="질문이나 답변을 입력하세요"
+                                                rows={4}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "10px",
+                                                    border: "1px solid #ddd",
+                                                    borderRadius: "4px",
+                                                    fontSize: "14px",
+                                                    resize: "vertical",
+                                                    marginBottom: "10px"
+                                                }}
+                                            />
+                                            <div style={{ textAlign: "right" }}>
+                                                <button
+                                                    type="submit"
+                                                    style={{
+                                                        padding: "8px 16px",
+                                                        backgroundColor: "#337ab7",
+                                                        color: "#fff",
+                                                        border: "none",
+                                                        borderRadius: "4px",
+                                                        fontSize: "14px",
+                                                        cursor: "pointer"
+                                                    }}
+                                                >
+                                                    작성하기
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <div style={{
+                                            padding: "15px",
+                                            marginBottom: "20px",
+                                            backgroundColor: "#fff3cd",
+                                            borderRadius: "4px",
+                                            border: "1px solid #ffc107",
+                                            textAlign: "center",
+                                            color: "#856404"
+                                        }}>
+                                            질문이나 답변을 작성하려면 로그인이 필요합니다.
+                                        </div>
+                                    )}
+                                    
+                                    {/* 댓글 목록 */}
+                                    <div>
+                                        {questionComments.length > 0 ? (
+                                            <div>
+                                                {questionComments.map((comment) => (
+                                                    <div
+                                                        key={comment.commentSeq}
+                                                        style={{
+                                                            padding: "20px",
+                                                            marginBottom: "15px",
+                                                            backgroundColor: "#fff",
+                                                            borderRadius: "8px",
+                                                            border: "1px solid #dee2e6",
+                                                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                                        }}
+                                                    >
+                                                        <div style={{
+                                                            display: "flex",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "center",
+                                                            marginBottom: "10px"
+                                                        }}>
+                                                            <strong style={{ color: "#333", fontSize: "16px" }}>
+                                                                {comment.memberId}
+                                                            </strong>
+                                                            <span style={{
+                                                                fontSize: "12px",
+                                                                color: "#999"
+                                                            }}>
+                                                                {new Date(comment.createdDate).toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{
+                                                            color: "#333",
+                                                            lineHeight: "1.8",
+                                                            whiteSpace: "pre-wrap",
+                                                            wordBreak: "break-word",
+                                                            fontSize: "14px"
+                                                        }}>
+                                                            {comment.commentContent}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div style={{
+                                                textAlign: "center",
+                                                padding: "40px",
+                                                color: "#999"
+                                            }}>
+                                                등록된 질문이나 답변이 없습니다.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        marginBottom: "15px"
+                                    }}>
+                                        <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "#333" }}>
+                                            게시글 목록
+                                        </h3>
+                                        {/* 이벤트 게시판이 아닐 때만 글쓰기 버튼 표시 */}
+                                        {sessionStorage.getItem("memId") && (
+                                            <Link
+                                                to={`/board/${boardSeq}/post/write`}
+                                                style={{
+                                                    padding: "8px 16px",
+                                                    backgroundColor: "#28a745",
+                                                    color: "#fff",
+                                                    textDecoration: "none",
+                                                    borderRadius: "4px",
+                                                    fontSize: "14px"
+                                                }}
+                                            >
+                                                <i className="bi bi-pencil"></i> 글쓰기
+                                            </Link>
+                                        )}
+                                    </div>
+
+                            {postList.length === 0 ? (
+                                <div style={{
+                                    textAlign: "center",
+                                    padding: "40px",
+                                    color: "#666"
+                                }}>
+                                    등록된 게시글이 없습니다.
+                                </div>
+                            ) : (
+                                <table style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "8px",
+                                    overflow: "hidden"
+                                }}>
+                                    <thead>
+                                        <tr style={{
+                                            backgroundColor: "#f8f9fa",
+                                            borderBottom: "2px solid #dee2e6"
+                                        }}>
+                                            <th style={{
+                                                padding: "12px",
+                                                textAlign: "center",
+                                                width: "10%"
+                                            }}>번호</th>
+                                            <th style={{
+                                                padding: "12px",
+                                                textAlign: "left",
+                                                width: "50%"
+                                            }}>제목</th>
+                                            <th style={{
+                                                padding: "12px",
+                                                textAlign: "center",
+                                                width: "15%"
+                                            }}>작성자</th>
+                                            <th style={{
+                                                padding: "12px",
+                                                textAlign: "center",
+                                                width: "15%"
+                                            }}>작성일</th>
+                                            <th style={{
+                                                padding: "12px",
+                                                textAlign: "center",
+                                                width: "10%"
+                                            }}>조회수</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {postList.map((post, index) => (
+                                            <tr
+                                                key={post.postSeq}
+                                                style={{
+                                                    borderBottom: "1px solid #dee2e6",
+                                                    cursor: "pointer"
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#f8f9fa";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#fff";
+                                                }}
+                                                onClick={() => navigate(`/board/post/${post.postSeq}`)}
+                                            >
+                                                <td style={{
+                                                    padding: "12px",
+                                                    textAlign: "center",
+                                                    color: "#666"
+                                                }}>
+                                                    {postList.length - index + (page * 10)}
+                                                </td>
+                                                <td style={{
+                                                    padding: "12px",
+                                                    textAlign: "left"
+                                                }}>
+                                                    <div style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: "8px"
+                                                    }}>
+                                                        {post.isNotice === "Y" && (
+                                                            <span style={{
+                                                                display: "inline-block",
+                                                                padding: "2px 8px",
+                                                                backgroundColor: "#fff3cd",
+                                                                color: "#8B0000",
+                                                                borderRadius: "4px",
+                                                                fontSize: "12px",
+                                                                fontWeight: "bold",
+                                                                border: "1px solid #8B0000"
+                                                            }}>
+                                                                [공지사항]
+                                                            </span>
+                                                        )}
+                                                        <span style={{
+                                                            color: post.isNotice === "Y" ? "#8B0000" : "#333",
+                                                            fontWeight: post.isNotice === "Y" ? "bold" : "normal"
+                                                        }}>
+                                                            {post.postTitle}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td style={{
+                                                    padding: "12px",
+                                                    textAlign: "center",
+                                                    color: "#666"
+                                                }}>
+                                                    {post.memberId}
+                                                </td>
+                                                <td style={{
+                                                    padding: "12px",
+                                                    textAlign: "center",
+                                                    color: "#666",
+                                                    fontSize: "13px"
+                                                }}>
+                                                    {new Date(post.createdDate).toLocaleDateString()}
+                                                </td>
+                                                <td style={{
+                                                    padding: "12px",
+                                                    textAlign: "center",
+                                                    color: "#666"
+                                                }}>
+                                                    {post.viewCount || 0}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+
+                            {/* 페이지네이션 */}
+                            {totalPages > 1 && (
+                                <div style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    gap: "5px",
+                                    marginTop: "20px"
+                                }}>
+                                    <button
+                                        onClick={() => handlePageChange(page - 1)}
+                                        disabled={page === 0}
+                                        style={{
+                                            padding: "8px 12px",
+                                            backgroundColor: page === 0 ? "#e9ecef" : "#337ab7",
+                                            color: page === 0 ? "#999" : "#fff",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            cursor: page === 0 ? "not-allowed" : "pointer"
+                                        }}
+                                    >
+                                        이전
+                                    </button>
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => handlePageChange(i)}
+                                            style={{
+                                                padding: "8px 12px",
+                                                backgroundColor: page === i ? "#337ab7" : "#fff",
+                                                color: page === i ? "#fff" : "#333",
+                                                border: "1px solid #ddd",
+                                                borderRadius: "4px",
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={() => handlePageChange(page + 1)}
+                                        disabled={page >= totalPages - 1}
+                                        style={{
+                                            padding: "8px 12px",
+                                            backgroundColor: page >= totalPages - 1 ? "#e9ecef" : "#337ab7",
+                                            color: page >= totalPages - 1 ? "#999" : "#fff",
+                                            border: "none",
+                                            borderRadius: "4px",
+                                            cursor: page >= totalPages - 1 ? "not-allowed" : "pointer"
+                                        }}
+                                    >
+                                        다음
+                                    </button>
+                                </div>
+                            )}
+                                </>
+                            )}
                         </div>
                     )}
-                </div>
+                </>
             )}
 
             {/* 뒤로가기 버튼 */}

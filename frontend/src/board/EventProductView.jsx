@@ -16,11 +16,7 @@ function EventProductView() {
     const [managerIds, setManagerIds] = useState(new Set());
     const [postSeq, setPostSeq] = useState(null);
     const [showOrderForm, setShowOrderForm] = useState(false);
-    const [orderFormData, setOrderFormData] = useState({
-        orderQuantity: 1,
-        deliveryAddress: "",
-        deliveryPhone: ""
-    });
+    const [orderQuantity, setOrderQuantity] = useState(1);
 
     useEffect(() => {
         if(productSeq) {
@@ -373,12 +369,12 @@ function EventProductView() {
     const handleOrderSubmit = async (e) => {
         e.preventDefault();
         
-        if(!orderFormData.orderQuantity || orderFormData.orderQuantity <= 0) {
+        if(!orderQuantity || orderQuantity <= 0) {
             alert("주문 수량을 입력해주세요.");
             return;
         }
         
-        if(orderFormData.orderQuantity > product.stockQuantity) {
+        if(orderQuantity > product.stockQuantity) {
             alert(`재고가 부족합니다. (현재 재고: ${product.stockQuantity}개)`);
             return;
         }
@@ -393,7 +389,28 @@ function EventProductView() {
             return;
         }
         
-        const totalPrice = product.salePrice * orderFormData.orderQuantity;
+        // 회원 정보 조회
+        let deliveryAddress = "";
+        let deliveryPhone = "";
+        try {
+            const memberResponse = await fetch(`http://localhost:8080/member/getMember?id=${memberIdToUse}`);
+            const memberData = await memberResponse.json();
+            if(memberData.rt === "OK" && memberData.member) {
+                const member = memberData.member;
+                // 주소와 전화번호 조합
+                deliveryAddress = member.addr || "";
+                if(member.tel1 && member.tel2 && member.tel3) {
+                    deliveryPhone = `${member.tel1}-${member.tel2}-${member.tel3}`;
+                } else if(member.tel1) {
+                    deliveryPhone = member.tel1;
+                }
+            }
+        } catch(err) {
+            console.error("회원 정보 조회 오류:", err);
+            // 회원 정보 조회 실패해도 주문은 진행
+        }
+        
+        const totalPrice = product.salePrice * orderQuantity;
         
         if(!window.confirm(`총 ${totalPrice.toLocaleString()}원을 결제하시겠습니까?`)) {
             return;
@@ -408,11 +425,11 @@ function EventProductView() {
                 body: JSON.stringify({
                     productSeq: product.productSeq,
                     memberId: memberIdToUse,
-                    orderQuantity: orderFormData.orderQuantity,
+                    orderQuantity: orderQuantity,
                     orderPrice: totalPrice,
                     orderStatus: "주문완료",
-                    deliveryAddress: orderFormData.deliveryAddress || "",
-                    deliveryPhone: orderFormData.deliveryPhone || ""
+                    deliveryAddress: deliveryAddress,
+                    deliveryPhone: deliveryPhone
                 })
             });
             
@@ -421,11 +438,7 @@ function EventProductView() {
             if(data.rt === "OK") {
                 alert(data.msg || "주문이 완료되었습니다.");
                 setShowOrderForm(false);
-                setOrderFormData({
-                    orderQuantity: 1,
-                    deliveryAddress: "",
-                    deliveryPhone: ""
-                });
+                setOrderQuantity(1);
                 // 상품 정보 새로고침 (재고 업데이트)
                 await fetchProductDetail();
             } else {
@@ -682,11 +695,8 @@ function EventProductView() {
                                                             type="number"
                                                             min="1"
                                                             max={product.stockQuantity}
-                                                            value={orderFormData.orderQuantity}
-                                                            onChange={(e) => setOrderFormData(prev => ({
-                                                                ...prev,
-                                                                orderQuantity: parseInt(e.target.value) || 1
-                                                            }))}
+                                                            value={orderQuantity}
+                                                            onChange={(e) => setOrderQuantity(parseInt(e.target.value) || 1)}
                                                             style={{
                                                                 width: "100%",
                                                                 padding: "8px",
@@ -702,62 +712,6 @@ function EventProductView() {
                                                         }}>
                                                             최대 {product.stockQuantity}개까지 주문 가능
                                                         </div>
-                                                    </div>
-                                                    
-                                                    <div style={{ marginBottom: "15px" }}>
-                                                        <label style={{
-                                                            display: "block",
-                                                            marginBottom: "5px",
-                                                            fontSize: "13px",
-                                                            fontWeight: "bold",
-                                                            color: "#333"
-                                                        }}>
-                                                            배송 주소 (선택)
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={orderFormData.deliveryAddress}
-                                                            onChange={(e) => setOrderFormData(prev => ({
-                                                                ...prev,
-                                                                deliveryAddress: e.target.value
-                                                            }))}
-                                                            placeholder="배송 주소를 입력하세요"
-                                                            style={{
-                                                                width: "100%",
-                                                                padding: "8px",
-                                                                border: "1px solid #ddd",
-                                                                borderRadius: "4px",
-                                                                fontSize: "13px"
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    
-                                                    <div style={{ marginBottom: "15px" }}>
-                                                        <label style={{
-                                                            display: "block",
-                                                            marginBottom: "5px",
-                                                            fontSize: "13px",
-                                                            fontWeight: "bold",
-                                                            color: "#333"
-                                                        }}>
-                                                            연락처 (선택)
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={orderFormData.deliveryPhone}
-                                                            onChange={(e) => setOrderFormData(prev => ({
-                                                                ...prev,
-                                                                deliveryPhone: e.target.value
-                                                            }))}
-                                                            placeholder="연락처를 입력하세요"
-                                                            style={{
-                                                                width: "100%",
-                                                                padding: "8px",
-                                                                border: "1px solid #ddd",
-                                                                borderRadius: "4px",
-                                                                fontSize: "13px"
-                                                            }}
-                                                        />
                                                     </div>
                                                     
                                                     <div style={{
@@ -786,7 +740,7 @@ function EventProductView() {
                                                         }}>
                                                             <span>주문 수량:</span>
                                                             <span>
-                                                                {orderFormData.orderQuantity}개
+                                                                {orderQuantity}개
                                                             </span>
                                                         </div>
                                                         <div style={{
@@ -800,7 +754,7 @@ function EventProductView() {
                                                         }}>
                                                             <span>총 결제 금액:</span>
                                                             <span>
-                                                                ₩ {(product.salePrice * orderFormData.orderQuantity).toLocaleString()}
+                                                                ₩ {(product.salePrice * orderQuantity).toLocaleString()}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -814,11 +768,7 @@ function EventProductView() {
                                                             type="button"
                                                             onClick={() => {
                                                                 setShowOrderForm(false);
-                                                                setOrderFormData({
-                                                                    orderQuantity: 1,
-                                                                    deliveryAddress: "",
-                                                                    deliveryPhone: ""
-                                                                });
+                                                                setOrderQuantity(1);
                                                             }}
                                                             style={{
                                                                 padding: "8px 16px",

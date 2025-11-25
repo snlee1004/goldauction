@@ -10,6 +10,13 @@ function EventBoardManage() {
     const [posts, setPosts] = useState([]);
     const [comments, setComments] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [orderStats, setOrderStats] = useState({
+        totalSales: 0,
+        totalBuyers: 0,
+        totalAmount: 0,
+        statusCounts: {},
+        productStats: []
+    });
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -121,12 +128,33 @@ function EventBoardManage() {
                     const response = await fetch(`http://localhost:8080/event/order/list/product?productSeq=${product.productSeq}`);
                     const data = await response.json();
                     if(data.rt === "OK" && data.list) {
-                        data.list.forEach(order => {
-                            allOrders.push({
+                        // 각 주문에 회원 정보 추가
+                        for(const order of data.list) {
+                            let orderWithMember = {
                                 ...order,
                                 productName: product.productName
-                            });
-                        });
+                            };
+                            
+                            // 회원 정보 조회
+                            try {
+                                const memberResponse = await fetch(`http://localhost:8080/member/getMember?id=${order.memberId}`);
+                                const memberData = await memberResponse.json();
+                                if(memberData.rt === "OK" && memberData.member) {
+                                    const member = memberData.member;
+                                    orderWithMember.memberName = member.name || "";
+                                    orderWithMember.memberNickname = member.nickname || "";
+                                    orderWithMember.memberEmail = `${member.email1 || ""}@${member.email2 || ""}`;
+                                    orderWithMember.memberPhone = member.tel1 && member.tel2 && member.tel3 
+                                        ? `${member.tel1}-${member.tel2}-${member.tel3}` 
+                                        : (member.tel1 || "");
+                                    orderWithMember.memberAddress = member.addr || "";
+                                }
+                            } catch(err) {
+                                console.error(`회원 ${order.memberId} 정보 조회 오류:`, err);
+                            }
+                            
+                            allOrders.push(orderWithMember);
+                        }
                     }
                 } catch(err) {
                     console.error(`상품 ${product.productSeq}의 주문 조회 오류:`, err);
@@ -140,6 +168,9 @@ function EventBoardManage() {
             }
             
             setOrders(filteredOrders);
+            
+            // 통계 계산
+            calculateOrderStats(allOrders);
         } catch(err) {
             console.error("주문 목록 조회 오류:", err);
             setError("주문 목록을 불러오는 중 오류가 발생했습니다.");
@@ -248,6 +279,90 @@ function EventBoardManage() {
         }
     }, [activeTab, boardSeq, products, orderStatusFilter]);
 
+    // 주문 통계 계산
+    const calculateOrderStats = (orderList) => {
+        console.log("통계 계산 시작 - 주문 수:", orderList.length);
+        
+        if(!orderList || orderList.length === 0) {
+            setOrderStats({
+                totalSales: 0,
+                totalBuyers: 0,
+                totalAmount: 0,
+                statusCounts: {},
+                productStats: []
+            });
+            return;
+        }
+        
+        // 취소되지 않은 주문만 계산
+        const validOrders = orderList.filter(order => order && order.orderStatus !== "취소");
+        console.log("유효한 주문 수:", validOrders.length);
+        
+        // 총 판매수량
+        const totalSales = validOrders.reduce((sum, order) => {
+            return sum + (parseInt(order.orderQuantity) || 0);
+        }, 0);
+        
+        // 구매자 수 (중복 제거)
+        const uniqueBuyers = new Set();
+        validOrders.forEach(order => {
+            if(order.memberId) {
+                uniqueBuyers.add(order.memberId);
+            }
+        });
+        const totalBuyers = uniqueBuyers.size;
+        
+        // 총 판매금액
+        const totalAmount = validOrders.reduce((sum, order) => {
+            return sum + (parseInt(order.orderPrice) || 0);
+        }, 0);
+        
+        // 주문상태별 집계
+        const statusCounts = {};
+        orderList.forEach(order => {
+            if(order && order.orderStatus) {
+                const status = order.orderStatus;
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            }
+        });
+        
+        // 상품별 통계
+        const productMap = new Map();
+        validOrders.forEach(order => {
+            const productName = order.productName || "알 수 없음";
+            if(!productMap.has(productName)) {
+                productMap.set(productName, {
+                    productName: productName,
+                    salesQuantity: 0,
+                    buyerCount: new Set(),
+                    totalAmount: 0
+                });
+            }
+            const stat = productMap.get(productName);
+            stat.salesQuantity += parseInt(order.orderQuantity) || 0;
+            if(order.memberId) {
+                stat.buyerCount.add(order.memberId);
+            }
+            stat.totalAmount += parseInt(order.orderPrice) || 0;
+        });
+        
+        const productStats = Array.from(productMap.values()).map(stat => ({
+            ...stat,
+            buyerCount: stat.buyerCount.size
+        })).sort((a, b) => b.totalAmount - a.totalAmount);
+        
+        const newStats = {
+            totalSales: totalSales,
+            totalBuyers: totalBuyers,
+            totalAmount: totalAmount,
+            statusCounts: statusCounts,
+            productStats: productStats
+        };
+        
+        console.log("계산된 통계:", newStats);
+        setOrderStats(newStats);
+    };
+
     // 주문 상태 업데이트
     const handleUpdateOrderStatus = async (orderSeq, newStatus) => {
         try {
@@ -343,21 +458,48 @@ function EventBoardManage() {
     // 이미지 파일 선택 처리 (최대 8장)
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
-        if(files.length > 8) {
-            alert("최대 8장까지만 업로드 가능합니다.");
+        
+        // 기존 이미지 개수 확인
+        const existingImageCount = imageFiles.filter(f => f && typeof f === 'object' && f.isExisting).length;
+        const maxNewImages = 8 - existingImageCount;
+        
+        if(files.length > maxNewImages) {
+            alert(`최대 ${maxNewImages}장까지만 추가로 업로드 가능합니다. (기존 이미지 ${existingImageCount}장 포함 총 8장)`);
             return;
         }
         
-        const newFiles = files.slice(0, 8);
-        setImageFiles(newFiles);
+        const newFiles = files.slice(0, maxNewImages);
         
-        // 미리보기 생성
-        const previews = newFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews(previews);
+        // 기존 이미지와 새 이미지 합치기
+        const existingFiles = imageFiles.filter(f => f && typeof f === 'object' && f.isExisting);
+        setImageFiles([...existingFiles, ...newFiles]);
+        
+        // 미리보기 생성 (기존 이미지 URL + 새 이미지 미리보기)
+        const existingPreviews = imagePreviews.filter((preview, index) => 
+            imageFiles[index] && typeof imageFiles[index] === 'object' && imageFiles[index].isExisting
+        );
+        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews([...existingPreviews, ...newPreviews]);
     };
 
     // 이미지 삭제
     const handleRemoveImage = (index) => {
+        // 삭제할 이미지가 기존 이미지인지 확인
+        const imageToRemove = imageFiles[index];
+        const isExisting = imageToRemove && typeof imageToRemove === 'object' && imageToRemove.isExisting;
+        
+        if(isExisting) {
+            // 기존 이미지 삭제 확인
+            if(!window.confirm("기존 이미지를 삭제하시겠습니까?")) {
+                return;
+            }
+        }
+        
+        // URL 해제 (새 이미지의 경우)
+        if(!isExisting && imagePreviews[index] && imagePreviews[index].startsWith('blob:')) {
+            URL.revokeObjectURL(imagePreviews[index]);
+        }
+        
         const newFiles = imageFiles.filter((_, i) => i !== index);
         const newPreviews = imagePreviews.filter((_, i) => i !== index);
         setImageFiles(newFiles);
@@ -370,7 +512,7 @@ function EventBoardManage() {
     };
 
     // 상품 수정 시작
-    const handleEditProduct = (product) => {
+    const handleEditProduct = async (product) => {
         setEditingProduct(product);
         
         // 종료일시 분리
@@ -394,8 +536,33 @@ function EventBoardManage() {
             deliveryInfo: product.deliveryInfo || "",
             eventStatus: product.eventStatus || "진행중"
         });
-        setImageFiles([]);
-        setImagePreviews([]);
+        
+        // 기존 이미지 불러오기
+        try {
+            const imageResponse = await fetch(`http://localhost:8080/event/product/images?productSeq=${product.productSeq}`);
+            const imageData = await imageResponse.json();
+            if(imageData.rt === "OK" && imageData.list && imageData.list.length > 0) {
+                // 기존 이미지 URL들을 미리보기로 설정
+                const existingImagePreviews = imageData.list.map(img => 
+                    `http://localhost:8080/storage/${img.imagePath}`
+                );
+                setImagePreviews(existingImagePreviews);
+                // 기존 이미지 정보 저장 (나중에 삭제할 때 사용)
+                setImageFiles(imageData.list.map(img => ({ 
+                    isExisting: true, 
+                    imageSeq: img.imageSeq,
+                    imagePath: img.imagePath 
+                })));
+            } else {
+                setImageFiles([]);
+                setImagePreviews([]);
+            }
+        } catch(err) {
+            console.error("기존 이미지 조회 오류:", err);
+            setImageFiles([]);
+            setImagePreviews([]);
+        }
+        
         if(imageInputRef.current) {
             imageInputRef.current.value = "";
         }
@@ -1347,7 +1514,7 @@ function EventBoardManage() {
                 </div>
             )}
 
-            {/* 주문 관리 탭 */}
+            {/* 주문 관리 탭 - 대시보드 */}
             {activeTab === "orders" && (
                 <div>
                     <div style={{
@@ -1357,24 +1524,22 @@ function EventBoardManage() {
                         alignItems: "center"
                     }}>
                         <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "#333" }}>
-                            주문 목록 ({orders.length})
+                            주문 관리 대시보드
                         </h3>
-                        <select
-                            value={orderStatusFilter}
-                            onChange={(e) => setOrderStatusFilter(e.target.value)}
+                        <button
+                            onClick={() => navigate(`/board/${boardSeq}/event/orders/list`)}
                             style={{
-                                padding: "8px",
-                                border: "1px solid #ddd",
+                                padding: "8px 16px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                border: "none",
                                 borderRadius: "4px",
-                                fontSize: "14px"
+                                fontSize: "14px",
+                                cursor: "pointer"
                             }}
                         >
-                            <option value="전체">전체</option>
-                            <option value="주문완료">주문완료</option>
-                            <option value="배송중">배송중</option>
-                            <option value="배송완료">배송완료</option>
-                            <option value="취소">취소</option>
-                        </select>
+                            주문 리스트 보기
+                        </button>
                     </div>
                     {loading ? (
                         <div style={{textAlign: "center", padding: "20px"}}>
@@ -1383,131 +1548,177 @@ function EventBoardManage() {
                             </div>
                         </div>
                     ) : (
-                        <table style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            backgroundColor: "#fff",
-                            borderRadius: "8px",
-                            overflow: "hidden"
-                        }}>
-                            <thead>
-                                <tr style={{
-                                    backgroundColor: "#f8f9fa",
-                                    borderBottom: "2px solid #dee2e6"
+                        <>
+                            {/* 통계 카드 */}
+                            <div style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(4, 1fr)",
+                                gap: "20px",
+                                marginBottom: "30px"
+                            }}>
+                                <div style={{
+                                    padding: "20px",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "8px",
+                                    border: "1px solid #dee2e6",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                                 }}>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "8%" }}>주문번호</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "20%" }}>상품명</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "12%" }}>회원ID</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "8%" }}>수량</th>
-                                    <th style={{ padding: "12px", textAlign: "right", width: "12%" }}>주문금액</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "12%" }}>주문상태</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "12%" }}>주문일</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "16%" }}>관리</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orders.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="8" style={{
-                                            padding: "40px",
-                                            textAlign: "center",
-                                            color: "#666"
-                                        }}>
-                                            등록된 주문이 없습니다.
-                                        </td>
-                                    </tr>
+                                    <div style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>총 판매수량</div>
+                                    <div style={{ fontSize: "28px", fontWeight: "bold", color: "#333" }}>
+                                        {orderStats.totalSales.toLocaleString()}개
+                                    </div>
+                                </div>
+                                <div style={{
+                                    padding: "20px",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "8px",
+                                    border: "1px solid #dee2e6",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                }}>
+                                    <div style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>구매자 수</div>
+                                    <div style={{ fontSize: "28px", fontWeight: "bold", color: "#333" }}>
+                                        {orderStats.totalBuyers}명
+                                    </div>
+                                </div>
+                                <div style={{
+                                    padding: "20px",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "8px",
+                                    border: "1px solid #dee2e6",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                }}>
+                                    <div style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>총 판매금액</div>
+                                    <div style={{ fontSize: "28px", fontWeight: "bold", color: "#dc3545" }}>
+                                        ₩ {orderStats.totalAmount.toLocaleString()}
+                                    </div>
+                                </div>
+                                <div style={{
+                                    padding: "20px",
+                                    backgroundColor: "#fff",
+                                    borderRadius: "8px",
+                                    border: "1px solid #dee2e6",
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                }}>
+                                    <div style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>전체 주문 수</div>
+                                    <div style={{ fontSize: "28px", fontWeight: "bold", color: "#333" }}>
+                                        {orders.length}건
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 주문상태별 집계 */}
+                            <div style={{
+                                marginBottom: "30px",
+                                padding: "20px",
+                                backgroundColor: "#fff",
+                                borderRadius: "8px",
+                                border: "1px solid #dee2e6",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                            }}>
+                                <h4 style={{
+                                    marginBottom: "15px",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    color: "#333"
+                                }}>
+                                    주문상태별 집계
+                                </h4>
+                                {Object.keys(orderStats.statusCounts || {}).length === 0 ? (
+                                    <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+                                        주문 데이터가 없습니다.
+                                    </div>
                                 ) : (
-                                    orders.map((order) => (
-                                        <tr
-                                            key={order.orderSeq}
-                                            style={{
-                                                borderBottom: "1px solid #dee2e6"
-                                            }}
-                                        >
-                                            <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666"
-                                            }}>
-                                                #{order.orderSeq}
-                                            </td>
-                                            <td style={{ padding: "12px" }}>
-                                                {order.productName || "-"}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666"
-                                            }}>
-                                                {order.memberId}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666"
-                                            }}>
-                                                {order.orderQuantity || 0}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
-                                                textAlign: "right",
-                                                color: "#333",
-                                                fontWeight: "bold"
-                                            }}>
-                                                ₩ {order.orderPrice?.toLocaleString() || 0}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
+                                    <div style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(4, 1fr)",
+                                        gap: "15px"
+                                    }}>
+                                        {Object.entries(orderStats.statusCounts || {}).map(([status, count]) => (
+                                            <div key={status} style={{
+                                                padding: "15px",
+                                                backgroundColor: "#f8f9fa",
+                                                borderRadius: "6px",
                                                 textAlign: "center"
                                             }}>
-                                                <span style={{
-                                                    padding: "4px 8px",
-                                                    borderRadius: "4px",
-                                                    fontSize: "12px",
-                                                    backgroundColor: order.orderStatus === "주문완료" ? "#d4edda" :
-                                                                   order.orderStatus === "배송중" ? "#cce5ff" :
-                                                                   order.orderStatus === "배송완료" ? "#d1ecf1" : "#f8d7da",
-                                                    color: order.orderStatus === "주문완료" ? "#155724" :
-                                                          order.orderStatus === "배송중" ? "#004085" :
-                                                          order.orderStatus === "배송완료" ? "#0c5460" : "#721c24"
+                                                <div style={{
+                                                    fontSize: "24px",
+                                                    fontWeight: "bold",
+                                                    color: status === "주문완료" ? "#155724" :
+                                                           status === "배송중" ? "#004085" :
+                                                           status === "배송완료" ? "#0c5460" : "#721c24",
+                                                    marginBottom: "5px"
                                                 }}>
-                                                    {order.orderStatus}
-                                                </span>
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666",
-                                                fontSize: "13px"
-                                            }}>
-                                                {new Date(order.createdDate).toLocaleDateString()}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
-                                                textAlign: "center"
-                                            }}>
-                                                <select
-                                                    value={order.orderStatus}
-                                                    onChange={(e) => handleUpdateOrderStatus(order.orderSeq, e.target.value)}
-                                                    style={{
-                                                        padding: "4px 8px",
-                                                        border: "1px solid #ddd",
-                                                        borderRadius: "4px",
-                                                        fontSize: "12px",
-                                                        cursor: "pointer"
-                                                    }}
-                                                >
-                                                    <option value="주문완료">주문완료</option>
-                                                    <option value="배송중">배송중</option>
-                                                    <option value="배송완료">배송완료</option>
-                                                    <option value="취소">취소</option>
-                                                </select>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                    {count}건
+                                                </div>
+                                                <div style={{ fontSize: "13px", color: "#666" }}>
+                                                    {status}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
-                            </tbody>
-                        </table>
+                            </div>
+
+                            {/* 상품별 판매 현황 */}
+                            <div style={{
+                                padding: "20px",
+                                backgroundColor: "#fff",
+                                borderRadius: "8px",
+                                border: "1px solid #dee2e6",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                            }}>
+                                <h4 style={{
+                                    marginBottom: "15px",
+                                    fontSize: "16px",
+                                    fontWeight: "bold",
+                                    color: "#333"
+                                }}>
+                                    상품별 판매 현황
+                                </h4>
+                                {orderStats.productStats.length === 0 ? (
+                                    <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                                        판매 데이터가 없습니다.
+                                    </div>
+                                ) : (
+                                    <table style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse"
+                                    }}>
+                                        <thead>
+                                            <tr style={{
+                                                backgroundColor: "#f8f9fa",
+                                                borderBottom: "2px solid #dee2e6"
+                                            }}>
+                                                <th style={{ padding: "12px", textAlign: "left" }}>상품명</th>
+                                                <th style={{ padding: "12px", textAlign: "center" }}>판매수량</th>
+                                                <th style={{ padding: "12px", textAlign: "center" }}>구매자수</th>
+                                                <th style={{ padding: "12px", textAlign: "right" }}>총 판매금액</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {orderStats.productStats.map((stat, index) => (
+                                                <tr key={index} style={{
+                                                    borderBottom: "1px solid #eee"
+                                                }}>
+                                                    <td style={{ padding: "12px", fontWeight: "500" }}>
+                                                        {stat.productName}
+                                                    </td>
+                                                    <td style={{ padding: "12px", textAlign: "center" }}>
+                                                        {stat.salesQuantity.toLocaleString()}개
+                                                    </td>
+                                                    <td style={{ padding: "12px", textAlign: "center" }}>
+                                                        {stat.buyerCount}명
+                                                    </td>
+                                                    <td style={{ padding: "12px", textAlign: "right", fontWeight: "bold", color: "#dc3545" }}>
+                                                        ₩ {stat.totalAmount.toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
             )}

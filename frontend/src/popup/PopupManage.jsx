@@ -628,7 +628,7 @@ function PopupManage() {
                     className="btn btn-secondary"
                     style={{padding: "6px 12px", fontSize: "13px"}}
                 >
-                    관리자 페이지로
+                    관리자 페이지
                 </button>
             </div>
         </div>

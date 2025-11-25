@@ -60,65 +60,113 @@ function BoardList() {
             padding: "20px",
             marginTop: "70px"
         }}>
-            <h2 style={{
-                marginBottom: "30px",
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "#333",
-                textAlign: "center"
-            }}>
-                게시판 목록
-            </h2>
-
-            {/* 게시판 타입 필터 */}
+            {/* 상단 헤더 영역 */}
             <div style={{
-                marginBottom: "20px",
+                marginBottom: "30px",
                 display: "flex",
-                gap: "10px",
-                justifyContent: "center"
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "15px"
             }}>
-                <button
-                    onClick={() => setBoardType("")}
-                    style={{
-                        padding: "8px 16px",
-                        backgroundColor: boardType === "" ? "#337ab7" : "#6c757d",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
-                >
-                    전체
-                </button>
-                <button
-                    onClick={() => setBoardType("일반")}
-                    style={{
-                        padding: "8px 16px",
-                        backgroundColor: boardType === "일반" ? "#337ab7" : "#6c757d",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
-                >
-                    일반 게시판
-                </button>
-                <button
-                    onClick={() => setBoardType("공구이벤트")}
-                    style={{
-                        padding: "8px 16px",
-                        backgroundColor: boardType === "공구이벤트" ? "#337ab7" : "#6c757d",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px"
-                    }}
-                >
-                    공구이벤트 게시판
-                </button>
+                <h2 style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    color: "#333"
+                }}>
+                    특가이벤트 /공동구매
+                </h2>
+                
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    flexWrap: "wrap"
+                }}>
+                    {/* 게시판 타입 필터 */}
+                    <div style={{
+                        display: "flex",
+                        gap: "5px"
+                    }}>
+                        <button
+                            onClick={() => setBoardType("")}
+                            style={{
+                                padding: "4px 10px",
+                                backgroundColor: boardType === "" ? "#337ab7" : "#6c757d",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "11px"
+                            }}
+                        >
+                            전체
+                        </button>
+                        <button
+                            onClick={() => setBoardType("일반")}
+                            style={{
+                                padding: "4px 10px",
+                                backgroundColor: boardType === "일반" ? "#337ab7" : "#6c757d",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "11px"
+                            }}
+                        >
+                            일반게시판
+                        </button>
+                        <button
+                            onClick={() => setBoardType("공구이벤트")}
+                            style={{
+                                padding: "4px 10px",
+                                backgroundColor: boardType === "공구이벤트" ? "#337ab7" : "#6c757d",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "11px"
+                            }}
+                        >
+                            공구이벤트
+                        </button>
+                    </div>
+                    
+                    {/* 관리자 버튼 */}
+                    {sessionStorage.getItem("managerId") && (
+                        <>
+                            <Link
+                                to="/board/create"
+                                style={{
+                                    display: "inline-block",
+                                    padding: "8px 16px",
+                                    backgroundColor: "#28a745",
+                                    color: "#fff",
+                                    textDecoration: "none",
+                                    borderRadius: "4px",
+                                    fontSize: "14px"
+                                }}
+                            >
+                                <i className="bi bi-plus-circle"></i> 게시판 생성
+                            </Link>
+                            <Link
+                                to="/manager/managerInfo"
+                                style={{
+                                    display: "inline-block",
+                                    padding: "8px 16px",
+                                    backgroundColor: "#6c757d",
+                                    color: "#fff",
+                                    textDecoration: "none",
+                                    borderRadius: "4px",
+                                    fontSize: "14px"
+                                }}
+                            >
+                                관리자 페이지
+                            </Link>
+                        </>
+                    )}
+                </div>
             </div>
 
             {loading && (
@@ -265,43 +313,6 @@ function BoardList() {
                 </div>
             )}
 
-            {/* 관리자 메뉴 */}
-            {sessionStorage.getItem("managerId") && (
-                <div style={{
-                    marginTop: "30px",
-                    textAlign: "center"
-                }}>
-                    <Link
-                        to="/board/create"
-                        style={{
-                            display: "inline-block",
-                            padding: "10px 20px",
-                            backgroundColor: "#28a745",
-                            color: "#fff",
-                            textDecoration: "none",
-                            borderRadius: "4px",
-                            fontSize: "14px",
-                            marginRight: "10px"
-                        }}
-                    >
-                        <i className="bi bi-plus-circle"></i> 게시판 생성
-                    </Link>
-                    <Link
-                        to="/manager/managerInfo"
-                        style={{
-                            display: "inline-block",
-                            padding: "10px 20px",
-                            backgroundColor: "#6c757d",
-                            color: "#fff",
-                            textDecoration: "none",
-                            borderRadius: "4px",
-                            fontSize: "14px"
-                        }}
-                    >
-                        관리자 페이지
-                    </Link>
-                </div>
-            )}
         </div>
     );
 }

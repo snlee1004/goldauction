@@ -214,7 +214,13 @@ function ManagerInfo() {
                     }}>
                         회원관리
                     </h3>
-                    <div style={{textAlign: "center", marginTop: "15px"}}>
+                    <div style={{
+                        textAlign: "center", 
+                        marginTop: "15px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px"
+                    }}>
                         <Link 
                             to="/membercontrol/list" 
                             style={{
@@ -228,6 +234,20 @@ function ManagerInfo() {
                             }}
                         >
                             회원정보 상세 관리
+                        </Link>
+                        <Link
+                            to="/chatbot/manage"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            챗봇관리
                         </Link>
                     </div>
                 </div>
@@ -280,25 +300,10 @@ function ManagerInfo() {
                                 backgroundColor: "#337ab7",
                                 color: "#fff",
                                 borderRadius: "4px",
-                                fontSize: "13px",
-                                marginBottom: "8px"
-                            }}
-                        >
-                            chart 그래프 관리
-                        </Link>
-                        <Link
-                            to="/chatbot/manage"
-                            style={{
-                                textDecoration: "none",
-                                display: "inline-block",
-                                padding: "6px 12px",
-                                backgroundColor: "#337ab7",
-                                color: "#fff",
-                                borderRadius: "4px",
                                 fontSize: "13px"
                             }}
                         >
-                            챗봇관리
+                            chart 그래프 관리
                         </Link>
                     </div>
                 </div>
@@ -373,51 +378,7 @@ function ManagerInfo() {
                     </div>
                 </div>
 
-                {/* 4. 공지사항 관리 */}
-                <div style={{
-                    border: "2px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "20px",
-                    backgroundColor: "#fff",
-                    minHeight: "200px"
-                }}>
-                    <h3 style={{
-                        marginBottom: "15px",
-                        fontSize: "18px",
-                        fontWeight: "bold",
-                        color: "#337ab7",
-                        borderBottom: "2px solid #337ab7",
-                        paddingBottom: "10px"
-                    }}>
-                        공지사항 관리
-                    </h3>
-                    <ul style={{
-                        listStyle: "none",
-                        padding: 0,
-                        margin: 0
-                    }}>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            공지사항
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            상단 노출
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            공지사항 상단 노출 줄수
-                        </li>
-                    </ul>
-                </div>
-
-                {/* 5. CSS 관리 */}
+                {/* 4. CSS 관리 */}
                 <div style={{
                     border: "2px solid #ccc",
                     borderRadius: "8px",
@@ -476,56 +437,6 @@ function ManagerInfo() {
                             게시판 CSS 관리
                         </Link>
                     </div>
-                </div>
-
-                {/* 6. 공동구매*이벤트* 게시판 */}
-                <div style={{
-                    border: "2px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "20px",
-                    backgroundColor: "#fff",
-                    minHeight: "200px"
-                }}>
-                    <h3 style={{
-                        marginBottom: "15px",
-                        fontSize: "18px",
-                        fontWeight: "bold",
-                        color: "#337ab7",
-                        borderBottom: "2px solid #337ab7",
-                        paddingBottom: "10px"
-                    }}>
-                        공동구매*이벤트* 게시판
-                    </h3>
-                    <ul style={{
-                        listStyle: "none",
-                        padding: 0,
-                        margin: 0
-                    }}>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 생성
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 생성시 비속어 검색기능
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 수정
-                        </li>
-                        <li style={{
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee"
-                        }}>
-                            게시판 내용 수정
-                        </li>
-                    </ul>
                 </div>
             </div>
 

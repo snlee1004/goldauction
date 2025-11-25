@@ -48,7 +48,7 @@ function BoardCreateForm() {
             setError("게시판명을 입력해주세요.");
             return false;
         }
-        if(!formData.boardType || (formData.boardType !== "일반" && formData.boardType !== "공구이벤트")) {
+        if(!formData.boardType || (formData.boardType !== "일반" && formData.boardType !== "공구이벤트" && formData.boardType !== "질문게시판")) {
             setError("게시판 타입을 선택해주세요.");
             return false;
         }
@@ -200,6 +200,7 @@ function BoardCreateForm() {
                     >
                         <option value="일반">일반 게시판</option>
                         <option value="공구이벤트">공구이벤트 게시판</option>
+                        <option value="질문게시판">질문게시판 (댓글로만 구성)</option>
                     </select>
                 </div>
 

@@ -168,7 +168,7 @@ function ChartSetManage() {
                 fontWeight: "bold",
                 color: "#333"
             }}>
-                Chart 차트셋 관리
+                메인페이지 Chart 그래프 차트셋 관리
             </h2>
 
             <div style={{
