@@ -105,4 +105,12 @@ public class ImageboardDAO {
 	public List<Imageboard> getListByMemberIdAndStatus(String memberId, String status) {
 		return imageboardRepository.findByImageidAndStatus(memberId, status);
 	}
+	// 12. 전체 목록 조회 (관리자용, 페이지네이션 없음)
+	public List<Imageboard> imageboardListAll() {
+		return imageboardRepository.findAllOrderBySeqDesc();
+	}
+	// 12-1. 검색어가 포함된 전체 목록 조회 (관리자용, 페이지네이션 없음)
+	public List<Imageboard> imageboardListAllByKeyword(String keyword) {
+		return imageboardRepository.findAllByKeywordOrderBySeqDesc(keyword);
+	}
 }

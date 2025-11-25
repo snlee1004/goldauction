@@ -296,6 +296,20 @@ function ManagerInfo() {
                             회원정보 상세 관리
                         </Link>
                         <Link
+                            to="/manager/imageboardProductManage"
+                            style={{
+                                textDecoration: "none",
+                                display: "inline-block",
+                                padding: "6px 12px",
+                                backgroundColor: "#337ab7",
+                                color: "#fff",
+                                borderRadius: "4px",
+                                fontSize: "13px"
+                            }}
+                        >
+                            경매 상품 관리
+                        </Link>
+                        <Link
                             to="/chatbot/manage"
                             style={{
                                 textDecoration: "none",

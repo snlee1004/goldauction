@@ -614,7 +614,7 @@ function ImageboardView() {
                         <>
                             <i className="bi bi-x-octagon" style={{fontSize: "18px", color: "#d9534f"}}></i>
                             <span style={{color: "#d9534f", fontWeight: "bold"}}>
-                                경매가 포기되었습니다.
+                                판매가 중지되었습니다.
                             </span>
                         </>
                     ) : (
@@ -757,7 +757,7 @@ function ImageboardView() {
                                 );
                             })()}
                             <tr style={{borderBottom: "1px solid #eee"}}>
-                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>현재 최고 입찰된 금액</td>
+                                <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>입찰 최고 금액</td>
                                 <td style={{padding: "10px", color: "#d9534f", fontWeight: "bold", fontSize: "13px"}}>
                                     ₩ {currentHighestBid > 0 ? currentHighestBid.toLocaleString() : "입찰 없음"}
                                 </td>
@@ -806,7 +806,7 @@ function ImageboardView() {
                         </div>
                     ) : status === "포기" ? (
                         <div style={{fontSize: "20px", color: "#d9534f", fontWeight: "bold"}}>
-                            <i className="bi bi-x-octagon"></i> 경매가 포기되었습니다.
+                            <i className="bi bi-x-octagon"></i> 판매가 중지되었습니다.
                         </div>
                     ) : (
                         <div style={{fontSize: "16px", color: "#666", fontWeight: "bold"}}>

@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 @RestController
 public class NewsController {
@@ -118,7 +121,7 @@ public class NewsController {
 				result.put("msg", "뉴스 조회에 실패했습니다.");
 			}
 			
-		} catch(org.springframework.web.client.HttpClientErrorException e) {
+		} catch(HttpClientErrorException e) {
 			e.printStackTrace();
 			result.put("rt", "FAIL");
 			

@@ -571,7 +571,47 @@ function BoardManage() {
             
             const data = await response.json();
             if(data.rt === "OK") {
-                setPosts(data.list || []);
+                const postsList = data.list || [];
+                
+                // 각 게시글의 작성자 닉네임 조회
+                const postsWithNickname = await Promise.all(
+                    postsList.map(async (post) => {
+                        try {
+                            // 관리자인지 먼저 확인
+                            const managerResponse = await fetch(`http://localhost:8080/manager/getManager?managerId=${encodeURIComponent(post.memberId)}`);
+                            const managerData = await managerResponse.json();
+                            if(managerData.rt === "OK" && managerData.manager) {
+                                return {
+                                    ...post,
+                                    memberNickname: "운영자"
+                                };
+                            }
+                            
+                            // 일반 회원인 경우 닉네임 조회
+                            const memberResponse = await fetch(`http://localhost:8080/member/getMember?id=${encodeURIComponent(post.memberId)}`);
+                            const memberData = await memberResponse.json();
+                            if(memberData.rt === "OK" && memberData.member) {
+                                return {
+                                    ...post,
+                                    memberNickname: memberData.member.nickname || post.memberId
+                                };
+                            }
+                            
+                            return {
+                                ...post,
+                                memberNickname: post.memberId
+                            };
+                        } catch(err) {
+                            console.error(`게시글 ${post.postSeq} 작성자 정보 조회 오류:`, err);
+                            return {
+                                ...post,
+                                memberNickname: post.memberId
+                            };
+                        }
+                    })
+                );
+                
+                setPosts(postsWithNickname);
                 setTotalPages(data.totalPages || 0);
             } else {
                 setError(data.msg || "게시글 목록을 불러오는데 실패했습니다.");
@@ -613,7 +653,46 @@ function BoardManage() {
                         console.error(`게시글 ${post.postSeq}의 댓글 조회 오류:`, err);
                     }
                 }
-                setComments(allComments);
+                
+                // 각 댓글의 작성자 닉네임 조회
+                const commentsWithNickname = await Promise.all(
+                    allComments.map(async (comment) => {
+                        try {
+                            // 관리자인지 먼저 확인
+                            const managerResponse = await fetch(`http://localhost:8080/manager/getManager?managerId=${encodeURIComponent(comment.memberId)}`);
+                            const managerData = await managerResponse.json();
+                            if(managerData.rt === "OK" && managerData.manager) {
+                                return {
+                                    ...comment,
+                                    memberNickname: "운영자"
+                                };
+                            }
+                            
+                            // 일반 회원인 경우 닉네임 조회
+                            const memberResponse = await fetch(`http://localhost:8080/member/getMember?id=${encodeURIComponent(comment.memberId)}`);
+                            const memberData = await memberResponse.json();
+                            if(memberData.rt === "OK" && memberData.member) {
+                                return {
+                                    ...comment,
+                                    memberNickname: memberData.member.nickname || comment.memberId
+                                };
+                            }
+                            
+                            return {
+                                ...comment,
+                                memberNickname: comment.memberId
+                            };
+                        } catch(err) {
+                            console.error(`댓글 ${comment.commentSeq} 작성자 정보 조회 오류:`, err);
+                            return {
+                                ...comment,
+                                memberNickname: comment.memberId
+                            };
+                        }
+                    })
+                );
+                
+                setComments(commentsWithNickname);
             }
         } catch(err) {
             console.error("댓글 목록 조회 오류:", err);
@@ -915,21 +994,22 @@ function BoardManage() {
                                     backgroundColor: "#f8f9fa",
                                     borderBottom: "2px solid #dee2e6"
                                 }}>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "5%" }}>번호</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "40%" }}>제목</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>작성자</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>작성일</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "10%" }}>조회수</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>관리</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "60px", minWidth: "60px", fontSize: "12px", whiteSpace: "nowrap" }}>번호</th>
+                                    <th style={{ padding: "8px", textAlign: "left", width: "40%", fontSize: "12px" }}>제목</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>작성자</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>작성일</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "10%", fontSize: "12px" }}>조회수</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {posts.length === 0 ? (
                                     <tr>
                                         <td colSpan="6" style={{
-                                            padding: "40px",
+                                            padding: "30px",
                                             textAlign: "center",
-                                            color: "#666"
+                                            color: "#666",
+                                            fontSize: "13px"
                                         }}>
                                             등록된 게시글이 없습니다.
                                         </td>
@@ -944,17 +1024,18 @@ function BoardManage() {
                                             }}
                                         >
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
-                                                color: "#666"
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {post.isNotice === "Y" ? (
                                                     <span style={{
                                                         padding: "2px 6px",
                                                         backgroundColor: "#dc3545",
                                                         color: "#fff",
-                                                        borderRadius: "4px",
-                                                        fontSize: "11px"
+                                                        borderRadius: "3px",
+                                                        fontSize: "10px"
                                                     }}>
                                                         공지
                                                     </span>
@@ -962,42 +1043,45 @@ function BoardManage() {
                                                     posts.length - index
                                                 )}
                                             </td>
-                                            <td style={{ padding: "12px" }}>
+                                            <td style={{ padding: "8px" }}>
                                                 <Link
                                                     to={`/board/post/${post.postSeq}`}
                                                     style={{
                                                         textDecoration: "none",
                                                         color: "#333",
-                                                        fontWeight: post.isNotice === "Y" ? "bold" : "normal"
+                                                        fontWeight: post.isNotice === "Y" ? "bold" : "normal",
+                                                        fontSize: "13px"
                                                     }}
                                                 >
                                                     {post.postTitle}
                                                 </Link>
                                             </td>
                                             <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666"
-                                            }}>
-                                                {post.memberId}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
                                                 color: "#666",
-                                                fontSize: "13px"
+                                                fontSize: "12px"
+                                            }}>
+                                                {post.memberNickname || post.memberId}
+                                            </td>
+                                            <td style={{
+                                                padding: "8px",
+                                                textAlign: "center",
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {new Date(post.createdDate).toLocaleDateString()}
                                             </td>
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
-                                                color: "#666"
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {post.viewCount || 0}
                                             </td>
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center"
                                             }}>
                                                 <div style={{
@@ -1009,13 +1093,13 @@ function BoardManage() {
                                                         <button
                                                             onClick={() => handleConvertToNotice(post.postSeq)}
                                                             style={{
-                                                                padding: "4px 8px",
+                                                                padding: "3px 6px",
                                                                 backgroundColor: "#ffc107",
                                                                 color: "#333",
                                                                 border: "none",
-                                                                borderRadius: "4px",
+                                                                borderRadius: "3px",
                                                                 cursor: "pointer",
-                                                                fontSize: "12px"
+                                                                fontSize: "11px"
                                                             }}
                                                         >
                                                             공지
@@ -1024,13 +1108,13 @@ function BoardManage() {
                                                     <button
                                                         onClick={() => handleDeletePost(post.postSeq)}
                                                         style={{
-                                                            padding: "4px 8px",
+                                                            padding: "3px 6px",
                                                             backgroundColor: "#dc3545",
                                                             color: "#fff",
                                                             border: "none",
-                                                            borderRadius: "4px",
+                                                            borderRadius: "3px",
                                                             cursor: "pointer",
-                                                            fontSize: "12px"
+                                                            fontSize: "11px"
                                                         }}
                                                     >
                                                         삭제
@@ -1096,21 +1180,22 @@ function BoardManage() {
                                     backgroundColor: "#f8f9fa",
                                     borderBottom: "2px solid #dee2e6"
                                 }}>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "5%" }}>번호</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "30%" }}>게시글</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "35%" }}>댓글 내용</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>작성자</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>작성일</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "10%" }}>관리</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "60px", minWidth: "60px", fontSize: "12px", whiteSpace: "nowrap" }}>번호</th>
+                                    <th style={{ padding: "8px", textAlign: "left", width: "25%", fontSize: "12px" }}>게시글</th>
+                                    <th style={{ padding: "8px", textAlign: "left", width: "35%", fontSize: "12px" }}>댓글 내용</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>작성자</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>작성일</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "60px", minWidth: "60px", fontSize: "12px", whiteSpace: "nowrap" }}>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {comments.length === 0 ? (
                                     <tr>
                                         <td colSpan="6" style={{
-                                            padding: "40px",
+                                            padding: "30px",
                                             textAlign: "center",
-                                            color: "#666"
+                                            color: "#666",
+                                            fontSize: "13px"
                                         }}>
                                             등록된 댓글이 없습니다.
                                         </td>
@@ -1124,61 +1209,64 @@ function BoardManage() {
                                             }}
                                         >
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
-                                                color: "#666"
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {comments.length - index}
                                             </td>
-                                            <td style={{ padding: "12px" }}>
+                                            <td style={{ padding: "8px" }}>
                                                 <Link
                                                     to={`/board/post/${comment.postSeq}`}
                                                     style={{
                                                         textDecoration: "none",
-                                                        color: "#337ab7"
+                                                        color: "#337ab7",
+                                                        fontSize: "13px"
                                                     }}
                                                 >
                                                     {comment.postTitle}
                                                 </Link>
                                             </td>
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 color: "#333",
-                                                fontSize: "14px"
+                                                fontSize: "13px"
                                             }}>
                                                 {comment.commentContent.length > 50
                                                     ? comment.commentContent.substring(0, 50) + "..."
                                                     : comment.commentContent}
                                             </td>
                                             <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666"
-                                            }}>
-                                                {comment.memberId}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
                                                 color: "#666",
-                                                fontSize: "13px"
+                                                fontSize: "12px"
+                                            }}>
+                                                {comment.memberNickname || comment.memberId}
+                                            </td>
+                                            <td style={{
+                                                padding: "8px",
+                                                textAlign: "center",
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {new Date(comment.createdDate).toLocaleDateString()}
                                             </td>
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center"
                                             }}>
                                                 <button
                                                     onClick={() => handleDeleteComment(comment.commentSeq)}
                                                     style={{
-                                                        padding: "4px 8px",
+                                                        padding: "3px 6px",
                                                         backgroundColor: "#dc3545",
                                                         color: "#fff",
                                                         border: "none",
-                                                        borderRadius: "4px",
+                                                        borderRadius: "3px",
                                                         cursor: "pointer",
-                                                        fontSize: "12px"
+                                                        fontSize: "11px"
                                                     }}
                                                 >
                                                     삭제

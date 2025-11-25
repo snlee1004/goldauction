@@ -335,9 +335,9 @@ function ImageboardWriteForm() {
                 {/* 최고 낙찰 가격 (즉시 구매 가격) */}
                 <div style={{marginBottom: "20px"}}>
                     <label style={{display: "block", marginBottom: "8px", fontWeight: "bold"}}>
-                        <span style={{color: "#ff9999"}}>최고 낙찰 가격 (즉시 구매 가격)</span>
+                        <span style={{color: "#ff1493"}}>* 최고 낙찰 가격 (즉시 구매 가격)</span>
                         <span style={{fontSize: "12px", fontWeight: "normal", color: "red", marginLeft: "10px"}}>
-                            (선택사항 - 이 가격으로 즉시 구매 가능)
+                            (선택사항 - 금액 입력이 없으면 경매 종료시 자동 낙찰)
                         </span>
                     </label>
                     <input 
@@ -345,7 +345,7 @@ function ImageboardWriteForm() {
                         value={maxBidPrice}
                         ref={maxBidPriceRef}
                         onChange={(e) => setMaxBidPrice(e.target.value)}
-                        placeholder="최고 낙찰 가격을 입력하세요 (선택사항)"
+                        placeholder="금액 입력이 없으면 경매 종료시 자동 낙찰"
                         style={{
                             width: "100%",
                             padding: "10px",

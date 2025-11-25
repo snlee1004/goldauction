@@ -7,6 +7,7 @@ function BoardList() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [boardType, setBoardType] = useState("");  // 기본값: 전체 (빈 문자열은 전체 조회)
+    const [productCounts, setProductCounts] = useState({}); // 게시판별 상품 수 (진행중, 마감, 종료)
 
     // 게시판 목록 조회
     const fetchBoardList = useCallback(async () => {
@@ -62,6 +63,48 @@ function BoardList() {
     useEffect(() => {
         fetchBoardList();
     }, [fetchBoardList]);
+
+    // 각 게시판의 상품 수 조회 (진행중, 마감, 종료)
+    useEffect(() => {
+        const fetchProductCounts = async () => {
+            const counts = {};
+            for(const board of boardList) {
+                // 공구이벤트 타입인 경우에만 조회
+                if(board.boardType === "공구이벤트" && board.boardSeq) {
+                    try {
+                        // 진행중, 마감, 종료 상태별로 조회
+                        const [activeRes, closedRes, endedRes] = await Promise.all([
+                            fetch(`http://localhost:8080/event/product/list/status?boardSeq=${board.boardSeq}&eventStatus=진행중`),
+                            fetch(`http://localhost:8080/event/product/list/status?boardSeq=${board.boardSeq}&eventStatus=마감`),
+                            fetch(`http://localhost:8080/event/product/list/status?boardSeq=${board.boardSeq}&eventStatus=종료`)
+                        ]);
+
+                        const activeData = await activeRes.json();
+                        const closedData = await closedRes.json();
+                        const endedData = await endedRes.json();
+
+                        counts[board.boardSeq] = {
+                            진행중: activeData.rt === "OK" ? (activeData.total || 0) : 0,
+                            마감: closedData.rt === "OK" ? (closedData.total || 0) : 0,
+                            종료: endedData.rt === "OK" ? (endedData.total || 0) : 0
+                        };
+                    } catch(err) {
+                        console.error(`게시판 ${board.boardSeq} 상품 수 조회 오류:`, err);
+                        counts[board.boardSeq] = {
+                            진행중: 0,
+                            마감: 0,
+                            종료: 0
+                        };
+                    }
+                }
+            }
+            setProductCounts(counts);
+        };
+
+        if(boardList.length > 0) {
+            fetchProductCounts();
+        }
+    }, [boardList]);
 
     // 페이지 포커스 시 데이터 새로고침 (다른 페이지에서 돌아왔을 때 최신 데이터 표시)
     useEffect(() => {
@@ -254,25 +297,108 @@ function BoardList() {
                                     <div style={{
                                         display: "flex",
                                         alignItems: "center",
+                                        justifyContent: "space-between",
                                         gap: "10px",
                                         marginBottom: "10px"
                                     }}>
-                                        <h3 style={{
-                                            margin: 0,
-                                            fontSize: "18px",
-                                            fontWeight: "bold",
-                                            color: "#337ab7"
+                                        <div style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "10px",
+                                            flex: 1
                                         }}>
-                                            {board.boardName}
-                                        </h3>
-                                        {board.isActive === "N" && (
-                                            <span style={{
-                                                fontSize: "12px",
-                                                color: "#dc3545",
-                                                fontWeight: "bold"
+                                            <h3 style={{
+                                                margin: 0,
+                                                fontSize: "18px",
+                                                fontWeight: "bold",
+                                                color: "#337ab7"
                                             }}>
-                                                비활성화
-                                            </span>
+                                                {board.boardName}
+                                            </h3>
+                                            {board.isActive === "N" && (
+                                                <span style={{
+                                                    fontSize: "12px",
+                                                    color: "#dc3545",
+                                                    fontWeight: "bold"
+                                                }}>
+                                                    비활성화
+                                                </span>
+                                            )}
+                                        </div>
+                                        {/* 상품 수 표시 (공구이벤트만) */}
+                                        {board.boardType === "공구이벤트" && productCounts[board.boardSeq] && (
+                                            <div style={{
+                                                display: "flex",
+                                                gap: "15px",
+                                                alignItems: "flex-end"
+                                            }}>
+                                                {/* 진행중 */}
+                                                <div style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    gap: "2px"
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: "28px",
+                                                        fontWeight: "bold",
+                                                        color: "#337ab7",
+                                                        lineHeight: "1"
+                                                    }}>
+                                                        {productCounts[board.boardSeq].진행중 || 0}
+                                                    </span>
+                                                    <span style={{
+                                                        fontSize: "12px",
+                                                        color: "#666"
+                                                    }}>
+                                                        진행중
+                                                    </span>
+                                                </div>
+                                                {/* 마감 */}
+                                                <div style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    gap: "2px"
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: "28px",
+                                                        fontWeight: "bold",
+                                                        color: "#ffc107",
+                                                        lineHeight: "1"
+                                                    }}>
+                                                        {productCounts[board.boardSeq].마감 || 0}
+                                                    </span>
+                                                    <span style={{
+                                                        fontSize: "12px",
+                                                        color: "#666"
+                                                    }}>
+                                                        마감
+                                                    </span>
+                                                </div>
+                                                {/* 종료 */}
+                                                <div style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    gap: "2px"
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: "28px",
+                                                        fontWeight: "bold",
+                                                        color: "#dc3545",
+                                                        lineHeight: "1"
+                                                    }}>
+                                                        {productCounts[board.boardSeq].종료 || 0}
+                                                    </span>
+                                                    <span style={{
+                                                        fontSize: "12px",
+                                                        color: "#666"
+                                                    }}>
+                                                        종료
+                                                    </span>
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                     {board.boardDescription && (

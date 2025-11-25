@@ -62,34 +62,57 @@ function Intro() {
     // 입찰 베스트 목록 조회 (입찰자 수 기준 정렬, 경매 진행 중인 것만)
     const fetchBestBids = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/imageboard/imageboardList?pg=1`);
-            if(response.ok) {
-                const data = await response.json();
-                if(data.rt === "OK") {
-                    // 경매 진행 중인 항목만 필터링 (STATUS === '진행중')
-                    const activeItems = (data.items || []).filter(item => {
-                        return item.status === '진행중';
-                    });
-                    
-                    // 입찰 수 기준으로 정렬 (내림차순 - 입찰 수가 많은 순서)
-                    const sorted = [...activeItems].sort((a, b) => {
-                        const bidCountA = Number(a.bidCount) || 0;
-                        const bidCountB = Number(b.bidCount) || 0;
+            // 모든 페이지를 조회하여 진행중인 상품을 모두 수집
+            let allActiveItems = [];
+            let currentPage = 1;
+            let hasMorePages = true;
+            
+            while(hasMorePages) {
+                const response = await fetch(`http://localhost:8080/imageboard/imageboardList?pg=${currentPage}`);
+                if(response.ok) {
+                    const data = await response.json();
+                    if(data.rt === "OK") {
+                        const items = data.items || [];
                         
-                        // 입찰 수가 많은 순서로 정렬
-                        if(bidCountB !== bidCountA) {
-                            return bidCountB - bidCountA;
+                        // 경매 진행 중인 항목만 필터링 (STATUS === '진행중')
+                        const activeItems = items.filter(item => {
+                            return item.status === '진행중';
+                        });
+                        
+                        allActiveItems = [...allActiveItems, ...activeItems];
+                        
+                        // 다음 페이지가 있는지 확인
+                        const totalPages = data.totalP || 1;
+                        if(currentPage >= totalPages || items.length === 0) {
+                            hasMorePages = false;
+                        } else {
+                            currentPage++;
                         }
-                        
-                        // 입찰 수가 같으면 최근 등록일 순으로 정렬 (내림차순)
-                        const timeA = a.logtime ? new Date(a.logtime).getTime() : 0;
-                        const timeB = b.logtime ? new Date(b.logtime).getTime() : 0;
-                        return timeB - timeA;
-                    });
-                    
-                    setBestBidList(sorted.slice(0, 5)); // 상위 5개만
+                    } else {
+                        hasMorePages = false;
+                    }
+                } else {
+                    hasMorePages = false;
                 }
             }
+            
+            // 입찰 수 기준으로 정렬 (내림차순 - 입찰 수가 많은 순서)
+            const sorted = [...allActiveItems].sort((a, b) => {
+                const bidCountA = Number(a.bidCount) || 0;
+                const bidCountB = Number(b.bidCount) || 0;
+                
+                // 입찰 수가 많은 순서로 정렬
+                if(bidCountB !== bidCountA) {
+                    return bidCountB - bidCountA;
+                }
+                
+                // 입찰 수가 같으면 최근 등록일 순으로 정렬 (내림차순)
+                const timeA = a.logtime ? new Date(a.logtime).getTime() : 0;
+                const timeB = b.logtime ? new Date(b.logtime).getTime() : 0;
+                return timeB - timeA;
+            });
+            
+            setBestBidList(sorted.slice(0, 5)); // 상위 5개만
         } catch(err) {
             console.error("입찰 베스트 조회 오류:", err);
         }

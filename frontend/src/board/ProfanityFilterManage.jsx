@@ -228,7 +228,7 @@ function ProfanityFilterManage() {
         }}>
             <h2 style={{
                 marginBottom: "30px",
-                fontSize: "24px",
+                fontSize: "23px",
                 fontWeight: "bold",
                 color: "#333",
                 textAlign: "center"
@@ -249,13 +249,13 @@ function ProfanityFilterManage() {
                         type="text"
                         value={searchKeyword}
                         onChange={(e) => setSearchKeyword(e.target.value)}
-                        placeholder="비속어 검색"
+                                placeholder="비속어 검색"
                         style={{
                             flex: 1,
                             padding: "8px",
                             border: "1px solid #ddd",
                             borderRadius: "4px",
-                            fontSize: "14px"
+                            fontSize: "13px"
                         }}
                     />
                     <button
@@ -323,7 +323,7 @@ function ProfanityFilterManage() {
                 }}>
                     <h3 style={{
                         marginBottom: "20px",
-                        fontSize: "18px",
+                        fontSize: "17px",
                         fontWeight: "bold",
                         color: "#333"
                     }}>
@@ -353,7 +353,7 @@ function ProfanityFilterManage() {
                                     padding: "8px",
                                     border: "1px solid #ddd",
                                     borderRadius: "4px",
-                                    fontSize: "14px"
+                                    fontSize: "13px"
                                 }}
                                 placeholder="비속어를 입력하세요"
                             />
@@ -381,7 +381,7 @@ function ProfanityFilterManage() {
                                     padding: "8px",
                                     border: "1px solid #ddd",
                                     borderRadius: "4px",
-                                    fontSize: "14px"
+                                    fontSize: "13px"
                                 }}
                                 placeholder="대체어를 입력하세요 (없으면 자동 마스킹)"
                             />
@@ -408,7 +408,7 @@ function ProfanityFilterManage() {
                                     padding: "8px",
                                     border: "1px solid #ddd",
                                     borderRadius: "4px",
-                                    fontSize: "14px"
+                                    fontSize: "13px"
                                 }}
                             >
                                 <option value="마스킹">마스킹 (자동 필터링)</option>
@@ -519,12 +519,12 @@ function ProfanityFilterManage() {
                                     backgroundColor: "#f8f9fa",
                                     borderBottom: "2px solid #dee2e6"
                                 }}>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "10%" }}>번호</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "20%" }}>비속어</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "20%" }}>대체어</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>필터 타입</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "10%" }}>상태</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "25%" }}>관리</th>
+                                    <th style={{ padding: "12px", textAlign: "center", width: "10%", fontSize: "14px" }}>번호</th>
+                                    <th style={{ padding: "12px", textAlign: "left", width: "20%", fontSize: "14px" }}>비속어</th>
+                                    <th style={{ padding: "12px", textAlign: "left", width: "20%", fontSize: "14px" }}>대체어</th>
+                                    <th style={{ padding: "12px", textAlign: "center", width: "15%", fontSize: "14px" }}>필터 타입</th>
+                                    <th style={{ padding: "12px", textAlign: "center", width: "10%", fontSize: "14px" }}>상태</th>
+                                    <th style={{ padding: "12px", textAlign: "center", width: "25%", fontSize: "14px" }}>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -538,20 +538,22 @@ function ProfanityFilterManage() {
                                         <td style={{
                                             padding: "12px",
                                             textAlign: "center",
-                                            color: "#666"
+                                            color: "#666",
+                                            fontSize: "13px"
                                         }}>
                                             {filterList.length - index}
                                         </td>
-                                        <td style={{ padding: "12px" }}>
+                                        <td style={{ padding: "12px", fontSize: "13px" }}>
                                             <strong>{filter.profanityWord}</strong>
                                         </td>
-                                        <td style={{ padding: "12px", color: "#666" }}>
+                                        <td style={{ padding: "12px", color: "#666", fontSize: "13px" }}>
                                             {filter.replacementWord || "-"}
                                         </td>
                                         <td style={{
                                             padding: "12px",
                                             textAlign: "center",
-                                            color: filter.filterType === "작성불가" ? "#dc3545" : "#333"
+                                            color: filter.filterType === "작성불가" ? "#dc3545" : "#333",
+                                            fontSize: "13px"
                                         }}>
                                             {filter.filterType}
                                         </td>

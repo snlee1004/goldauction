@@ -403,6 +403,207 @@ public class ImageboardController {
 		
 		return map;
 	}
+	
+	// 관리자용 전체 상품 목록 조회 (페이지네이션 없이 모든 상품 반환)
+	@GetMapping("/imageboard/imageboardListAll")
+	public Map<String, Object> imageboardListAll(
+			@RequestParam(value="keyword", required=false) String keyword) {
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		try {
+			System.out.println("관리자용 전체 목록 조회 시작 - keyword: " + keyword);
+			
+			List<Imageboard> list;
+			
+			// 검색어 처리
+			String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : "";
+			
+			if(!searchKeyword.isEmpty()) {
+				// 검색어가 있으면 검색된 전체 목록
+				list = service.imageboardListAllByKeyword(searchKeyword);
+			} else {
+				// 전체 목록
+				list = service.imageboardListAll();
+			}
+			
+			System.out.println("조회된 전체 데이터 개수: " + (list != null ? list.size() : 0));
+		
+			// 각 항목에 입찰인수 및 최고 입찰 금액 추가
+			List<Map<String, Object>> itemsWithBidCount = new java.util.ArrayList<>();
+			
+			if(list != null) {
+				for(Imageboard item : list) {
+					if(item == null) continue;
+					
+					// Imageboard를 Map으로 변환하여 입찰 수 추가
+					Map<String, Object> itemMap = new HashMap<>();
+					itemMap.put("seq", item.getSeq());
+					itemMap.put("imageid", item.getImageid());
+					itemMap.put("imagename", item.getImagename());
+					itemMap.put("imageprice", item.getImageprice());
+					itemMap.put("imageqty", item.getImageqty());
+					itemMap.put("imagecontent", item.getImagecontent());
+					itemMap.put("image1", item.getImage1());
+					itemMap.put("category", item.getCategory());
+					itemMap.put("auctionPeriod", item.getAuctionPeriod());
+					itemMap.put("transactionMethod", item.getTransactionMethod());
+					itemMap.put("auctionStartDate", item.getAuctionStartDate());
+					itemMap.put("auctionEndDate", item.getAuctionEndDate());
+					itemMap.put("status", item.getStatus());
+					itemMap.put("logtime", item.getLogtime());
+					
+					// 입찰인수 조회 (예외 처리)
+					try {
+						int bidCount = bidService.getBidCountByImageboardSeq(item.getSeq());
+						itemMap.put("bidCount", bidCount);
+					} catch(Exception e) {
+						System.out.println("입찰인수 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+						itemMap.put("bidCount", 0);
+					}
+					
+					// 최고 입찰 금액 조회 (예외 처리)
+					try {
+						Integer maxBidAmount = bidService.getMaxBidAmountByImageboardSeq(item.getSeq());
+						itemMap.put("maxBidAmount", maxBidAmount != null && maxBidAmount > 0 ? maxBidAmount : 0);
+					} catch(Exception e) {
+						System.out.println("최고 입찰 금액 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+						itemMap.put("maxBidAmount", 0);
+					}
+					
+					itemsWithBidCount.add(itemMap);
+				}
+			}
+			
+			// 2. 결과 응답
+			map.put("rt", "OK");
+			map.put("total", list != null ? list.size() : 0);
+			map.put("items", itemsWithBidCount);
+			System.out.println("관리자용 전체 목록 조회 완료 - 반환할 항목 수: " + itemsWithBidCount.size());
+			
+		} catch(Exception e) {
+			System.err.println("관리자용 전체 목록 조회 중 오류 발생: " + e.getMessage());
+			e.printStackTrace();
+			map.put("rt", "FAIL");
+			map.put("msg", "데이터를 불러오는 중 오류가 발생했습니다: " + e.getMessage());
+			map.put("items", new java.util.ArrayList<>());
+			map.put("total", 0);
+		}
+		
+		return map;
+	}
+	
+	// 관리자용 상품 목록 조회 (페이지당 10개)
+	@GetMapping("/imageboard/imageboardListForAdmin")
+	public Map<String, Object> imageboardListForAdmin(
+			@RequestParam(value="pg", defaultValue="1") int pg,
+			@RequestParam(value="keyword", required=false) String keyword) {
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		try {
+			System.out.println("관리자용 목록 조회 시작 - pg: " + pg + ", keyword: " + keyword);
+			
+			// 1. 데이터 처리
+			// 목록 : 10개 (관리자용)
+			int endNum = pg * 10;
+			int startNum = endNum - 9;
+			List<Imageboard> list;
+			int totalA;
+			
+			// 검색어 처리
+			String searchKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : "";
+			
+			if(!searchKeyword.isEmpty()) {
+				// 검색어가 있으면 검색 목록
+				list = service.imageboardListByKeyword(searchKeyword, startNum, endNum);
+				totalA = service.getCountByKeyword(searchKeyword);
+			} else {
+				// 전체 목록
+				list = service.imageboardList(startNum, endNum);
+				totalA = service.getCount();
+			}
+			
+			System.out.println("조회된 데이터 개수: " + (list != null ? list.size() : 0) + ", 총 개수: " + totalA);
+		
+			// 페이징 : 10개씩
+			int totalP = (totalA + 9) / 10;
+			int startPage = (pg-1)/3*3 + 1;
+			int endPage = startPage + 2;
+			if(endPage > totalP) endPage = totalP;
+			
+			// 각 항목에 입찰인수 및 최고 입찰 금액 추가
+			List<Map<String, Object>> itemsWithBidCount = new java.util.ArrayList<>();
+			
+			if(list != null) {
+				for(Imageboard item : list) {
+					if(item == null) continue;
+					
+					// Imageboard를 Map으로 변환하여 입찰 수 추가
+					Map<String, Object> itemMap = new HashMap<>();
+					itemMap.put("seq", item.getSeq());
+					itemMap.put("imageid", item.getImageid());
+					itemMap.put("imagename", item.getImagename());
+					itemMap.put("imageprice", item.getImageprice());
+					itemMap.put("imageqty", item.getImageqty());
+					itemMap.put("imagecontent", item.getImagecontent());
+					itemMap.put("image1", item.getImage1());
+					itemMap.put("category", item.getCategory());
+					itemMap.put("auctionPeriod", item.getAuctionPeriod());
+					itemMap.put("transactionMethod", item.getTransactionMethod());
+					itemMap.put("auctionStartDate", item.getAuctionStartDate());
+					itemMap.put("auctionEndDate", item.getAuctionEndDate());
+					itemMap.put("status", item.getStatus());
+					itemMap.put("logtime", item.getLogtime());
+					
+					// 입찰인수 조회 (예외 처리)
+					try {
+						int bidCount = bidService.getBidCountByImageboardSeq(item.getSeq());
+						itemMap.put("bidCount", bidCount);
+					} catch(Exception e) {
+						System.out.println("입찰인수 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+						itemMap.put("bidCount", 0);
+					}
+					
+					// 최고 입찰 금액 조회 (예외 처리)
+					try {
+						Integer maxBidAmount = bidService.getMaxBidAmountByImageboardSeq(item.getSeq());
+						itemMap.put("maxBidAmount", maxBidAmount != null && maxBidAmount > 0 ? maxBidAmount : 0);
+					} catch(Exception e) {
+						System.out.println("최고 입찰 금액 조회 오류 (seq: " + item.getSeq() + "): " + e.getMessage());
+						itemMap.put("maxBidAmount", 0);
+					}
+					
+					itemsWithBidCount.add(itemMap);
+				}
+			}
+			
+			// 2. 결과 응답
+			map.put("rt", "OK");
+			map.put("total", list != null ? list.size() : 0);
+			map.put("pg", pg);
+			map.put("totalP", totalP);
+			map.put("startPage", startPage);
+			map.put("endPage", endPage);
+			map.put("items", itemsWithBidCount);
+			System.out.println("관리자용 목록 조회 완료 - 반환할 항목 수: " + itemsWithBidCount.size());
+			
+		} catch(Exception e) {
+			System.err.println("관리자용 목록 조회 중 오류 발생: " + e.getMessage());
+			e.printStackTrace();
+			map.put("rt", "FAIL");
+			map.put("msg", "데이터를 불러오는 중 오류가 발생했습니다: " + e.getMessage());
+			map.put("items", new java.util.ArrayList<>());
+			map.put("total", 0);
+			map.put("pg", pg);
+			map.put("totalP", 0);
+			map.put("startPage", 1);
+			map.put("endPage", 1);
+		}
+		
+		return map;
+	}
+	
 	// 3. 상세보기
 	@GetMapping("/imageboard/imageboardView")
 	public Map<String, Object> imageboardView(@RequestParam("seq") int seq) {
@@ -638,6 +839,20 @@ public class ImageboardController {
 		} else {
 			map.put("rt", "FAIL");
 			map.put("msg", "경매 포기에 실패했습니다.");
+		}
+		return map;
+	}
+	// 6-1. 경매 재시작 (포기 상태를 진행중으로 변경)
+	@PostMapping("/imageboard/resumeAuction")
+	public Map<String, Object> resumeAuction(@RequestParam("seq") int seq) {
+		Imageboard imageboard = service.resumeAuction(seq);
+		Map<String, Object> map = new HashMap<String, Object>();
+		if(imageboard != null) {
+			map.put("rt", "OK");
+			map.put("msg", "경매가 재시작되었습니다.");
+		} else {
+			map.put("rt", "FAIL");
+			map.put("msg", "경매 재시작에 실패했습니다.");
 		}
 		return map;
 	}

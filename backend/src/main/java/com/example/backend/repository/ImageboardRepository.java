@@ -64,4 +64,12 @@ public interface ImageboardRepository extends JpaRepository<Imageboard, Integer>
 	// 회원 ID와 상태로 경매 목록 조회
 	@Query(value = "select * from IMAGEBOARD1 where imageid = :imageid and status = :status order by seq desc", nativeQuery = true)
 	List<Imageboard> findByImageidAndStatus(@Param("imageid") String imageid, @Param("status") String status);
+	
+	// 전체 목록 조회 (관리자용, 페이지네이션 없음)
+	@Query(value = "select * from IMAGEBOARD1 order by seq desc", nativeQuery = true)
+	List<Imageboard> findAllOrderBySeqDesc();
+	
+	// 검색어가 포함된 전체 목록 조회 (관리자용, 페이지네이션 없음)
+	@Query(value = "select * from IMAGEBOARD1 where imagename like '%'||:keyword||'%' order by seq desc", nativeQuery = true)
+	List<Imageboard> findAllByKeywordOrderBySeqDesc(@Param("keyword") String keyword);
 }

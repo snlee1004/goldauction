@@ -10,6 +10,7 @@ function PostList() {
     const [productList, setProductList] = useState([]); // 이벤트 게시판 상품 목록
     const [selectedProduct, setSelectedProduct] = useState(null); // 댓글 작성할 상품 선택
     const [productComments, setProductComments] = useState({}); // 상품별 댓글 목록 {productSeq: [comments]}
+    const [productImages, setProductImages] = useState({}); // 상품별 이미지 정보 {productSeq: imagePath}
     const [commentContent, setCommentContent] = useState(""); // 댓글 작성 내용
     const [questionComments, setQuestionComments] = useState([]); // 질문게시판 댓글 목록
     const [questionPostSeq, setQuestionPostSeq] = useState(null); // 질문게시판 전용 게시글 번호
@@ -129,6 +130,29 @@ function PostList() {
             
             if(data.rt === "OK") {
                 setProductList(data.list || []);
+                // 각 상품의 대표 이미지 조회
+                if(data.list && data.list.length > 0) {
+                    const imagePromises = data.list.map(async (product) => {
+                        try {
+                            const imageResponse = await fetch(`http://localhost:8080/event/product/image/main?productSeq=${product.productSeq}`);
+                            const imageData = await imageResponse.json();
+                            if(imageData.rt === "OK" && imageData.imagePath) {
+                                return { productSeq: product.productSeq, imagePath: imageData.imagePath };
+                            }
+                        } catch(err) {
+                            console.error(`상품 ${product.productSeq} 이미지 조회 오류:`, err);
+                        }
+                        return null;
+                    });
+                    const imageResults = await Promise.all(imagePromises);
+                    const imageMap = {};
+                    imageResults.forEach(result => {
+                        if(result) {
+                            imageMap[result.productSeq] = result.imagePath;
+                        }
+                    });
+                    setProductImages(imageMap);
+                }
             } else {
                 console.error("상품 목록 불러오기 실패:", data.msg || data.message);
             }
@@ -695,8 +719,8 @@ function PostList() {
                     ) : (
                         <div style={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                            gap: "20px"
+                            gridTemplateColumns: "repeat(3, 1fr)",
+                            gap: "15px"
                         }}>
                             {productList.map((product) => (
                                 <div
@@ -708,11 +732,13 @@ function PostList() {
                                     style={{
                                         backgroundColor: "#fff",
                                         borderRadius: "8px",
-                                        padding: "20px",
+                                        padding: "15px",
                                         border: "1px solid #dee2e6",
                                         cursor: "pointer",
                                         transition: "all 0.3s ease",
-                                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                        display: "flex",
+                                        gap: "12px"
                                     }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = "translateY(-5px)";
@@ -723,95 +749,136 @@ function PostList() {
                                         e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
                                     }}
                                 >
-                                    <div style={{
-                                        fontSize: "18px",
-                                        fontWeight: "bold",
-                                        marginBottom: "10px",
-                                        color: "#333"
-                                    }}>
-                                        {product.productName}
-                                    </div>
-                                    {product.productDescription && (
+                                    {/* 상품 정보 (왼쪽) */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{
-                                            fontSize: "14px",
-                                            color: "#666",
-                                            marginBottom: "15px",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            display: "-webkit-box",
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: "vertical"
-                                        }}>
-                                            {product.productDescription}
-                                        </div>
-                                    )}
-                                    <div style={{
-                                        marginBottom: "10px"
-                                    }}>
-                                        <div style={{
-                                            fontSize: "14px",
-                                            color: "#999",
-                                            textDecoration: "line-through",
-                                            marginBottom: "5px"
-                                        }}>
-                                            정가: ₩ {product.originalPrice?.toLocaleString() || 0}
-                                        </div>
-                                        <div style={{
-                                            fontSize: "20px",
-                                            color: "#dc3545",
-                                            fontWeight: "bold"
-                                        }}>
-                                            ₩ {product.salePrice?.toLocaleString() || 0}
-                                        </div>
-                                    </div>
-                                    <div style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        marginBottom: "10px",
-                                        fontSize: "13px",
-                                        color: "#666"
-                                    }}>
-                                        <span>재고: {product.stockQuantity || 0}</span>
-                                        <span>판매: {product.soldQuantity || 0}</span>
-                                    </div>
-                                    <div style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        marginTop: "10px"
-                                    }}>
-                                        <div style={{
-                                            display: "inline-block",
-                                            padding: "4px 12px",
-                                            borderRadius: "4px",
-                                            fontSize: "12px",
+                                            fontSize: "16px",
                                             fontWeight: "bold",
-                                            backgroundColor: product.eventStatus === "진행중" ? "#d4edda" :
-                                                           product.eventStatus === "마감" ? "#fff3cd" : "#f8d7da",
-                                            color: product.eventStatus === "진행중" ? "#155724" :
-                                                  product.eventStatus === "마감" ? "#856404" : "#721c24"
+                                            marginBottom: "8px",
+                                            color: "#333"
                                         }}>
-                                            {product.eventStatus || "진행중"}
+                                            {product.productName}
                                         </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedProduct(product);
-                                                fetchProductComments(product.productSeq);
-                                            }}
-                                            style={{
-                                                padding: "6px 12px",
-                                                backgroundColor: "#337ab7",
-                                                color: "#fff",
-                                                border: "none",
-                                                borderRadius: "4px",
+                                        {product.productDescription && (
+                                            <div style={{
                                                 fontSize: "12px",
-                                                cursor: "pointer"
-                                            }}
-                                        >
-                                            💬 댓글
-                                        </button>
+                                                color: "#666",
+                                                marginBottom: "10px",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                display: "-webkit-box",
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: "vertical"
+                                            }}>
+                                                {product.productDescription}
+                                            </div>
+                                        )}
+                                        <div style={{
+                                            marginBottom: "8px"
+                                        }}>
+                                            <div style={{
+                                                fontSize: "11px",
+                                                color: "#999",
+                                                textDecoration: "line-through",
+                                                marginBottom: "3px"
+                                            }}>
+                                                정가: ₩ {product.originalPrice?.toLocaleString() || 0}
+                                            </div>
+                                            <div style={{
+                                                fontSize: "18px",
+                                                color: "#dc3545",
+                                                fontWeight: "bold"
+                                            }}>
+                                                ₩ {product.salePrice?.toLocaleString() || 0}
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            marginBottom: "8px",
+                                            fontSize: "11px",
+                                            color: "#666"
+                                        }}>
+                                            <span>재고: {product.stockQuantity || 0}</span>
+                                            <span>판매: {product.soldQuantity || 0}</span>
+                                        </div>
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            marginTop: "8px"
+                                        }}>
+                                            <div style={{
+                                                display: "inline-block",
+                                                padding: "3px 8px",
+                                                borderRadius: "4px",
+                                                fontSize: "10px",
+                                                fontWeight: "bold",
+                                                backgroundColor: product.eventStatus === "진행중" ? "#d4edda" :
+                                                               product.eventStatus === "마감" ? "#fff3cd" : "#f8d7da",
+                                                color: product.eventStatus === "진행중" ? "#155724" :
+                                                      product.eventStatus === "마감" ? "#856404" : "#721c24"
+                                            }}>
+                                                {product.eventStatus || "진행중"}
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedProduct(product);
+                                                    fetchProductComments(product.productSeq);
+                                                }}
+                                                style={{
+                                                    padding: "4px 8px",
+                                                    backgroundColor: "#337ab7",
+                                                    color: "#fff",
+                                                    border: "none",
+                                                    borderRadius: "4px",
+                                                    fontSize: "11px",
+                                                    cursor: "pointer"
+                                                }}
+                                            >
+                                                💬 댓글
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {/* 상품 이미지 (오른쪽) */}
+                                    <div style={{
+                                        flex: "0 0 auto",
+                                        width: "80px",
+                                        height: "80px"
+                                    }}>
+                                        {productImages[product.productSeq] ? (
+                                            <img 
+                                                src={`http://localhost:8080/storage/${productImages[product.productSeq]}`}
+                                                alt={product.productName}
+                                                style={{
+                                                    width: "80px",
+                                                    height: "80px",
+                                                    objectFit: "cover",
+                                                    borderRadius: "4px",
+                                                    border: "1px solid #dee2e6"
+                                                }}
+                                                onError={(e) => {
+                                                    e.target.style.display = "none";
+                                                }}
+                                            />
+                                        ) : (
+                                            <div style={{
+                                                width: "80px",
+                                                height: "80px",
+                                                backgroundColor: "#f8f9fa",
+                                                borderRadius: "4px",
+                                                border: "1px solid #dee2e6",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                color: "#999",
+                                                fontSize: "10px"
+                                            }}>
+                                                이미지 없음
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}

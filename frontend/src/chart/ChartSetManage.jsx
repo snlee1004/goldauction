@@ -162,35 +162,66 @@ function ChartSetManage() {
             padding: "20px",
             marginTop: "70px"
         }}>
-            <h2 style={{
-                marginBottom: "30px",
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "#333"
-            }}>
-                메인페이지 Chart 그래프 차트셋 관리
-            </h2>
-
+            {/* 헤더 */}
             <div style={{
-                marginBottom: "20px",
                 display: "flex",
-                gap: "10px"
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "30px"
             }}>
-                <Link
-                    to="/chart/editor"
-                    state={{ chartSetName: "" }}
-                    style={{
-                        textDecoration: "none",
-                        display: "inline-block",
-                        padding: "8px 16px",
-                        backgroundColor: "#337ab7",
-                        color: "#fff",
-                        borderRadius: "4px",
-                        fontSize: "14px"
-                    }}
-                >
-                    + 새 차트셋 생성
-                </Link>
+                <h2 style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    color: "#333"
+                }}>
+                    메인페이지 그래프 차트셋 관리
+                </h2>
+                <div style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center"
+                }}>
+                    <Link
+                        to="/chart/editor"
+                        state={{ chartSetName: "" }}
+                        style={{
+                            textDecoration: "none",
+                            display: "inline-block",
+                            padding: "8px 16px",
+                            backgroundColor: "#337ab7",
+                            color: "#fff",
+                            borderRadius: "4px",
+                            fontSize: "14px"
+                        }}
+                    >
+                        + 새 차트셋 생성
+                    </Link>
+                    <button
+                        onClick={() => {
+                            // 관리자 권한 체크
+                            const managerId = sessionStorage.getItem("managerId");
+                            if(!managerId) {
+                                if(window.confirm("관리자 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+                                    navigate("/manager/loginForm");
+                                }
+                            } else {
+                                navigate("/manager/managerInfo");
+                            }
+                        }}
+                        style={{
+                            padding: "8px 16px",
+                            backgroundColor: "#6c757d",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "4px",
+                            fontSize: "14px",
+                            cursor: "pointer"
+                        }}
+                    >
+                        관리자 페이지
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -324,41 +355,6 @@ function ChartSetManage() {
                     ))}
                 </div>
             )}
-            
-            {/* 하단 관리자 페이지 버튼 */}
-            <div style={{
-                marginTop: "40px",
-                paddingTop: "20px",
-                borderTop: "1px solid #e0e0e0",
-                display: "flex",
-                justifyContent: "center"
-            }}>
-                <button
-                    onClick={() => {
-                        // 관리자 권한 체크
-                        const managerId = sessionStorage.getItem("managerId");
-                        if(!managerId) {
-                            if(window.confirm("관리자 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
-                                navigate("/manager/loginForm");
-                            }
-                        } else {
-                            navigate("/manager/managerInfo");
-                        }
-                    }}
-                    style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#6c757d",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        fontWeight: "500"
-                    }}
-                >
-                    관리자 페이지
-                </button>
-            </div>
         </div>
     );
 }

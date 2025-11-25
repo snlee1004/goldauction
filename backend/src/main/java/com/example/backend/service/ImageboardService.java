@@ -135,6 +135,29 @@ public class ImageboardService {
 		}
 		return null;
 	}
+	// 7-1. 경매 재시작 (포기 상태를 진행중으로 변경)
+	public Imageboard resumeAuction(int seq) {
+		Imageboard imageboard = dao.imageboardView(seq);
+		if(imageboard != null) {
+			ImageboardDTO dto = new ImageboardDTO();
+			dto.setSeq(seq);
+			dto.setImageId(imageboard.getImageid());
+			dto.setImageName(imageboard.getImagename());
+			dto.setImagePrice(imageboard.getImageprice());
+			dto.setImageQty(imageboard.getImageqty());
+			dto.setImageContent(imageboard.getImagecontent());
+			dto.setImage1(imageboard.getImage1());
+			dto.setCategory(imageboard.getCategory());
+			dto.setAuctionPeriod(imageboard.getAuctionPeriod());
+			dto.setTransactionMethod(imageboard.getTransactionMethod());
+			dto.setAuctionStartDate(imageboard.getAuctionStartDate());
+			dto.setAuctionEndDate(imageboard.getAuctionEndDate());
+			dto.setStatus("진행중");
+			dto.setLogtime(imageboard.getLogtime());
+			return dao.imageboardModify(dto);
+		}
+		return null;
+	}
 	// 8. 포기된 경매 목록 조회
 	public List<Imageboard> getCanceledList(int startNum, int endNum) {
 		return dao.getCanceledList(startNum, endNum);
@@ -150,5 +173,13 @@ public class ImageboardService {
 	// 11. 회원 ID와 상태로 경매 목록 조회
 	public List<Imageboard> getListByMemberIdAndStatus(String memberId, String status) {
 		return dao.getListByMemberIdAndStatus(memberId, status);
+	}
+	// 12. 전체 목록 조회 (관리자용, 페이지네이션 없음)
+	public List<Imageboard> imageboardListAll() {
+		return dao.imageboardListAll();
+	}
+	// 12-1. 검색어가 포함된 전체 목록 조회 (관리자용, 페이지네이션 없음)
+	public List<Imageboard> imageboardListAllByKeyword(String keyword) {
+		return dao.imageboardListAllByKeyword(keyword);
 	}
 }

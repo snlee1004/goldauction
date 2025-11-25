@@ -260,7 +260,46 @@ function EventBoardManage() {
                         console.error(`게시글 ${post.postSeq}의 댓글 조회 오류:`, err);
                     }
                 }
-                setComments(allComments);
+                
+                // 각 댓글의 작성자 닉네임 조회
+                const commentsWithNickname = await Promise.all(
+                    allComments.map(async (comment) => {
+                        try {
+                            // 관리자인지 먼저 확인
+                            const managerResponse = await fetch(`http://localhost:8080/manager/getManager?managerId=${encodeURIComponent(comment.memberId)}`);
+                            const managerData = await managerResponse.json();
+                            if(managerData.rt === "OK" && managerData.manager) {
+                                return {
+                                    ...comment,
+                                    memberNickname: "운영자"
+                                };
+                            }
+                            
+                            // 일반 회원인 경우 닉네임 조회
+                            const memberResponse = await fetch(`http://localhost:8080/member/getMember?id=${encodeURIComponent(comment.memberId)}`);
+                            const memberData = await memberResponse.json();
+                            if(memberData.rt === "OK" && memberData.member) {
+                                return {
+                                    ...comment,
+                                    memberNickname: memberData.member.nickname || comment.memberId
+                                };
+                            }
+                            
+                            return {
+                                ...comment,
+                                memberNickname: comment.memberId
+                            };
+                        } catch(err) {
+                            console.error(`댓글 ${comment.commentSeq} 작성자 정보 조회 오류:`, err);
+                            return {
+                                ...comment,
+                                memberNickname: comment.memberId
+                            };
+                        }
+                    })
+                );
+                
+                setComments(commentsWithNickname);
             }
         } catch(err) {
             console.error("댓글 목록 조회 오류:", err);
@@ -1566,8 +1605,8 @@ function EventBoardManage() {
                             }}>
                                 <div style={{
                                     padding: "20px",
-                                    backgroundColor: "#fff",
-                                    borderRadius: "8px",
+                            backgroundColor: "#fff",
+                            borderRadius: "8px",
                                     border: "1px solid #dee2e6",
                                     boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                                 }}>
@@ -1663,8 +1702,8 @@ function EventBoardManage() {
                                                 </div>
                                             </div>
                                         ))}
-                                    </div>
-                                )}
+                </div>
+            )}
                             </div>
 
                             {/* 상품별 판매 현황 */}
@@ -1686,44 +1725,44 @@ function EventBoardManage() {
                                 {orderStats.productStats.length === 0 ? (
                                     <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
                                         판매 데이터가 없습니다.
-                                    </div>
-                                ) : (
-                                    <table style={{
-                                        width: "100%",
+                        </div>
+                    ) : (
+                        <table style={{
+                            width: "100%",
                                         borderCollapse: "collapse"
-                                    }}>
-                                        <thead>
-                                            <tr style={{
-                                                backgroundColor: "#f8f9fa",
-                                                borderBottom: "2px solid #dee2e6"
-                                            }}>
+                        }}>
+                            <thead>
+                                <tr style={{
+                                    backgroundColor: "#f8f9fa",
+                                    borderBottom: "2px solid #dee2e6"
+                                }}>
                                                 <th style={{ padding: "12px", textAlign: "left" }}>상품명</th>
                                                 <th style={{ padding: "12px", textAlign: "center" }}>판매수량</th>
                                                 <th style={{ padding: "12px", textAlign: "center" }}>구매자수</th>
                                                 <th style={{ padding: "12px", textAlign: "right" }}>총 판매금액</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                </tr>
+                            </thead>
+                            <tbody>
                                             {orderStats.productStats.map((stat, index) => (
                                                 <tr key={index} style={{
                                                     borderBottom: "1px solid #eee"
                                                 }}>
                                                     <td style={{ padding: "12px", fontWeight: "500" }}>
                                                         {stat.productName}
-                                                    </td>
+                                        </td>
                                                     <td style={{ padding: "12px", textAlign: "center" }}>
                                                         {stat.salesQuantity.toLocaleString()}개
-                                                    </td>
+                                            </td>
                                                     <td style={{ padding: "12px", textAlign: "center" }}>
                                                         {stat.buyerCount}명
-                                                    </td>
+                                            </td>
                                                     <td style={{ padding: "12px", textAlign: "right", fontWeight: "bold", color: "#dc3545" }}>
                                                         ₩ {stat.totalAmount.toLocaleString()}
-                                                    </td>
-                                                </tr>
+                                            </td>
+                                        </tr>
                                             ))}
-                                        </tbody>
-                                    </table>
+                            </tbody>
+                        </table>
                                 )}
                             </div>
                         </>
@@ -1753,21 +1792,22 @@ function EventBoardManage() {
                                     backgroundColor: "#f8f9fa",
                                     borderBottom: "2px solid #dee2e6"
                                 }}>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "5%" }}>번호</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "25%" }}>게시글</th>
-                                    <th style={{ padding: "12px", textAlign: "left", width: "35%" }}>댓글 내용</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>작성자</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "15%" }}>작성일</th>
-                                    <th style={{ padding: "12px", textAlign: "center", width: "10%" }}>관리</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "60px", minWidth: "60px", fontSize: "12px", whiteSpace: "nowrap" }}>번호</th>
+                                    <th style={{ padding: "8px", textAlign: "left", width: "25%", fontSize: "12px" }}>게시글</th>
+                                    <th style={{ padding: "8px", textAlign: "left", width: "35%", fontSize: "12px" }}>댓글 내용</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>작성자</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "15%", fontSize: "12px" }}>작성일</th>
+                                    <th style={{ padding: "8px", textAlign: "center", width: "60px", minWidth: "60px", fontSize: "12px", whiteSpace: "nowrap" }}>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {comments.length === 0 ? (
                                     <tr>
                                         <td colSpan="6" style={{
-                                            padding: "40px",
+                                            padding: "30px",
                                             textAlign: "center",
-                                            color: "#666"
+                                            color: "#666",
+                                            fontSize: "13px"
                                         }}>
                                             등록된 댓글이 없습니다.
                                         </td>
@@ -1781,61 +1821,64 @@ function EventBoardManage() {
                                             }}
                                         >
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
-                                                color: "#666"
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {comments.length - index}
                                             </td>
-                                            <td style={{ padding: "12px" }}>
+                                            <td style={{ padding: "8px" }}>
                                                 <Link
                                                     to={`/board/post/${comment.postSeq}`}
                                                     style={{
                                                         textDecoration: "none",
-                                                        color: "#337ab7"
+                                                        color: "#337ab7",
+                                                        fontSize: "13px"
                                                     }}
                                                 >
                                                     {comment.postTitle}
                                                 </Link>
                                             </td>
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 color: "#333",
-                                                fontSize: "14px"
+                                                fontSize: "13px"
                                             }}>
                                                 {comment.commentContent.length > 50
                                                     ? comment.commentContent.substring(0, 50) + "..."
                                                     : comment.commentContent}
                                             </td>
                                             <td style={{
-                                                padding: "12px",
-                                                textAlign: "center",
-                                                color: "#666"
-                                            }}>
-                                                {comment.memberId}
-                                            </td>
-                                            <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center",
                                                 color: "#666",
-                                                fontSize: "13px"
+                                                fontSize: "12px"
+                                            }}>
+                                                {comment.memberNickname || comment.memberId}
+                                            </td>
+                                            <td style={{
+                                                padding: "8px",
+                                                textAlign: "center",
+                                                color: "#666",
+                                                fontSize: "12px"
                                             }}>
                                                 {new Date(comment.createdDate).toLocaleDateString()}
                                             </td>
                                             <td style={{
-                                                padding: "12px",
+                                                padding: "8px",
                                                 textAlign: "center"
                                             }}>
                                                 <button
                                                     onClick={() => handleDeleteComment(comment.commentSeq)}
                                                     style={{
-                                                        padding: "4px 8px",
+                                                        padding: "3px 6px",
                                                         backgroundColor: "#dc3545",
                                                         color: "#fff",
                                                         border: "none",
-                                                        borderRadius: "4px",
+                                                        borderRadius: "3px",
                                                         cursor: "pointer",
-                                                        fontSize: "12px"
+                                                        fontSize: "11px"
                                                     }}
                                                 >
                                                     삭제

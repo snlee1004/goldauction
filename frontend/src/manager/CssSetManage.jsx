@@ -313,16 +313,32 @@ function CssSetManage() {
                 }}>
                     CSS 스타일셋 관리
                 </h2>
-                <button
-                    onClick={() => navigate("/manager/cssSetEditor")}
-                    className="btn btn-primary"
-                    style={{
-                        padding: "8px 16px",
-                        fontSize: "14px"
-                    }}
-                >
-                    <i className="bi bi-plus-circle"></i> 새 스타일셋 생성
-                </button>
+                <div style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center"
+                }}>
+                    <button
+                        onClick={() => navigate("/manager/cssSetEditor")}
+                        className="btn btn-primary"
+                        style={{
+                            padding: "8px 16px",
+                            fontSize: "14px"
+                        }}
+                    >
+                        <i className="bi bi-plus-circle"></i> 새 스타일셋 생성
+                    </button>
+                    <button
+                        onClick={() => navigate("/manager/managerInfo")}
+                        className="btn btn-secondary"
+                        style={{
+                            padding: "8px 16px",
+                            fontSize: "14px"
+                        }}
+                    >
+                        관리자 페이지
+                    </button>
+                </div>
             </div>
 
             {/* 현재 적용된 스타일셋 표시 */}
@@ -331,39 +347,23 @@ function CssSetManage() {
                     backgroundColor: "#e7f3ff",
                     border: "2px solid #337ab7",
                     borderRadius: "8px",
-                    padding: "15px",
+                    padding: "10px 15px",
                     marginBottom: "30px"
                 }}>
                     <div style={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center"
+                        alignItems: "center",
+                        gap: "10px"
                     }}>
-                        <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px"
-                        }}>
-                            <i className="bi bi-check-circle-fill" style={{ color: "#337ab7", fontSize: "20px" }}></i>
-                            <div>
-                                <strong style={{ color: "#337ab7" }}>현재 적용 중:</strong> {currentSet.setName}
-                                {currentSet.setDescription && (
-                                    <span style={{ color: "#666", marginLeft: "10px" }}>
-                                        ({currentSet.setDescription})
-                                    </span>
-                                )}
-                            </div>
+                        <i className="bi bi-check-circle-fill" style={{ color: "#337ab7", fontSize: "18px" }}></i>
+                        <div>
+                            <strong style={{ color: "#337ab7" }}>현재 적용 중:</strong> {currentSet.setName}
+                            {currentSet.setDescription && (
+                                <span style={{ color: "#666", marginLeft: "10px" }}>
+                                    ({currentSet.setDescription})
+                                </span>
+                            )}
                         </div>
-                        <button
-                            onClick={handleUnapply}
-                            className="btn btn-warning"
-                            style={{
-                                padding: "6px 12px",
-                                fontSize: "13px"
-                            }}
-                        >
-                            <i className="bi bi-x-circle"></i> 적용 안하기
-                        </button>
                     </div>
                 </div>
             )}
@@ -524,15 +524,6 @@ function CssSetManage() {
                 </div>
             )}
 
-            {/* 뒤로가기 버튼 */}
-            <div style={{ marginTop: "30px", textAlign: "center" }}>
-                <button
-                    onClick={() => navigate("/manager/managerInfo")}
-                    className="btn btn-secondary"
-                >
-                    <i className="bi bi-arrow-left"></i> 관리자 페이지
-                </button>
-            </div>
         </div>
     );
 }

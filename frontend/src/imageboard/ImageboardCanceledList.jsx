@@ -180,25 +180,31 @@ function ImageboardCanceledList() {
                                             )}
                                         </td>
                                         <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
-                                            {dto.image1 ? (
-                                                <img
-                                                    src={`http://localhost:8080/storage/${dto.image1}`}
-                                                    alt="상품 이미지"
-                                                    style={{width: "120px", height: "120px", objectFit: "cover", borderRadius: "4px"}}
-                                                />
-                                            ) : (
-                                                <div style={{
-                                                    width: "120px",
-                                                    height: "120px",
-                                                    backgroundColor: "#f0f0f0",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    borderRadius: "4px"
-                                                }}>
-                                                    <i className="bi bi-image" style={{fontSize: "32px", color: "#999"}}></i>
-                                                </div>
-                                            )}
+                                            <Link
+                                                to={`/imageboard/imageboardCanceledView?seq=${dto.seq}&pg=${pg}`}
+                                                style={{textDecoration: "none", display: "inline-block"}}
+                                            >
+                                                {dto.image1 ? (
+                                                    <img
+                                                        src={`http://localhost:8080/storage/${dto.image1}`}
+                                                        alt="상품 이미지"
+                                                        style={{width: "120px", height: "120px", objectFit: "cover", borderRadius: "4px", cursor: "pointer"}}
+                                                    />
+                                                ) : (
+                                                    <div style={{
+                                                        width: "120px",
+                                                        height: "120px",
+                                                        backgroundColor: "#f0f0f0",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        borderRadius: "4px",
+                                                        cursor: "pointer"
+                                                    }}>
+                                                        <i className="bi bi-image" style={{fontSize: "32px", color: "#999"}}></i>
+                                                    </div>
+                                                )}
+                                            </Link>
                                         </td>
                                         <td style={{padding: "12px", textAlign: "center", verticalAlign: "middle"}}>
                                             <Link

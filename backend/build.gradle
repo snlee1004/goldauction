@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.7'
+	id 'org.springframework.boot' version '4.0.0'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -28,13 +28,18 @@ dependencies {
 	implementation("com.oracle.database.jdbc:ojdbc8:23.9.0.25.07")
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	// Jackson - JSON 처리 라이브러리
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	// Jackson JSR310 모듈 (Java 8 날짜/시간 타입 지원)
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	// Thumbnailator - 이미지 썸네일 생성 라이브러리
 	implementation 'net.coobird:thumbnailator:0.4.20'
-
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

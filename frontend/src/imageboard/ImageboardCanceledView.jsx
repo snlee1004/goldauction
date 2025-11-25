@@ -99,7 +99,7 @@ function ImageboardCanceledView() {
 
     return (
         <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "0"}}>
-            {/* 포기 상태 표시 */}
+            {/* 판매중지 상태 표시 */}
             <div style={{
                 padding: "15px",
                 backgroundColor: "#f8d7da",
@@ -109,7 +109,7 @@ function ImageboardCanceledView() {
                 textAlign: "center"
             }}>
                 <span style={{color: "#d9534f", fontWeight: "bold", fontSize: "18px"}}>
-                    ⚠ 경매가 포기되었습니다
+                    ⚠ 판매가 중지되었습니다
                 </span>
             </div>
 
@@ -175,7 +175,7 @@ function ImageboardCanceledView() {
                             <tr style={{borderBottom: "1px solid #eee"}}>
                                 <td style={{padding: "10px", fontWeight: "bold"}}>상태</td>
                                 <td style={{padding: "10px"}}>
-                                    <span style={{color: "#d9534f", fontWeight: "bold"}}>포기</span>
+                                    <span style={{color: "#d9534f", fontWeight: "bold"}}>판매중지</span>
                                 </td>
                             </tr>
                         </tbody>

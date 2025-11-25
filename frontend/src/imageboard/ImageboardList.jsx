@@ -290,6 +290,9 @@ function ImageboardList() {
                                     if(status === "종료") {
                                         return "경매종료";
                                     }
+                                    if(status === "포기") {
+                                        return "판매중지";
+                                    }
                                     return status;
                                 };
                                 
