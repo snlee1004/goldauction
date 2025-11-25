@@ -47,9 +47,9 @@ const NavbarComponent = () => {
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0" style={{gap: "20px"}}>
                             <li className="nav-item">
-                                <Link className={`nav-link notice-link ${location.pathname === "/notice" ? "active" : ""}`} 
-                                      to="/notice">
-                                    공지사항
+                                <Link className={`nav-link notice-link ${location.pathname === "/board/list" ? "active" : ""}`} 
+                                      to="/board/list">
+                                    공구/이벤트
                                 </Link>
                             </li>
                             <li className="nav-item">

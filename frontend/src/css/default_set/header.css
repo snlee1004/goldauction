@@ -136,15 +136,15 @@
 
 /* ============================================
    공지사항 링크 스타일
-   공지사항 링크는 회색으로 표시
+   공지사항 링크는 경매등록과 동일한 색상으로 표시
    ============================================ */
 .navbar-custom .nav-link.notice-link {
-    color: #666 !important; /* 회색 텍스트 */
+    color: #000 !important; /* 검은색 텍스트 (경매등록과 동일) */
 }
 
 /* 공지사항 링크 호버 효과 */
 .navbar-custom .nav-link.notice-link:hover {
-    color: #333 !important; /* 더 진한 회색 */
+    color: #003300 !important; /* 진한 초록색 (경매등록과 동일) */
 }
 
 /* ============================================
@@ -199,8 +199,14 @@
     align-items: center; /* 수직 중앙 정렬 */
 }
 
+/* 경매 GO 링크 기본 색상 */
+.navbar-custom .navbar-center .nav-link {
+    color: #570505 !important; /* 검정에 가까운 오렌지색 (saddle brown) */
+}
+
 /* 경매 GO 링크 호버 효과 */
 .navbar-custom .navbar-center .nav-link:hover {
+    color: #FF8C00 !important; /* 오렌지색 (dark orange) */
     transform: scale(1.15) !important; /* 15% 확대 */
 }
 

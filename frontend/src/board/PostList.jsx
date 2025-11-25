@@ -13,6 +13,8 @@ function PostList() {
     const [commentContent, setCommentContent] = useState(""); // 댓글 작성 내용
     const [questionComments, setQuestionComments] = useState([]); // 질문게시판 댓글 목록
     const [questionPostSeq, setQuestionPostSeq] = useState(null); // 질문게시판 전용 게시글 번호
+    const [replyingTo, setReplyingTo] = useState(null); // 답변 작성 중인 댓글 번호
+    const [replyContent, setReplyContent] = useState(""); // 답변 내용
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
@@ -298,7 +300,8 @@ function PostList() {
                 body: JSON.stringify({
                     postSeq: targetPostSeq,
                     memberId: memId,
-                    commentContent: commentContent.trim()
+                    commentContent: commentContent.trim(),
+                    parentCommentSeq: null // 일반 댓글
                 })
             });
 
@@ -313,6 +316,67 @@ function PostList() {
         } catch(err) {
             console.error("댓글 작성 오류:", err);
             alert("댓글 작성 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 질문게시판 댓글 답변 작성
+    const handleQuestionReplySubmit = async (e, parentCommentSeq) => {
+        e.preventDefault();
+        
+        if(!replyContent.trim()) {
+            alert("답변 내용을 입력해주세요.");
+            return;
+        }
+
+        const managerId = sessionStorage.getItem("managerId");
+        if(!managerId) {
+            alert("관리자만 답변을 작성할 수 있습니다.");
+            return;
+        }
+
+        try {
+            // 질문게시판 전용 게시글 찾기
+            let targetPostSeq = questionPostSeq;
+            
+            if(!targetPostSeq) {
+                const searchResponse = await fetch(`http://localhost:8080/board/post/search?boardSeq=${boardSeq}&keyword=질문게시판&page=0&size=1`);
+                const searchData = await searchResponse.json();
+                
+                if(searchData.rt === "OK" && searchData.list && searchData.list.length > 0) {
+                    targetPostSeq = searchData.list[0].postSeq;
+                    setQuestionPostSeq(targetPostSeq);
+                } else {
+                    alert("게시글을 찾을 수 없습니다.");
+                    return;
+                }
+            }
+            
+            // 답변 작성 (parentCommentSeq 사용)
+            const commentResponse = await fetch("http://localhost:8080/board/comment/write", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    postSeq: targetPostSeq,
+                    memberId: managerId,
+                    commentContent: replyContent.trim(),
+                    parentCommentSeq: parentCommentSeq // 부모 댓글 번호
+                })
+            });
+
+            const commentData = await commentResponse.json();
+            
+            if(commentData.rt === "OK") {
+                setReplyContent("");
+                setReplyingTo(null);
+                fetchQuestionComments(); // 댓글 목록 새로고침
+            } else {
+                alert(commentData.msg || "답변 작성에 실패했습니다.");
+            }
+        } catch(err) {
+            console.error("답변 작성 오류:", err);
+            alert("답변 작성 중 오류가 발생했습니다.");
         }
     };
 
@@ -856,45 +920,205 @@ function PostList() {
                                     <div>
                                         {questionComments.length > 0 ? (
                                             <div>
-                                                {questionComments.map((comment) => (
-                                                    <div
-                                                        key={comment.commentSeq}
-                                                        style={{
-                                                            padding: "20px",
-                                                            marginBottom: "15px",
-                                                            backgroundColor: "#fff",
-                                                            borderRadius: "8px",
-                                                            border: "1px solid #dee2e6",
-                                                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-                                                        }}
-                                                    >
-                                                        <div style={{
-                                                            display: "flex",
-                                                            justifyContent: "space-between",
-                                                            alignItems: "center",
-                                                            marginBottom: "10px"
-                                                        }}>
-                                                            <strong style={{ color: "#333", fontSize: "16px" }}>
-                                                                {comment.memberId}
-                                                            </strong>
-                                                            <span style={{
-                                                                fontSize: "12px",
-                                                                color: "#999"
-                                                            }}>
-                                                                {new Date(comment.createdDate).toLocaleString()}
-                                                            </span>
-                                                        </div>
-                                                        <div style={{
-                                                            color: "#333",
-                                                            lineHeight: "1.8",
-                                                            whiteSpace: "pre-wrap",
-                                                            wordBreak: "break-word",
-                                                            fontSize: "14px"
-                                                        }}>
-                                                            {comment.commentContent}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                {questionComments
+                                                    .filter(comment => !comment.parentCommentSeq) // 일반 댓글만 필터링
+                                                    .map((comment) => {
+                                                        // 해당 댓글의 답변들 찾기
+                                                        const replies = questionComments.filter(
+                                                            reply => reply.parentCommentSeq === comment.commentSeq
+                                                        );
+                                                        
+                                                        return (
+                                                            <div key={comment.commentSeq}>
+                                                                {/* 질문 (일반 댓글) */}
+                                                                <div
+                                                                    style={{
+                                                                        padding: "20px",
+                                                                        marginBottom: "15px",
+                                                                        backgroundColor: "#fff",
+                                                                        borderRadius: "8px",
+                                                                        border: "1px solid #dee2e6",
+                                                                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+                                                                    }}
+                                                                >
+                                                                    <div style={{
+                                                                        display: "flex",
+                                                                        justifyContent: "space-between",
+                                                                        alignItems: "center",
+                                                                        marginBottom: "10px"
+                                                                    }}>
+                                                                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                                                            <strong style={{ color: "#333", fontSize: "16px" }}>
+                                                                                {comment.memberId}
+                                                                            </strong>
+                                                                            <span style={{
+                                                                                fontSize: "11px",
+                                                                                padding: "2px 8px",
+                                                                                backgroundColor: "#e3f2fd",
+                                                                                color: "#1976d2",
+                                                                                borderRadius: "12px"
+                                                                            }}>
+                                                                                질문
+                                                                            </span>
+                                                                        </div>
+                                                                        <span style={{
+                                                                            fontSize: "12px",
+                                                                            color: "#999"
+                                                                        }}>
+                                                                            {new Date(comment.createdDate).toLocaleString()}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div style={{
+                                                                        color: "#333",
+                                                                        lineHeight: "1.8",
+                                                                        whiteSpace: "pre-wrap",
+                                                                        wordBreak: "break-word",
+                                                                        fontSize: "14px",
+                                                                        marginBottom: "10px"
+                                                                    }}>
+                                                                        {comment.commentContent}
+                                                                    </div>
+                                                                    {/* 관리자만 답변 버튼 표시 */}
+                                                                    {sessionStorage.getItem("managerId") && (
+                                                                        <div style={{ marginTop: "10px" }}>
+                                                                            {replyingTo === comment.commentSeq ? (
+                                                                                <form onSubmit={(e) => handleQuestionReplySubmit(e, comment.commentSeq)} style={{
+                                                                                    padding: "15px",
+                                                                                    backgroundColor: "#f8f9fa",
+                                                                                    borderRadius: "4px",
+                                                                                    border: "1px solid #dee2e6"
+                                                                                }}>
+                                                                                    <textarea
+                                                                                        value={replyContent}
+                                                                                        onChange={(e) => setReplyContent(e.target.value)}
+                                                                                        placeholder="답변을 입력하세요"
+                                                                                        rows={3}
+                                                                                        style={{
+                                                                                            width: "100%",
+                                                                                            padding: "10px",
+                                                                                            border: "1px solid #ddd",
+                                                                                            borderRadius: "4px",
+                                                                                            fontSize: "14px",
+                                                                                            resize: "vertical",
+                                                                                            marginBottom: "10px"
+                                                                                        }}
+                                                                                    />
+                                                                                    <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                setReplyingTo(null);
+                                                                                                setReplyContent("");
+                                                                                            }}
+                                                                                            style={{
+                                                                                                padding: "6px 12px",
+                                                                                                backgroundColor: "#6c757d",
+                                                                                                color: "#fff",
+                                                                                                border: "none",
+                                                                                                borderRadius: "4px",
+                                                                                                fontSize: "13px",
+                                                                                                cursor: "pointer"
+                                                                                            }}
+                                                                                        >
+                                                                                            취소
+                                                                                        </button>
+                                                                                        <button
+                                                                                            type="submit"
+                                                                                            style={{
+                                                                                                padding: "6px 12px",
+                                                                                                backgroundColor: "#337ab7",
+                                                                                                color: "#fff",
+                                                                                                border: "none",
+                                                                                                borderRadius: "4px",
+                                                                                                fontSize: "13px",
+                                                                                                cursor: "pointer"
+                                                                                            }}
+                                                                                        >
+                                                                                            답변 작성
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </form>
+                                                                            ) : (
+                                                                                <button
+                                                                                    onClick={() => setReplyingTo(comment.commentSeq)}
+                                                                                    style={{
+                                                                                        padding: "6px 12px",
+                                                                                        backgroundColor: "#28a745",
+                                                                                        color: "#fff",
+                                                                                        border: "none",
+                                                                                        borderRadius: "4px",
+                                                                                        fontSize: "13px",
+                                                                                        cursor: "pointer"
+                                                                                    }}
+                                                                                >
+                                                                                    답변하기
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                
+                                                                {/* 답변들 표시 */}
+                                                                {replies.length > 0 && (
+                                                                    <div style={{
+                                                                        marginLeft: "30px",
+                                                                        marginBottom: "15px"
+                                                                    }}>
+                                                                        {replies.map((reply) => (
+                                                                            <div
+                                                                                key={reply.commentSeq}
+                                                                                style={{
+                                                                                    padding: "15px",
+                                                                                    marginBottom: "10px",
+                                                                                    backgroundColor: "#f8f9fa",
+                                                                                    borderRadius: "8px",
+                                                                                    border: "1px solid #dee2e6",
+                                                                                    borderLeft: "3px solid #28a745"
+                                                                                }}
+                                                                            >
+                                                                                <div style={{
+                                                                                    display: "flex",
+                                                                                    justifyContent: "space-between",
+                                                                                    alignItems: "center",
+                                                                                    marginBottom: "8px"
+                                                                                }}>
+                                                                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                                                                        <strong style={{ color: "#28a745", fontSize: "14px" }}>
+                                                                                            {reply.memberId === "admin" || sessionStorage.getItem("managerId") === reply.memberId ? "운영자" : reply.memberId}
+                                                                                        </strong>
+                                                                                        <span style={{
+                                                                                            fontSize: "10px",
+                                                                                            padding: "2px 6px",
+                                                                                            backgroundColor: "#d4edda",
+                                                                                            color: "#155724",
+                                                                                            borderRadius: "10px"
+                                                                                        }}>
+                                                                                            답변
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <span style={{
+                                                                                        fontSize: "11px",
+                                                                                        color: "#999"
+                                                                                    }}>
+                                                                                        {new Date(reply.createdDate).toLocaleString()}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div style={{
+                                                                                    color: "#333",
+                                                                                    lineHeight: "1.6",
+                                                                                    whiteSpace: "pre-wrap",
+                                                                                    wordBreak: "break-word",
+                                                                                    fontSize: "13px"
+                                                                                }}>
+                                                                                    {reply.commentContent}
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                             </div>
                                         ) : (
                                             <div style={{
