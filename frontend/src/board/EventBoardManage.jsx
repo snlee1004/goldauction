@@ -789,17 +789,25 @@ function EventBoardManage() {
                 body: body
             });
 
+            if(!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
 
             if(data.rt === "OK") {
                 alert(data.msg || (deleteType ? "게시판이 완전히 삭제되었습니다." : "게시판이 비활성화되었습니다."));
+                // 삭제 성공 시 관리자 페이지로 이동
                 navigate("/manager/managerInfo");
             } else {
-                alert(data.msg || "게시판 삭제에 실패했습니다.");
+                // 삭제 실패 시 상세 메시지 표시
+                const errorMsg = data.msg || "게시판 삭제에 실패했습니다.";
+                console.error("게시판 삭제 실패:", errorMsg);
+                alert(errorMsg);
             }
         } catch(err) {
             console.error("게시판 삭제 오류:", err);
-            alert("게시판 삭제 중 오류가 발생했습니다.");
+            alert("게시판 삭제 중 오류가 발생했습니다: " + (err.message || "알 수 없는 오류"));
         }
     };
 

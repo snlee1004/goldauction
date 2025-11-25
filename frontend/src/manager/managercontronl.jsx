@@ -26,36 +26,96 @@ function ManagerInfo() {
         fetchDashboardData();
     }, [navigate]);
 
+    // 페이지 포커스 시 데이터 새로고침 (다른 페이지에서 돌아왔을 때 최신 데이터 표시)
+    useEffect(() => {
+        const managerId = sessionStorage.getItem("managerId");
+        if(!managerId) return; // 관리자가 아니면 리턴
+        
+        const handleFocus = () => {
+            fetchDashboardData();
+        };
+        
+        window.addEventListener('focus', handleFocus);
+        
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, []);
+
     // 대시보드 데이터 조회
     const fetchDashboardData = async () => {
         setLoading(true);
         try {
+            // 캐시 방지를 위한 타임스탬프 추가
+            const timestamp = new Date().getTime();
+            const cacheHeaders = {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            };
+
             // 통계 조회
-            const statsResponse = await fetch("http://localhost:8080/admin/dashboard/stats");
-            const statsData = await statsResponse.json();
-            if(statsData.rt === "OK") {
-                setStats(statsData);
+            const statsResponse = await fetch(`http://localhost:8080/admin/dashboard/stats?_t=${timestamp}`, {
+                method: 'GET',
+                headers: cacheHeaders
+            });
+            if(statsResponse.ok) {
+                const statsData = await statsResponse.json();
+                if(statsData.rt === "OK") {
+                    setStats(statsData);
+                } else {
+                    console.error("통계 조회 실패:", statsData.msg || statsData.message);
+                }
+            } else {
+                console.error("통계 조회 HTTP 오류:", statsResponse.status);
             }
 
             // 최근 게시글 조회
-            const postsResponse = await fetch("http://localhost:8080/admin/dashboard/recent-posts?limit=5");
-            const postsData = await postsResponse.json();
-            if(postsData.rt === "OK") {
-                setRecentPosts(postsData.list || []);
+            const postsResponse = await fetch(`http://localhost:8080/admin/dashboard/recent-posts?limit=5&_t=${timestamp}`, {
+                method: 'GET',
+                headers: cacheHeaders
+            });
+            if(postsResponse.ok) {
+                const postsData = await postsResponse.json();
+                if(postsData.rt === "OK") {
+                    setRecentPosts(postsData.list || []);
+                } else {
+                    console.error("최근 게시글 조회 실패:", postsData.msg || postsData.message);
+                }
+            } else {
+                console.error("최근 게시글 조회 HTTP 오류:", postsResponse.status);
             }
 
             // 최근 주문 조회
-            const ordersResponse = await fetch("http://localhost:8080/admin/dashboard/recent-orders?limit=5");
-            const ordersData = await ordersResponse.json();
-            if(ordersData.rt === "OK") {
-                setRecentOrders(ordersData.list || []);
+            const ordersResponse = await fetch(`http://localhost:8080/admin/dashboard/recent-orders?limit=5&_t=${timestamp}`, {
+                method: 'GET',
+                headers: cacheHeaders
+            });
+            if(ordersResponse.ok) {
+                const ordersData = await ordersResponse.json();
+                if(ordersData.rt === "OK") {
+                    setRecentOrders(ordersData.list || []);
+                } else {
+                    console.error("최근 주문 조회 실패:", ordersData.msg || ordersData.message);
+                }
+            } else {
+                console.error("최근 주문 조회 HTTP 오류:", ordersResponse.status);
             }
 
             // 게시판별 통계 조회
-            const boardStatsResponse = await fetch("http://localhost:8080/admin/dashboard/board-stats");
-            const boardStatsData = await boardStatsResponse.json();
-            if(boardStatsData.rt === "OK") {
-                setBoardStats(boardStatsData.list || []);
+            const boardStatsResponse = await fetch(`http://localhost:8080/admin/dashboard/board-stats?_t=${timestamp}`, {
+                method: 'GET',
+                headers: cacheHeaders
+            });
+            if(boardStatsResponse.ok) {
+                const boardStatsData = await boardStatsResponse.json();
+                if(boardStatsData.rt === "OK") {
+                    setBoardStats(boardStatsData.list || []);
+                } else {
+                    console.error("게시판별 통계 조회 실패:", boardStatsData.msg || boardStatsData.message);
+                }
+            } else {
+                console.error("게시판별 통계 조회 HTTP 오류:", boardStatsResponse.status);
             }
         } catch(err) {
             console.error("대시보드 데이터 조회 오류:", err);

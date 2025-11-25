@@ -964,21 +964,8 @@ function EventProductView() {
                                                 marginBottom: "10px"
                                             }}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                                    {isManagerComment && (
-                                                        <span style={{
-                                                            display: "inline-block",
-                                                            padding: "2px 8px",
-                                                            backgroundColor: "#337ab7",
-                                                            color: "#fff",
-                                                            borderRadius: "4px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold"
-                                                        }}>
-                                                            관리자
-                                                        </span>
-                                                    )}
                                                     <span style={{ fontWeight: "bold", fontSize: "14px" }}>
-                                                        {comment.memberId}
+                                                        {isManagerComment ? "운영자" : comment.memberId}
                                                     </span>
                                                     <span style={{ color: "#999", fontSize: "12px" }}>
                                                         {comment.createdDate ? new Date(comment.createdDate).toLocaleString("ko-KR") : ""}

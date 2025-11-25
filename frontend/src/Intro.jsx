@@ -730,12 +730,12 @@ function Intro() {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead>
                             <tr style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #ddd" }}>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>상품코드</th>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>상품명</th>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>거래방식</th>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>종료일</th>
-                                <th style={{ padding: "10px", textAlign: "right", fontSize: "12px", fontWeight: "bold" }}>현재입찰가</th>
-                                <th style={{ padding: "10px", textAlign: "center", fontSize: "12px", fontWeight: "bold" }}>입찰수</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>상품코드</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>상품명</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>거래방식</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>종료일</th>
+                                <th style={{ padding: "10px", textAlign: "right", fontSize: "13px", fontWeight: "bold" }}>현재입찰가</th>
+                                <th style={{ padding: "10px", textAlign: "center", fontSize: "13px", fontWeight: "bold" }}>입찰수</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -749,10 +749,10 @@ function Intro() {
                                 bestBidList.map(item => (
                                     <tr key={item.seq} style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
                                         onClick={() => navigate(`/imageboard/imageboardView?seq=${item.seq}`)}>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>{item.seq}</td>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>{item.imagename}</td>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>{item.transactionMethod || "-"}</td>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>{item.seq}</td>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>{item.imagename}</td>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>{item.transactionMethod || "-"}</td>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>
                                             {(() => {
                                                 // DB의 status 값을 우선 확인
                                                 const status = item.status || "";
@@ -785,7 +785,7 @@ function Intro() {
                                                 return new Date(item.auctionEndDate).toLocaleDateString();
                                             })()}
                                         </td>
-                                        <td style={{ padding: "10px", textAlign: "right", fontSize: "12px", fontWeight: "bold" }}>
+                                        <td style={{ padding: "10px", textAlign: "right", fontSize: "13px", fontWeight: "bold" }}>
                                             {(() => {
                                                 // 상태에 따라 색상 결정
                                                 const status = item.status || "";
@@ -843,12 +843,12 @@ function Intro() {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead>
                             <tr style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #ddd" }}>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>상품코드</th>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>상품명</th>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>거래방식</th>
-                                <th style={{ padding: "10px", textAlign: "left", fontSize: "12px", fontWeight: "bold" }}>종료일</th>
-                                <th style={{ padding: "10px", textAlign: "right", fontSize: "12px", fontWeight: "bold" }}>현재입찰가</th>
-                                <th style={{ padding: "10px", textAlign: "center", fontSize: "12px", fontWeight: "bold" }}>입찰수</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>상품코드</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>상품명</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>거래방식</th>
+                                <th style={{ padding: "10px", textAlign: "left", fontSize: "13px", fontWeight: "bold" }}>종료일</th>
+                                <th style={{ padding: "10px", textAlign: "right", fontSize: "13px", fontWeight: "bold" }}>현재입찰가</th>
+                                <th style={{ padding: "10px", textAlign: "center", fontSize: "13px", fontWeight: "bold" }}>입찰수</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -862,10 +862,10 @@ function Intro() {
                                 recentList.map(item => (
                                     <tr key={item.seq} style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
                                         onClick={() => navigate(`/imageboard/imageboardView?seq=${item.seq}`)}>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>{item.seq}</td>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>{item.imagename}</td>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>{item.transactionMethod || "-"}</td>
-                                        <td style={{ padding: "10px", fontSize: "12px" }}>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>{item.seq}</td>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>{item.imagename}</td>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>{item.transactionMethod || "-"}</td>
+                                        <td style={{ padding: "10px", fontSize: "13px" }}>
                                             {(() => {
                                                 // DB의 status 값을 우선 확인
                                                 const status = item.status || "";
@@ -898,7 +898,7 @@ function Intro() {
                                                 return new Date(item.auctionEndDate).toLocaleDateString();
                                             })()}
                                         </td>
-                                        <td style={{ padding: "10px", textAlign: "right", fontSize: "12px", fontWeight: "bold" }}>
+                                        <td style={{ padding: "10px", textAlign: "right", fontSize: "13px", fontWeight: "bold" }}>
                                             {(() => {
                                                 // 상태에 따라 색상 결정
                                                 const status = item.status || "";

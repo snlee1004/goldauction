@@ -8,12 +8,22 @@ import org.springframework.stereotype.Repository;
 
 import com.example.backend.dto.BoardDTO;
 import com.example.backend.entity.Board;
+import com.example.backend.entity.EventOrder;
+import com.example.backend.entity.EventProduct;
 import com.example.backend.repository.BoardRepository;
+import com.example.backend.repository.EventOrderRepository;
+import com.example.backend.repository.EventProductRepository;
 
 @Repository
 public class BoardDAO {
 	@Autowired
 	BoardRepository boardRepository;
+	
+	@Autowired
+	EventProductRepository eventProductRepository;
+	
+	@Autowired
+	EventOrderRepository eventOrderRepository;
 	
 	// 게시판 생성 => 1:생성성공, 0:생성실패
 	public int write(BoardDTO dto) {
@@ -115,19 +125,46 @@ public class BoardDAO {
 	// 게시판 완전 삭제 (DB에서 영구 삭제, CASCADE로 관련 데이터 자동 삭제) => 1:삭제성공, 0:삭제실패
 	public int deletePermanent(Long boardSeq) {
 		try {
-			// CASCADE 설정으로 인해 BOARD1 삭제 시 자동으로 삭제되는 테이블들:
+			// 먼저 게시판이 존재하는지 확인
+			if(!boardRepository.existsById(boardSeq)) {
+				// 게시판이 존재하지 않으면 이미 삭제된 것으로 간주하고 성공 반환
+				// (중복 삭제 시도 방지)
+				return 1;
+			}
+			
+			// 1단계: 게시판의 모든 상품 조회 (삭제 여부 무관)
+			List<EventProduct> products = eventProductRepository.findByBoardSeqOrderByCreatedDateDesc(boardSeq);
+			
+			// 2단계: 각 상품에 대한 모든 주문 삭제 (외래 키 제약 조건 해결)
+			for(EventProduct product : products) {
+				List<EventOrder> orders = eventOrderRepository.findByProductSeqOrderByCreatedDateDesc(product.getProductSeq());
+				for(EventOrder order : orders) {
+					try {
+						eventOrderRepository.deleteById(order.getOrderSeq());
+					} catch(Exception e) {
+						System.err.println("주문 삭제 중 오류 (orderSeq: " + order.getOrderSeq() + "): " + e.getMessage());
+						// 주문 삭제 실패해도 계속 진행
+					}
+				}
+			}
+			
+			// 3단계: 게시판 삭제 (CASCADE 설정으로 인해 자동으로 삭제되는 테이블들:
 			// - BOARD_POST1 (게시글)
 			// - BOARD_COMMENT1 (댓글, 게시글 삭제 시 CASCADE)
 			// - BOARD_POST_FILE1 (첨부파일, 게시글 삭제 시 CASCADE)
 			// - EVENT_PRODUCT1 (공구이벤트 상품)
 			// - EVENT_PRODUCT_IMAGE1 (상품 이미지, 상품 삭제 시 CASCADE)
 			// - EVENT_PRODUCT_OPTION1 (상품 옵션, 상품 삭제 시 CASCADE)
-			// - EVENT_ORDER1 (주문, 상품 삭제 시 CASCADE는 아니지만 상품이 없으면 의미 없음)
 			// - BOARD_NOTICE_SETTING1 (공지사항 설정)
 			// - BOARD_NOTIFICATION1 (알림, 게시글/댓글 삭제 시 CASCADE)
-			
 			boardRepository.deleteById(boardSeq);
-			return 1;
+			
+			// 삭제 확인 (실제로 삭제되었는지 검증)
+			if(!boardRepository.existsById(boardSeq)) {
+				return 1; // 삭제 성공
+			} else {
+				return 0; // 삭제 실패 (여전히 존재함)
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 			return 0;

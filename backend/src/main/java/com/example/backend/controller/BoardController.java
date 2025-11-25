@@ -123,6 +123,14 @@ public class BoardController {
 		Map<String, Object> map = new HashMap<String, Object>();
 		
 		try {
+			// 게시판 존재 여부 확인
+			Board board = service.getBoard(boardSeq);
+			if(board == null) {
+				map.put("rt", "OK");
+				map.put("msg", "이미 삭제된 게시판입니다.");
+				return map;
+			}
+			
 			int result = service.deletePermanent(boardSeq);
 			
 			if(result == 1) {
@@ -130,7 +138,7 @@ public class BoardController {
 				map.put("msg", "게시판과 관련된 모든 데이터가 완전히 삭제되었습니다.");
 			} else {
 				map.put("rt", "FAIL");
-				map.put("msg", "게시판 삭제에 실패했습니다.");
+				map.put("msg", "게시판 삭제에 실패했습니다. 외래 키 제약 조건이나 다른 오류가 발생했을 수 있습니다.");
 			}
 		} catch(Exception e) {
 			e.printStackTrace();

@@ -28,6 +28,9 @@ public interface EventProductRepository extends JpaRepository<EventProduct, Long
 	// 게시판별 상품 수 조회
 	long countByBoardSeqAndIsDeleted(Long boardSeq, String isDeleted);
 	
+	// 게시판별 모든 상품 조회 (삭제 여부 무관)
+	List<EventProduct> findByBoardSeqOrderByCreatedDateDesc(Long boardSeq);
+	
 	// 상태별 상품 조회 (boardSeq가 null이면 전체)
 	@Query("SELECT p FROM EventProduct p WHERE (:boardSeq IS NULL OR p.boardSeq = :boardSeq) AND p.eventStatus = :eventStatus AND p.isDeleted = 'N' ORDER BY p.createdDate DESC")
 	List<EventProduct> findAllByStatus(@Param("boardSeq") Long boardSeq, @Param("eventStatus") String eventStatus);

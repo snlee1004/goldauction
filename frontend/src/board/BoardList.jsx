@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function BoardList() {
@@ -8,21 +8,27 @@ function BoardList() {
     const [error, setError] = useState(null);
     const [boardType, setBoardType] = useState("");  // 기본값: 전체 (빈 문자열은 전체 조회)
 
-    useEffect(() => {
-        fetchBoardList();
-    }, [boardType]);
-
     // 게시판 목록 조회
-    const fetchBoardList = async () => {
+    const fetchBoardList = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const url = boardType && boardType.trim() !== "" 
-                ? `http://localhost:8080/board/list?boardType=${encodeURIComponent(boardType)}`
-                : `http://localhost:8080/board/list`;
+            // 캐시 방지를 위한 타임스탬프 추가
+            const timestamp = new Date().getTime();
+            let url = boardType && boardType.trim() !== "" 
+                ? `http://localhost:8080/board/list?boardType=${encodeURIComponent(boardType)}&_t=${timestamp}`
+                : `http://localhost:8080/board/list?_t=${timestamp}`;
             console.log("게시판 목록 API 호출:", url);
             
-            const response = await fetch(url);
+            // 캐시 방지 헤더 추가
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             console.log("게시판 목록 API 응답 상태:", response.status);
             
             if(!response.ok) {
@@ -51,7 +57,24 @@ function BoardList() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [boardType]);
+
+    useEffect(() => {
+        fetchBoardList();
+    }, [fetchBoardList]);
+
+    // 페이지 포커스 시 데이터 새로고침 (다른 페이지에서 돌아왔을 때 최신 데이터 표시)
+    useEffect(() => {
+        const handleFocus = () => {
+            fetchBoardList();
+        };
+        
+        window.addEventListener('focus', handleFocus);
+        
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [fetchBoardList]);
 
     return (
         <div style={{
