@@ -47,6 +47,14 @@ public class BidController {
 			return map;
 		}
 		
+		// 작성자는 자신이 등록한 상품에 입찰할 수 없음
+		if(imageboard.getImageid() != null && imageboard.getImageid().equals(bidderId)) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("rt", "FAIL");
+			map.put("msg", "자신이 등록한 상품에는 입찰할 수 없습니다.");
+			return map;
+		}
+		
 		// 경매가 이미 종료되었는지 확인
 		if("판매완료".equals(imageboard.getStatus()) || "종료".equals(imageboard.getStatus())) {
 			Map<String, Object> map = new HashMap<String, Object>();

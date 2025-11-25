@@ -24,6 +24,7 @@ import com.example.backend.entity.ImageboardImages;
 import com.example.backend.service.ImageboardService;
 import com.example.backend.service.ImageboardImagesService;
 import com.example.backend.service.BidService;
+import com.example.backend.util.ImageThumbnailUtil;
 
 @RestController
 public class ImageboardController {
@@ -35,6 +36,9 @@ public class ImageboardController {
 	
 	@Autowired
 	BidService bidService;
+	
+	@Autowired
+	ImageThumbnailUtil thumbnailUtil;
 	
 	@Value("${project.upload.path}")
 	private String uploadpath;  // 파일 저장 폴더 경로 저장
@@ -172,7 +176,7 @@ public class ImageboardController {
 			return map;
 		}
 		
-		// 다중 이미지 저장
+		// 다중 이미지 저장 (원본 + 썸네일 자동 생성)
 		if(images != null && !images.isEmpty()) {
 			System.out.println("받은 이미지 개수: " + images.size()); // 디버깅용
 			int order = 1;
@@ -180,22 +184,23 @@ public class ImageboardController {
 				if(file != null && !file.isEmpty()) {
 					try {
 						String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-						File saveFile = new File(uploadpath, fileName);
-						file.transferTo(saveFile);
-						System.out.println("이미지 저장: " + fileName + " (순서: " + order + ")"); // 디버깅용
+						
+						// 원본과 썸네일 자동 생성
+						String savedPath = thumbnailUtil.saveImageWithThumbnail(file.getInputStream(), fileName);
+						System.out.println("이미지 저장 완료: " + savedPath + " (순서: " + order + ")"); // 디버깅용
 						
 						// 첫 번째 이미지를 대표 이미지로 설정
 						if(order == 1) {
 							dto.setSeq(imageboard.getSeq());
-							dto.setImage1(fileName);
+							dto.setImage1(savedPath);  // original/파일명 형식으로 저장
 							service.imageboardModify(dto);  // 대표 이미지 업데이트
-							System.out.println("대표 이미지 설정: " + fileName); // 디버깅용
+							System.out.println("대표 이미지 설정: " + savedPath); // 디버깅용
 						}
 						
-						// 이미지 정보 저장
+						// 이미지 정보 저장 (DB에는 original/파일명 형식으로 저장)
 						ImageboardImagesDTO imgDto = new ImageboardImagesDTO();
 						imgDto.setImageboardSeq(imageboard.getSeq());
-						imgDto.setImagePath(fileName);
+						imgDto.setImagePath(savedPath);  // original/파일명 형식
 						imgDto.setImageOrder(order);
 						imgDto.setUploadDate(new Date());
 						ImageboardImages savedImage = imagesService.save(imgDto);
@@ -571,7 +576,7 @@ public class ImageboardController {
 			folder.mkdirs();
 		}
 		
-		// 새 이미지가 있으면 저장
+		// 새 이미지가 있으면 저장 (원본 + 썸네일 자동 생성)
 		if(images != null && !images.isEmpty()) {
 			// 기존 이미지 삭제 (선택사항 - 필요시 주석 해제)
 			// imagesService.deleteByImageboardSeq(seq);
@@ -581,24 +586,27 @@ public class ImageboardController {
 				if(file != null && !file.isEmpty()) {
 					try {
 						String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-						File saveFile = new File(uploadpath, fileName);
-						file.transferTo(saveFile);
+						
+						// 원본과 썸네일 자동 생성
+						String savedPath = thumbnailUtil.saveImageWithThumbnail(file.getInputStream(), fileName);
+						System.out.println("이미지 저장 완료: " + savedPath + " (순서: " + order + ")"); // 디버깅용
 						
 						// 첫 번째 이미지를 대표 이미지로 설정
 						if(order == 1) {
-							dto.setImage1(fileName);
+							dto.setImage1(savedPath);  // original/파일명 형식으로 저장
 						}
 						
-						// 이미지 정보 저장
+						// 이미지 정보 저장 (DB에는 original/파일명 형식으로 저장)
 						ImageboardImagesDTO imgDto = new ImageboardImagesDTO();
 						imgDto.setImageboardSeq(seq);
-						imgDto.setImagePath(fileName);
+						imgDto.setImagePath(savedPath);  // original/파일명 형식
 						imgDto.setImageOrder(order);
 						imgDto.setUploadDate(new Date());
 						imagesService.save(imgDto);
 						
 						order++;
 					} catch (IllegalStateException | IOException e) {
+						System.out.println("이미지 저장 오류: " + e.getMessage()); // 디버깅용
 						e.printStackTrace();
 					}
 				}

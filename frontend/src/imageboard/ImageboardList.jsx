@@ -307,9 +307,23 @@ function ImageboardList() {
                                             <Link to={viewPath} style={{display: "inline-block"}}>
                                                 {dto.image1 ? (
                                                     <img 
-                                                        src={`http://localhost:8080/storage/${dto.image1}`}
+                                                        src={(() => {
+                                                            // DB에 저장된 경로가 original/파일명 형식인 경우
+                                                            if (dto.image1.startsWith("original/")) {
+                                                                return `http://localhost:8080/storage/${dto.image1.replace("original/", "thumb/")}`;
+                                                            }
+                                                            // 기존 데이터 호환성 (파일명만 있는 경우)
+                                                            return `http://localhost:8080/storage/thumb/${dto.image1}`;
+                                                        })()}
                                                         alt={dto.imagename}
                                                         style={{width: "120px", height: "120px", objectFit: "cover", borderRadius: "4px"}}
+                                                        onError={(e) => {
+                                                            // 썸네일이 없으면 원본 시도
+                                                            const originalUrl = dto.image1.startsWith("original/") 
+                                                                ? `http://localhost:8080/storage/${dto.image1}`
+                                                                : `http://localhost:8080/storage/${dto.image1}`;
+                                                            e.target.src = originalUrl;
+                                                        }}
                                                     />
                                                 ) : (
                                                     <div style={{

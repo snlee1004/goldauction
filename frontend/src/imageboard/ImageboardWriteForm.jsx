@@ -495,8 +495,8 @@ function ImageboardWriteForm() {
                             padding: "6px 12px",
                             marginRight: "10px",
                             fontSize: "13px",
-                            backgroundColor: "#D4AF37",
-                            borderColor: "#D4AF37",
+                            backgroundColor: "#EDD200",
+                            borderColor: "#EDD200",
                             color: "#000"
                         }}
                     >

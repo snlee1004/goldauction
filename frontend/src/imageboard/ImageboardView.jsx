@@ -291,6 +291,13 @@ function ImageboardView() {
     // 입찰 참여 처리
     const handleBidSubmit = async (e) => {
         e.preventDefault();
+        
+        // 작성자는 자신의 상품에 입찰할 수 없음
+        if(isAuthor()) {
+            alert("자신이 등록한 상품에는 입찰할 수 없습니다.");
+            return;
+        }
+        
         if(!bidAmount || bidAmount.trim() === "") {
             alert("입찰 금액을 입력하세요.");
             return;
@@ -368,6 +375,12 @@ function ImageboardView() {
 
     // 즉시 구매 처리
     const handleBuyNow = async () => {
+        // 작성자는 자신의 상품을 즉시 구매할 수 없음
+        if(isAuthor()) {
+            alert("자신이 등록한 상품은 즉시 구매할 수 없습니다.");
+            return;
+        }
+        
         const memId = sessionStorage.getItem("memId");
         if(!memId) {
             alert("로그인이 필요합니다.");
@@ -624,7 +637,16 @@ function ImageboardView() {
                         width="280" 
                         height="280" 
                         alt="상품 이미지"
-                        src={imageboardData.image1 ? `http://localhost:8080/storage/${imageboardData.image1}` : "/placeholder-image.png"}
+                        src={(() => {
+                            if (!imageboardData.image1) return "/placeholder-image.png";
+                            
+                            // DB에 저장된 경로가 original/파일명 형식인 경우 (이미 원본 경로)
+                            if (imageboardData.image1.startsWith("original/")) {
+                                return `http://localhost:8080/storage/${imageboardData.image1}`;
+                            }
+                            // 기존 데이터 호환성 (파일명만 있는 경우 - 원본이 storage 루트에 있음)
+                            return `http://localhost:8080/storage/${imageboardData.image1}`;
+                        })()}
                         style={{border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", width: "280px", height: "280px", objectFit: "cover"}}
                         onClick={handleImageClick}
                     />
@@ -648,35 +670,49 @@ function ImageboardView() {
                             <tr style={{borderBottom: "1px solid #eee"}}>
                                 <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>입찰 참여</td>
                                 <td style={{padding: "10px"}}>
-                                    <form onSubmit={handleBidSubmit} style={{display: "flex", gap: "10px"}}>
-                                        <input 
-                                            type="number" 
-                                            value={bidAmount}
-                                            onChange={(e) => setBidAmount(e.target.value)}
-                                            placeholder="입찰 금액 입력"
-                                            style={{
-                                                padding: "6px",
-                                                border: "1px solid #ddd",
-                                                borderRadius: "4px",
-                                                flex: "1",
-                                                fontSize: "13px"
-                                            }}
-                                        />
-                                        <button 
-                                            type="submit"
-                                            style={{
-                                                padding: "6px 12px",
-                                                backgroundColor: "#D4AF37",
-                                                borderColor: "#D4AF37",
-                                                color: "#000",
-                                                borderRadius: "4px",
-                                                cursor: "pointer",
-                                                fontSize: "13px"
-                                            }}
-                                        >
-                                            입찰
-                                        </button>
-                                    </form>
+                                    {isAuthor() ? (
+                                        <div style={{
+                                            padding: "8px",
+                                            backgroundColor: "#f8f9fa",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "4px",
+                                            color: "#666",
+                                            fontSize: "13px",
+                                            textAlign: "center"
+                                        }}>
+                                            본인의 상품은 입찰이 불가능합니다.
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleBidSubmit} style={{display: "flex", gap: "10px"}}>
+                                            <input 
+                                                type="number" 
+                                                value={bidAmount}
+                                                onChange={(e) => setBidAmount(e.target.value)}
+                                                placeholder="입찰 금액 입력"
+                                                style={{
+                                                    padding: "6px",
+                                                    border: "1px solid #ddd",
+                                                    borderRadius: "4px",
+                                                    flex: "1",
+                                                    fontSize: "13px"
+                                                }}
+                                            />
+                                            <button 
+                                                type="submit"
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    backgroundColor: "#D4AF37",
+                                                    borderColor: "#D4AF37",
+                                                    color: "#000",
+                                                    borderRadius: "4px",
+                                                    cursor: "pointer",
+                                                    fontSize: "13px"
+                                                }}
+                                            >
+                                                입찰
+                                            </button>
+                                        </form>
+                                    )}
                                 </td>
                             </tr>
                             {(() => {
@@ -685,23 +721,37 @@ function ImageboardView() {
                                     <tr style={{borderBottom: "1px solid #eee"}}>
                                         <td style={{padding: "10px", fontWeight: "bold", fontSize: "13px"}}>즉시 구매</td>
                                         <td style={{padding: "10px"}}>
-                                            <button 
-                                                type="button"
-                                                onClick={handleBuyNow}
-                                                style={{
-                                                    padding: "8px 20px",
-                                                    backgroundColor: "#ff6b35",
-                                                    border: "none",
-                                                    color: "#fff",
+                                            {isAuthor() ? (
+                                                <div style={{
+                                                    padding: "8px",
+                                                    backgroundColor: "#f8f9fa",
+                                                    border: "1px solid #ddd",
                                                     borderRadius: "4px",
-                                                    cursor: "pointer",
-                                                    fontSize: "14px",
-                                                    fontWeight: "bold",
-                                                    width: "100%"
-                                                }}
-                                            >
-                                                즉시 구매 ({maxBidPrice.toLocaleString()}원)
-                                            </button>
+                                                    color: "#666",
+                                                    fontSize: "13px",
+                                                    textAlign: "center"
+                                                }}>
+                                                    본인의 상품은 즉시 구매할 수 없습니다.
+                                                </div>
+                                            ) : (
+                                                <button 
+                                                    type="button"
+                                                    onClick={handleBuyNow}
+                                                    style={{
+                                                        padding: "8px 20px",
+                                                        backgroundColor: "#ff6b35",
+                                                        border: "none",
+                                                        color: "#fff",
+                                                        borderRadius: "4px",
+                                                        cursor: "pointer",
+                                                        fontSize: "14px",
+                                                        fontWeight: "bold",
+                                                        width: "100%"
+                                                    }}
+                                                >
+                                                    즉시 구매 ({maxBidPrice.toLocaleString()}원)
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 );
@@ -870,7 +920,14 @@ function ImageboardView() {
 
             {/* 목록 및 수정 버튼 */}
             <div style={{textAlign: "center", marginTop: "30px"}}>
-                <button className="btn btn-secondary" onClick={handleList}>
+                <button 
+                    className="btn btn-secondary" 
+                    onClick={handleList}
+                    style={{
+                        padding: "6px 12px",
+                        fontSize: "13px"
+                    }}
+                >
                     <i className="bi bi-list"></i> 목록
                 </button>
                 {/* 작성자만 수정 및 경매 포기 버튼 표시 (진행중인 경우) */}
@@ -881,15 +938,24 @@ function ImageboardView() {
                             className="btn btn-primary" 
                             onClick={handleModify}
                             style={{
-                                backgroundColor: "#D4AF37",
-                                borderColor: "#D4AF37",
-                                color: "#000"
+                                backgroundColor: "#EDD200",
+                                borderColor: "#EDD200",
+                                color: "#000",
+                                padding: "6px 12px",
+                                fontSize: "13px"
                             }}
                         >
                             <i className="bi bi-pencil-square"></i> 수정
                         </button>
                         &nbsp;
-                        <button className="btn btn-danger" onClick={handleCancelAuction}>
+                        <button 
+                            className="btn btn-danger" 
+                            onClick={handleCancelAuction}
+                            style={{
+                                padding: "6px 12px",
+                                fontSize: "13px"
+                            }}
+                        >
                             <i className="bi bi-x-circle"></i> 경매 포기
                         </button>
                     </>
@@ -928,7 +994,9 @@ function ImageboardView() {
                             style={{
                                 backgroundColor: "#17a2b8",
                                 borderColor: "#17a2b8",
-                                color: "#fff"
+                                color: "#fff",
+                                padding: "6px 12px",
+                                fontSize: "13px"
                             }}
                         >
                             <i className="bi bi-person-circle"></i> 판매정보상세
@@ -937,6 +1005,10 @@ function ImageboardView() {
                         <button 
                             className="btn btn-danger" 
                             onClick={handleDelete}
+                            style={{
+                                padding: "6px 12px",
+                                fontSize: "13px"
+                            }}
                         >
                             <i className="bi bi-trash"></i> 경매 삭제
                         </button>

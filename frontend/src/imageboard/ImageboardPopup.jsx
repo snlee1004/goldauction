@@ -208,7 +208,16 @@ function ImageboardPopup({ imageboardSeq, imageboardData, isOpen, onClose }) {
                         }}>
                             {displayedImages.map((img, index) => {
                                 const actualIndex = currentIndex + index;
-                                const imageUrl = img.imagePath ? `http://localhost:8080/storage/${img.imagePath}` : null;
+                                const imageUrl = (() => {
+                                    if (!img.imagePath) return null;
+                                    
+                                    // DB에 저장된 경로가 original/파일명 형식인 경우 (이미 원본 경로)
+                                    if (img.imagePath.startsWith("original/")) {
+                                        return `http://localhost:8080/storage/${img.imagePath}`;
+                                    }
+                                    // 기존 데이터 호환성 (파일명만 있는 경우)
+                                    return `http://localhost:8080/storage/${img.imagePath}`;
+                                })();
                                 return (
                                     <div key={img.imgSeq || actualIndex} style={{textAlign: "center"}}>
                                         {imageUrl ? (

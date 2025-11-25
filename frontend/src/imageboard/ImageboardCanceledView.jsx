@@ -61,9 +61,9 @@ function ImageboardCanceledView() {
         return diffDays > 0 ? diffDays : 0;
     };
 
-    // 목록으로 이동
+    // 목록으로 이동 (일반 경매 목록으로 이동)
     const handleList = () => {
-        navigate(`/imageboard/imageboardCanceledList?pg=${pg}`);
+        navigate(`/imageboard/imageboardList?pg=${pg || 1}`);
     };
 
     // 삭제 처리
@@ -135,7 +135,16 @@ function ImageboardCanceledView() {
                         width="200" 
                         height="200" 
                         alt="상품 이미지"
-                        src={imageboardData.image1 ? `http://localhost:8080/storage/${imageboardData.image1}` : "/placeholder-image.png"}
+                        src={(() => {
+                            if (!imageboardData.image1) return "/placeholder-image.png";
+                            
+                            // DB에 저장된 경로가 original/파일명 형식인 경우 (이미 원본 경로)
+                            if (imageboardData.image1.startsWith("original/")) {
+                                return `http://localhost:8080/storage/${imageboardData.image1}`;
+                            }
+                            // 기존 데이터 호환성 (파일명만 있는 경우 - 원본이 storage 루트에 있음)
+                            return `http://localhost:8080/storage/${imageboardData.image1}`;
+                        })()}
                         style={{border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer"}}
                         onClick={handleImageClick}
                     />
@@ -192,14 +201,28 @@ function ImageboardCanceledView() {
 
             {/* 목록 및 삭제 버튼 */}
             <div style={{textAlign: "center", marginTop: "30px"}}>
-                <button className="btn btn-secondary" onClick={handleList}>
+                <button 
+                    className="btn btn-secondary" 
+                    onClick={handleList}
+                    style={{
+                        padding: "6px 12px",
+                        fontSize: "13px"
+                    }}
+                >
                     <i className="bi bi-list"></i> 목록
                 </button>
                 {/* 작성자만 삭제 버튼 표시 */}
                 {isAuthor() && (
                     <>
                         &nbsp;
-                        <button className="btn btn-danger" onClick={handleDelete}>
+                        <button 
+                            className="btn btn-danger" 
+                            onClick={handleDelete}
+                            style={{
+                                padding: "6px 12px",
+                                fontSize: "13px"
+                            }}
+                        >
                             <i className="bi bi-trash"></i> 삭제
                         </button>
                     </>
