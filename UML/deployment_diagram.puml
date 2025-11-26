@@ -1,0 +1,95 @@
+@startuml 배포_다이어그램_시스템_배포_구조
+!theme plain
+skinparam defaultFontName "Malgun Gothic"
+skinparam node {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    FontSize 12
+}
+
+node "Client Browser" {
+    [React Application] as ReactApp
+    [User Interface] as UI
+}
+
+node "Web Server" {
+    [Nginx] as Nginx
+    note right of Nginx
+      Reverse Proxy
+      Static File Serving
+    end note
+}
+
+node "Application Server" {
+    [Spring Boot Application] as SpringApp
+    [REST API] as RESTAPI
+    [Business Logic] as BusinessLogic
+}
+
+node "Database Server" {
+    database "Oracle Database" {
+        [IMAGEBOARD1] as ImageboardDB
+        [BID1] as BidDB
+        [MEMBER1] as MemberDB
+        [BOARD1] as BoardDB
+        [EVENT_PRODUCT1] as EventProductDB
+        [MANAGER1] as ManagerDB
+    }
+    note right of "Oracle Database"
+      Oracle DB 19c
+      - 19개 테이블
+      - 인덱스 최적화
+      - 트랜잭션 관리
+    end note
+}
+
+node "File Storage" {
+    [Image Storage] as ImageStorage
+    [CSS Files] as CSSFiles
+    [Chart Files] as ChartFiles
+}
+
+' 연결
+ReactApp --> Nginx : HTTP/HTTPS
+UI --> ReactApp
+
+Nginx --> SpringApp : HTTP/REST
+Nginx --> ImageStorage : Static Files
+Nginx --> CSSFiles : Static Files
+Nginx --> ChartFiles : Static Files
+
+SpringApp --> RESTAPI
+SpringApp --> BusinessLogic
+RESTAPI --> BusinessLogic
+
+BusinessLogic --> ImageboardDB : JDBC/JPA
+BusinessLogic --> BidDB : JDBC/JPA
+BusinessLogic --> MemberDB : JDBC/JPA
+BusinessLogic --> BoardDB : JDBC/JPA
+BusinessLogic --> EventProductDB : JDBC/JPA
+BusinessLogic --> ManagerDB : JDBC/JPA
+
+SpringApp --> ImageStorage : File Upload/Download
+
+note top of "Client Browser"
+  사용자 브라우저
+  - Chrome, Firefox, Safari
+  - 모바일/태블릿/PC 지원
+end note
+
+note top of "Web Server"
+  웹 서버
+  - Nginx Reverse Proxy
+  - 정적 파일 서빙
+  - 로드 밸런싱
+end note
+
+note top of "Application Server"
+  애플리케이션 서버
+  - Spring Boot 3
+  - Java 17+
+  - RESTful API
+end note
+
+@enduml
+

@@ -1,0 +1,113 @@
+@startuml 컴포넌트_다이어그램_시스템_아키텍처
+!theme plain
+skinparam defaultFontName "Malgun Gothic"
+skinparam component {
+    BackgroundColor LightYellow
+    BorderColor DarkOrange
+    FontSize 12
+}
+
+package "Frontend Layer" {
+    [React Application] as ReactApp
+    component [Imageboard Components] as ImageboardComp
+    component [Member Components] as MemberComp
+    component [Board Components] as BoardComp
+    component [Admin Components] as AdminComp
+    component [Common Components] as CommonComp
+}
+
+package "Backend Layer" {
+    [Spring Boot Application] as SpringApp
+    component [ImageboardController] as ImageboardCtrl
+    component [MemberController] as MemberCtrl
+    component [BoardController] as BoardCtrl
+    component [BidController] as BidCtrl
+    component [AdminController] as AdminCtrl
+    component [TransactionStatisticsController] as StatsCtrl
+    
+    component [ImageboardService] as ImageboardSvc
+    component [MemberService] as MemberSvc
+    component [BoardService] as BoardSvc
+    component [BidService] as BidSvc
+    component [TransactionStatisticsService] as StatsSvc
+    
+    component [ImageboardDAO] as ImageboardDAO
+    component [MemberDAO] as MemberDAO
+    component [BoardDAO] as BoardDAO
+    component [BidDAO] as BidDAO
+    component [TransactionStatisticsDAO] as StatsDAO
+}
+
+package "Database Layer" {
+    database "Oracle DB" {
+        [IMAGEBOARD1] as ImageboardTable
+        [BID1] as BidTable
+        [MEMBER1] as MemberTable
+        [BOARD1] as BoardTable
+        [BOARD_POST1] as BoardPostTable
+        [EVENT_PRODUCT1] as EventProductTable
+        [MANAGER1] as ManagerTable
+    }
+}
+
+' Frontend 연결
+ReactApp --> ImageboardComp
+ReactApp --> MemberComp
+ReactApp --> BoardComp
+ReactApp --> AdminComp
+ReactApp --> CommonComp
+
+' Frontend to Backend
+ImageboardComp --> ImageboardCtrl : HTTP/REST
+MemberComp --> MemberCtrl : HTTP/REST
+BoardComp --> BoardCtrl : HTTP/REST
+AdminComp --> AdminCtrl : HTTP/REST
+AdminComp --> StatsCtrl : HTTP/REST
+
+' Controller to Service
+ImageboardCtrl --> ImageboardSvc
+MemberCtrl --> MemberSvc
+BoardCtrl --> BoardSvc
+BidCtrl --> BidSvc
+AdminCtrl --> MemberSvc
+StatsCtrl --> StatsSvc
+
+' Service to DAO
+ImageboardSvc --> ImageboardDAO
+MemberSvc --> MemberDAO
+BoardSvc --> BoardDAO
+BidSvc --> BidDAO
+StatsSvc --> StatsDAO
+
+' DAO to Database
+ImageboardDAO --> ImageboardTable : JDBC/JPA
+BidDAO --> BidTable : JDBC/JPA
+MemberDAO --> MemberTable : JDBC/JPA
+BoardDAO --> BoardTable : JDBC/JPA
+BoardDAO --> BoardPostTable : JDBC/JPA
+BoardDAO --> EventProductTable : JDBC/JPA
+MemberDAO --> ManagerTable : JDBC/JPA
+
+note right of ReactApp
+  React + Vite
+  - 컴포넌트 기반 UI
+  - React Router
+  - Bootstrap
+end note
+
+note right of SpringApp
+  Spring Boot 3
+  - RESTful API
+  - JPA/Hibernate
+  - Java 17+
+end note
+
+note right of "Oracle DB"
+  Oracle Database
+  - 19개 테이블
+  - 시퀀스 기반 PK
+  - 인덱스 최적화
+end note
+
+@enduml
+

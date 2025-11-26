@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldAuction UML 다이어그램 메뉴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .menu-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid #e0e0e0;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .menu-item h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item h3 .icon {
+            font-size: 1.3em;
+            margin-right: 10px;
+        }
+
+        .menu-item .description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .menu-item a {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .menu-item a:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: scale(1.05);
+        }
+
+        .url-info {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 GoldAuction UML 다이어그램</h1>
+            <p>금 경매 시스템의 설계 문서 및 다이어그램 모음</p>
+        </div>
+
+        <div class="menu-grid">
+            <!-- 주요 테이블 관계도 -->
+            <div class="menu-item">
+                <h3><span class="icon">📊</span>주요 테이블 관계도 (PPT용)</h3>
+                <div class="description">
+                    발표용으로 간소화된 주요 테이블 관계도입니다.
+                    핵심 테이블과 관계를 PPT에서 보기 쉽게 정리한 버전입니다.
+                </div>
+                <a href="./goldauction/주요_테이블_관계도_PPT용.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/주요_테이블_관계도_PPT용.svg
+                </div>
+            </div>
+
+            <!-- 배포 다이어그램 -->
+            <div class="menu-item">
+                <h3><span class="icon">🌐</span>배포 다이어그램 - 시스템 배포 구조</h3>
+                <div class="description">
+                    시스템의 물리적 배포 구조를 표현한 다이어그램입니다.
+                    서버, 클라이언트, 데이터베이스의 배치와 네트워크 구성을 확인할 수 있습니다.
+                </div>
+                <a href="./goldauction/배포_다이어그램_시스템_배포_구조.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/배포_다이어그램_시스템_배포_구조.svg
+                </div>
+            </div>
+
+            <!-- 클래스 다이어그램 -->
+            <div class="menu-item">
+                <h3><span class="icon">📦</span>클래스 다이어그램</h3>
+                <div class="description">
+                    시스템의 정적 구조를 나타내는 다이어그램입니다.
+                    회원, 상품, 입찰, 결제 등 주요 클래스와 그들 간의 관계를 보여줍니다.
+                </div>
+                <a href="./goldauction/클래스_다이어그램.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/클래스_다이어그램.svg
+                </div>
+            </div>
+
+            <!-- 컴포넌트 다이어그램 -->
+            <div class="menu-item">
+                <h3><span class="icon">🧩</span>컴포넌트 다이어그램 - 시스템 아키텍처</h3>
+                <div class="description">
+                    시스템의 물리적 구조와 컴포넌트 간의 의존 관계를 표현합니다.
+                    프론트엔드, 백엔드, 데이터베이스 등 주요 컴포넌트 구성을 보여줍니다.
+                </div>
+                <a href="./goldauction/컴포넌트_다이어그램_시스템_아키텍처.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/컴포넌트_다이어그램_시스템_아키텍처.svg
+                </div>
+            </div>
+
+            <!-- ERD 다이어그램 -->
+            <div class="menu-item">
+                <h3><span class="icon">🗄️</span>ERD 다이어그램 - 데이터베이스 관계도</h3>
+                <div class="description">
+                    데이터베이스의 엔티티와 관계를 표현한 다이어그램입니다.
+                    테이블 구조, 키 관계, 제약조건 등 데이터 모델링을 확인할 수 있습니다.
+                </div>
+                <a href="./goldauction/ERD_다이어그램_데이터베이스_관계도.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/ERD_다이어그램_데이터베이스_관계도.svg
+                </div>
+            </div>
+
+            <!-- 시퀀스 다이어그램 - 경매 입찰 -->
+            <div class="menu-item">
+                <h3><span class="icon">🔄</span>시퀀스 다이어그램 - 경매 입찰</h3>
+                <div class="description">
+                    경매 입찰 과정의 시간 흐름에 따른 객체 간 상호작용을 표현합니다.
+                    사용자가 입찰하는 과정부터 낙찰까지의 메시지 교환을 확인할 수 있습니다.
+                </div>
+                <a href="./goldauction/시퀀스_다이어그램_경매_입찰.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/시퀀스_다이어그램_경매_입찰.svg
+                </div>
+            </div>
+
+            <!-- 액티비티 다이어그램 - 회원 가입 -->
+            <div class="menu-item">
+                <h3><span class="icon">📝</span>액티비티 다이어그램 - 회원 가입</h3>
+                <div class="description">
+                    회원 가입 프로세스의 워크플로우를 표현한 다이어그램입니다.
+                    가입 신청부터 승인까지의 단계별 활동과 의사결정 흐름을 보여줍니다.
+                </div>
+                <a href="./goldauction/액티비티_다이어그램_회원_가입_프로세스.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/액티비티_다이어그램_회원_가입_프로세스.svg
+                </div>
+            </div>
+
+            <!-- 액티비티 다이어그램 - 경매 입찰 -->
+            <div class="menu-item">
+                <h3><span class="icon">⚡</span>액티비티 다이어그램 - 경매 입찰</h3>
+                <div class="description">
+                    경매 입찰 프로세스의 업무 흐름을 표현한 다이어그램입니다.
+                    입찰 시작부터 낙찰, 결제까지의 전체 프로세스를 단계별로 확인할 수 있습니다.
+                </div>
+                <a href="./goldauction/액티비티_다이어그램_경매_입찰_프로세스.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/액티비티_다이어그램_경매_입찰_프로세스.svg
+                </div>
+            </div>
+
+            <!-- 상태 다이어그램 -->
+            <div class="menu-item">
+                <h3><span class="icon">🔀</span>상태 다이어그램 - 경매 상품</h3>
+                <div class="description">
+                    경매 상품의 생명주기와 상태 전이를 표현한 다이어그램입니다.
+                    등록, 진행중, 종료, 낙찰 등 상품의 상태 변화를 확인할 수 있습니다.
+                </div>
+                <a href="./goldauction/상태_다이어그램_경매_상품_상태.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/상태_다이어그램_경매_상품_상태.svg
+                </div>
+            </div>
+
+            <!-- 유스케이스 다이어그램 -->
+            <div class="menu-item">
+                <h3><span class="icon">👥</span>유스케이스 다이어그램</h3>
+                <div class="description">
+                    시스템의 기능적 요구사항을 액터와 유스케이스로 표현한 다이어그램입니다.
+                    회원, 판매자, 관리자의 주요 기능과 상호작용을 확인할 수 있습니다.
+                </div>
+                <a href="./goldauction/유스케이스_다이어그램.svg" target="_blank">다이어그램 보기 →</a>
+                <div class="url-info">
+                    📁 경로: ./goldauction/유스케이스_다이어그램.svg
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 GoldAuction Project | 모든 다이어그램은 SVG 형식으로 제공됩니다</p>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,166 @@
+@startuml ERD_다이어그램_데이터베이스_관계도
+!theme plain
+skinparam defaultFontName "Malgun Gothic"
+skinparam linetype ortho
+skinparam roundcorner 10
+
+entity "MEMBER1" as Member {
+    * ID : VARCHAR2(20) <<PK>>
+    --
+    * NAME : VARCHAR2(20)
+    * PWD : VARCHAR2(20)
+    * NICKNAME : VARCHAR2(20)
+    * GENDER : VARCHAR2(10)
+    * EMAIL1 : VARCHAR2(20)
+    * EMAIL2 : VARCHAR2(20)
+    * TEL1 : VARCHAR2(3)
+    * TEL2 : VARCHAR2(4)
+    * TEL3 : VARCHAR2(4)
+    * ADDR : VARCHAR2(200)
+    * LOGTIME : DATE
+    * IS_SUSPENDED : VARCHAR2(1)
+    * SUSPEND_START_DATE : DATE
+    * SUSPEND_END_DATE : DATE
+    * SUSPEND_REASON : VARCHAR2(200)
+}
+
+entity "IMAGEBOARD1" as Imageboard {
+    * SEQ : NUMBER <<PK>>
+    --
+    * IMAGEID : VARCHAR2(20) <<FK>>
+    * IMAGENAME : VARCHAR2(100)
+    * IMAGEPRICE : NUMBER
+    * MAX_BID_PRICE : NUMBER
+    * IMAGEQTY : NUMBER
+    * IMAGECONTENT : CLOB
+    * IMAGE1 : VARCHAR2(200)
+    * CATEGORY : VARCHAR2(20)
+    * AUCTION_PERIOD : VARCHAR2(20)
+    * TRANSACTION_METHOD : VARCHAR2(20)
+    * AUCTION_START_DATE : DATE
+    * AUCTION_END_DATE : DATE
+    * STATUS : VARCHAR2(20)
+    * LOGTIME : DATE
+}
+
+entity "IMAGEBOARD_IMAGES1" as ImageboardImages {
+    * IMAGE_SEQ : NUMBER <<PK>>
+    --
+    * IMAGEBOARD_SEQ : NUMBER <<FK>>
+    * IMAGE_PATH : VARCHAR2(500)
+    * IS_MAIN : VARCHAR2(1)
+    * DISPLAY_ORDER : NUMBER
+}
+
+entity "BID1" as Bid {
+    * BID_SEQ : NUMBER <<PK>>
+    --
+    * IMAGEBOARD_SEQ : NUMBER <<FK>>
+    * BIDDER_ID : VARCHAR2(20) <<FK>>
+    * BID_AMOUNT : NUMBER
+    * BID_TIME : TIMESTAMP
+    * STATUS : VARCHAR2(20)
+}
+
+entity "BOARD1" as Board {
+    * BOARD_SEQ : NUMBER <<PK>>
+    --
+    * BOARD_NAME : VARCHAR2(100)
+    * BOARD_DESCRIPTION : VARCHAR2(500)
+    * BOARD_TYPE : VARCHAR2(20)
+    * BOARD_CATEGORY : VARCHAR2(50)
+    * IS_ACTIVE : VARCHAR2(1)
+    * DISPLAY_ORDER : NUMBER
+    * NOTICE_DISPLAY_COUNT : NUMBER
+    * CREATED_DATE : DATE
+    * UPDATED_DATE : DATE
+}
+
+entity "BOARD_POST1" as BoardPost {
+    * POST_SEQ : NUMBER <<PK>>
+    --
+    * BOARD_SEQ : NUMBER <<FK>>
+    * MEMBER_ID : VARCHAR2(20) <<FK>>
+    * POST_TITLE : VARCHAR2(200)
+    * POST_CONTENT : CLOB
+    * IS_NOTICE : VARCHAR2(1)
+    * NOTICE_ORDER : NUMBER
+    * VIEW_COUNT : NUMBER
+    * LIKE_COUNT : NUMBER
+    * IS_HIDDEN : VARCHAR2(1)
+    * IS_DELETED : VARCHAR2(1)
+    * CREATED_DATE : DATE
+    * UPDATED_DATE : DATE
+}
+
+entity "BOARD_COMMENT1" as BoardComment {
+    * COMMENT_SEQ : NUMBER <<PK>>
+    --
+    * POST_SEQ : NUMBER <<FK>>
+    * MEMBER_ID : VARCHAR2(20) <<FK>>
+    * COMMENT_CONTENT : VARCHAR2(1000)
+    * IS_DELETED : VARCHAR2(1)
+    * CREATED_DATE : DATE
+    * UPDATED_DATE : DATE
+}
+
+entity "EVENT_PRODUCT1" as EventProduct {
+    * PRODUCT_SEQ : NUMBER <<PK>>
+    --
+    * BOARD_SEQ : NUMBER <<FK>>
+    * PRODUCT_NAME : VARCHAR2(200)
+    * PRODUCT_DESCRIPTION : CLOB
+    * ORIGINAL_PRICE : NUMBER
+    * SALE_PRICE : NUMBER
+    * STOCK_QUANTITY : NUMBER
+    * SOLD_QUANTITY : NUMBER
+    * END_DATE : DATE
+    * EVENT_STATUS : VARCHAR2(20)
+    * DELIVERY_INFO : VARCHAR2(500)
+    * IS_DELETED : VARCHAR2(1)
+    * CREATED_DATE : DATE
+    * UPDATED_DATE : DATE
+}
+
+entity "EVENT_ORDER1" as EventOrder {
+    * ORDER_SEQ : NUMBER <<PK>>
+    --
+    * PRODUCT_SEQ : NUMBER <<FK>>
+    * MEMBER_ID : VARCHAR2(20) <<FK>>
+    * ORDER_QUANTITY : NUMBER
+    * ORDER_PRICE : NUMBER
+    * ORDER_STATUS : VARCHAR2(20)
+    * CREATED_DATE : DATE
+}
+
+entity "MANAGER1" as Manager {
+    * MANAGER_ID : VARCHAR2(20) <<PK>>
+    --
+    * MANAGER_NAME : VARCHAR2(20)
+    * MANAGER_PWD : VARCHAR2(20)
+    * MANAGER_EMAIL : VARCHAR2(50)
+    * MANAGER_TEL : VARCHAR2(20)
+    * MANAGER_ROLE : VARCHAR2(20)
+    * LOGTIME : DATE
+    * LAST_LOGIN : DATE
+}
+
+' 관계 정의
+Member ||--o{ Imageboard : "등록"
+Member ||--o{ Bid : "입찰"
+Member ||--o{ BoardPost : "작성"
+Member ||--o{ BoardComment : "작성"
+Member ||--o{ EventOrder : "주문"
+
+Imageboard ||--o{ ImageboardImages : "이미지"
+Imageboard ||--o{ Bid : "입찰내역"
+
+Board ||--o{ BoardPost : "게시글"
+Board ||--o{ EventProduct : "상품"
+
+BoardPost ||--o{ BoardComment : "댓글"
+
+EventProduct ||--o{ EventOrder : "주문"
+
+@enduml
+

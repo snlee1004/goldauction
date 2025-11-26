@@ -1,0 +1,69 @@
+@startuml 액티비티_다이어그램_회원_가입_프로세스
+!theme plain
+skinparam defaultFontName "Malgun Gothic"
+skinparam activity {
+    BackgroundColor LightCoral
+    BorderColor DarkRed
+    FontSize 12
+}
+
+start
+
+:회원 가입 페이지 접속;
+
+:회원 정보 입력;
+note right
+  - 이름
+  - ID
+  - 비밀번호
+  - 닉네임
+  - 이메일
+  - 전화번호
+  - 주소
+  - 성별
+end note
+
+:입력 정보 유효성 검증;
+
+if (모든 필드가 유효한가?) then (아니오)
+    :오류 메시지 표시;
+    stop
+else (예)
+endif
+
+:ID 중복 확인;
+
+if (ID가 이미 존재하는가?) then (예)
+    :오류 메시지 표시;
+    stop
+else (아니오)
+endif
+
+:닉네임 중복 확인;
+
+if (닉네임이 이미 존재하는가?) then (예)
+    :오류 메시지 표시;
+    stop
+else (아니오)
+endif
+
+:서버로 회원 가입 요청 전송;
+
+:비밀번호 암호화;
+
+:회원 정보 DB 저장;
+
+if (저장 성공?) then (아니오)
+    :오류 메시지 반환;
+    stop
+else (예)
+endif
+
+:회원 가입 성공 메시지 표시;
+
+:로그인 페이지로 이동;
+
+stop
+
+@enduml
+

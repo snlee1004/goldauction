@@ -1,0 +1,69 @@
+@startuml 액티비티_다이어그램_경매_입찰_프로세스
+!theme plain
+skinparam defaultFontName "Malgun Gothic"
+skinparam activity {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    FontSize 12
+}
+
+start
+
+:사용자가 경매 상품 조회;
+
+:입찰하기 버튼 클릭;
+
+if (로그인 상태 확인) then (미로그인)
+    :로그인 페이지로 이동;
+    stop
+else (로그인됨)
+endif
+
+:입찰 금액 입력;
+
+:입찰 금액 유효성 검증;
+
+if (입찰 금액이 최소 입찰 금액 이상인가?) then (아니오)
+    :오류 메시지 표시;
+    stop
+else (예)
+endif
+
+if (입찰 금액이 현재 최고 입찰 금액보다 높은가?) then (아니오)
+    :오류 메시지 표시;
+    stop
+else (예)
+endif
+
+:서버로 입찰 요청 전송;
+
+:서버에서 작성자 본인 입찰 방지 검증;
+
+if (작성자 본인인가?) then (예)
+    :오류 메시지 반환;
+    stop
+else (아니오)
+endif
+
+:서버에서 최고 입찰 금액 조회;
+
+:입찰 금액 재검증;
+
+if (입찰 금액이 최고 입찰 금액보다 높은가?) then (아니오)
+    :오류 메시지 반환;
+    stop
+else (예)
+endif
+
+:입찰 정보 DB 저장;
+
+:입찰 성공 메시지 반환;
+
+:입찰 내역 화면 갱신;
+
+:최고 입찰 금액 업데이트;
+
+stop
+
+@enduml
+

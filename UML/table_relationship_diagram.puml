@@ -1,0 +1,142 @@
+@startuml 주요_테이블_관계도_PPT용
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 15
+skinparam shadowing false
+skinparam defaultFontName "Malgun Gothic"
+skinparam defaultFontSize 14
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+skinparam titleFontName "Malgun Gothic"
+skinparam titleFontSize 16
+skinparam noteFontName "Malgun Gothic"
+skinparam noteFontSize 11
+
+title 골드옥션 주요 테이블 관계도
+
+entity "MEMBER1\n(회원)" as Member {
+    * ID <<PK>>
+    --
+    NAME
+    NICKNAME
+    PWD
+    EMAIL
+    TEL
+    ADDR
+    IS_SUSPENDED
+}
+
+entity "IMAGEBOARD1\n(경매 상품)" as Imageboard {
+    * SEQ <<PK>>
+    --
+    IMAGEID <<FK>>
+    IMAGENAME
+    IMAGEPRICE
+    MAX_BID_PRICE
+    CATEGORY
+    STATUS
+    AUCTION_START_DATE
+    AUCTION_END_DATE
+}
+
+entity "BID1\n(입찰)" as Bid {
+    * BID_SEQ <<PK>>
+    --
+    IMAGEBOARD_SEQ <<FK>>
+    BIDDER_ID <<FK>>
+    BID_AMOUNT
+    BID_TIME
+    STATUS
+}
+
+entity "BOARD1\n(게시판)" as Board {
+    * BOARD_SEQ <<PK>>
+    --
+    BOARD_NAME
+    BOARD_TYPE
+    BOARD_CATEGORY
+    IS_ACTIVE
+}
+
+entity "BOARD_POST1\n(게시글)" as BoardPost {
+    * POST_SEQ <<PK>>
+    --
+    BOARD_SEQ <<FK>>
+    MEMBER_ID <<FK>>
+    POST_TITLE
+    POST_CONTENT
+    VIEW_COUNT
+    IS_NOTICE
+}
+
+entity "EVENT_PRODUCT1\n(공구이벤트)" as EventProduct {
+    * PRODUCT_SEQ <<PK>>
+    --
+    BOARD_SEQ <<FK>>
+    PRODUCT_NAME
+    SALE_PRICE
+    STOCK_QUANTITY
+    EVENT_STATUS
+}
+
+entity "EVENT_ORDER1\n(주문)" as EventOrder {
+    * ORDER_SEQ <<PK>>
+    --
+    PRODUCT_SEQ <<FK>>
+    MEMBER_ID <<FK>>
+    ORDER_QUANTITY
+    ORDER_PRICE
+    ORDER_STATUS
+}
+
+entity "MANAGER1\n(관리자)" as Manager {
+    * MANAGER_ID <<PK>>
+    --
+    MANAGER_NAME
+    MANAGER_PWD
+    MANAGER_ROLE
+}
+
+' 핵심 관계 정의
+Member ||--o{ Imageboard : "등록\n(1:N)"
+Member ||--o{ Bid : "입찰\n(1:N)"
+Imageboard ||--o{ Bid : "입찰내역\n(1:N)"
+
+Board ||--o{ BoardPost : "게시글\n(1:N)"
+Member ||--o{ BoardPost : "작성\n(1:N)"
+
+Board ||--o{ EventProduct : "상품\n(1:N)"
+EventProduct ||--o{ EventOrder : "주문\n(1:N)"
+Member ||--o{ EventOrder : "주문\n(1:N)"
+
+note right of Member
+  **회원 테이블**
+  - 회원 가입/로그인
+  - 계정 정지 관리
+  - 닉네임 표시
+end note
+
+note right of Imageboard
+  **경매 상품 테이블**
+  - 골드/실버 등 8개 카테고리
+  - 경매 기간 설정
+  - 거래 방식 선택
+  - 상태 관리
+end note
+
+note right of Bid
+  **입찰 테이블**
+  - 실시간 입찰
+  - 입찰 이력 관리
+  - 최고 입찰 금액 추적
+end note
+
+note bottom of Board
+  **게시판 테이블**
+  - 일반 게시판
+  - 공구이벤트 게시판
+  - 게시판 타입 관리
+end note
+
+@enduml
+
