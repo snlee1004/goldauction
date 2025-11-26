@@ -272,7 +272,7 @@ function ManagerInfo() {
                         borderBottom: "2px solid #337ab7",
                         paddingBottom: "10px"
                     }}>
-                        회원관리
+                        회원&상품정보
                     </h3>
                     <div style={{
                         textAlign: "center", 
@@ -321,7 +321,7 @@ function ManagerInfo() {
                                 fontSize: "13px"
                             }}
                         >
-                            챗봇관리
+                            상품거래 통계
                         </Link>
                     </div>
                 </div>
