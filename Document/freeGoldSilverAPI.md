@@ -1,5 +1,10 @@
 ✅ 금시세 / 은시세 무료 API 제공 사이트 예시
 
+[Fred API] 달러 인덱스와 금, 은, 구리 비교 그래프 URL=https://yenpa.tistory.com/76
+[React] React를 통한 간단 댓글구현              URL=https://ambious12.tistory.com/54
+React에서 ApexCharts로 차트 그리기 - BLOG_YHUJ  URL=https://yhuj79.github.io/React/240909/
+
+
 다음은 금(Gold, XAU), 은(Silver, XAG) 시세를 실시간 또는 거의 실시간으로 제공하는 무료 API들입니다:
 
 API	설명
@@ -60,3 +65,118 @@ const fetchGoldPrice = async () => {
     const response = await fetch(
       `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${API_KEY}`
     )
+    
+
+    
+순위별 참고 사이트  
+1. 금괴 경매
+https://www.catawiki.com/en/a/th/4167-bullion-auction-gold-bars?gad_source=1&gad_campaignid=23247640976&gbraid=0AAAABB9Es6YilqLErpEE76HVvY4aKoJRK&gclid=Cj0KCQiAiebIBhDmARIsAE8PGNLIqNoLTWoitb3KV26haR2EmPKSzjLgaf9k6ujQxayJ6rA1zbQRMhoaAjpREALw_wcB
+
+2. 그래프 표시 및 메뉴 (한국 금거래소)
+https://www.koreagoldx.co.kr/
+
+3. https://www.allsurplus.com/en/biopharma   -> 기기경매사이트
+4. https://www.thebranfordgroup.com/ 		  -> 기기경매사이트	
+5. https://www.bidbuy.co.kr/auctions/yahoo   -> 경매중계사이트 
+
+
+API 참고 
+:정보데이터 시스템에서 등록된 금거래소 API 가져오기
+https://data.krx.co.kr/contents/MDC/DATA/datasale/index.cmd?viewNm=MDCDATA003
+금거래소 API 를 가져와 오늘 금시세를 보여주게 한다.
+금거래소에는 금 시세 변동에 대한 그래프가 있는데 -- 활용
+
+
+(1) 오픈API 상세
+-------------------------------------------------------------------------
+KRX금시장에 상장된 금상품의 시세 정보를 제공
+일반상품시세정보는 한국거래소에서 제공하는 주요 일반상품의 시장 시세 정보를 제공하는 데이터입니다. 해당 정보는 석유전자상거래시장, KRX 금시장, 탄소배출권시장에 상장된 상품들의 실시간 시세, 전일 대비 등락률, 거래량 등을 포함합니다.
+https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15094805
+
+방법2
+-----------------------------------------------------------
+https://yenpa.tistory.com/65#google_vignette         설명
+
+API : https://fred.stlouisfed.org/
+
+방법 3
+-----------------------------------------------------------
+챠트 모음 : https://kr.tradingview.com/
+
+방법 4
+-----------------------------------------------------------
+chatgpt : react 구현 설명
+
+
+
+(1) 챠트 구현 오픈API 
+-------------------------------------------------------------------------
+KRX금시장에 상장된 금상품의 시세 정보를 제공
+일반상품시세정보는 한국거래소에서 제공하는 주요 일반상품의 시장 시세 정보를 제공하는 데이터입니다. 해당 정보는 석유전자상거래시장, KRX 금시장, 탄소배출권시장에 상장된 상품들의 실시간 시세, 전일 대비 등락률, 거래량 등을 포함합니다.
+https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15094805
+
+구현기술 : ApexCharts.js
+모듈 설치 :  npm install react-apexcharts
+참고구현설명 링크 : https://yhuj79.github.io/React/240909/
+
+
+// Alpha Vantage API 키
+const API_KEY = 'GNYJONLPYPY5UC5E'
+
+// 실제 금시세 데이터를 가져오는 함수
+const fetchGoldPrice = async () => {
+  try {
+    // Alpha Vantage API로 실제 금시세 가져오기 (XAU = 금, USD = 미국 달러)
+    const response = await fetch(
+      `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=XAU&to_currency=USD&apikey=${API_KEY}`
+    )
+
+
+
+
+(5-1) 게시판 댓글구현 
+-------------------------------------------------------------------------
+https://ambious12.tistory.com/54       --> 검토
+
+
+
+/getGoldPriceInfo 금시세
+Example Value
+{
+  "header": {
+    "resultCode": "string",
+    "resultMsg": "string"
+  },
+  "body": {
+    "numOfRows": 0,
+    "pageNo": 0,
+    "totalCount": 0,
+    "items": {
+      "item": {
+        "trqu": 0,
+        "trPrc": 0,
+        "basDt": "string",
+        "srtnCd": "string",
+        "isinCd": "string",
+        "itmsNm": "string",
+        "clpr": 0,
+        "vs": 0,
+        "fltRt": 0,
+        "mkp": 0,
+        "hipr": 0,
+        "lopr": 0
+      }
+    }
+  }
+}
+
+Model
+{
+header	Header{...}
+body	Body_GoldPriceInfo{
+numOfRows	[...]
+pageNo	[...]
+totalCount	[...]
+items	item2{...}
+}
+}
