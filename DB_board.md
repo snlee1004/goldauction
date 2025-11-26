@@ -3,6 +3,24 @@
 ## 📋 개요
 게시판 관리자 모드 시스템의 Oracle 데이터베이스 테이블 구조, SQL 쿼리, 샘플 데이터 및 필드 매핑 문서입니다.
 
+**⚠️ 사전 요구사항**: 이 문서의 테이블들은 **DB.md**의 테이블 생성이 완료된 후 실행해야 합니다. 특히 **MEMBER1** 테이블이 먼저 생성되어 있어야 합니다.
+
+**🚀 실행 순서**: 이 문서의 테이블들은 아래 순서대로 생성해야 합니다. 외래키 제약조건을 고려하여 순서를 반드시 지켜주세요.
+
+1. **BOARD1** (게시판 테이블) - 가장 먼저 생성
+2. **BOARD_POST1** (게시글 테이블) - BOARD1, MEMBER1 참조
+3. **BOARD_COMMENT1** (댓글 테이블) - BOARD_POST1, MEMBER1 참조
+4. **BOARD_POST_FILE1** (게시글 첨부파일 테이블) - BOARD_POST1 참조
+5. **EVENT_PRODUCT1** (공구이벤트 상품 테이블) - BOARD1 참조
+6. **EVENT_PRODUCT_IMAGE1** (공구이벤트 상품 이미지 테이블) - EVENT_PRODUCT1 참조
+7. **EVENT_PRODUCT_OPTION1** (공구이벤트 상품 옵션 테이블) - EVENT_PRODUCT1 참조
+8. **EVENT_ORDER1** (공동구매 주문 테이블) - EVENT_PRODUCT1, MEMBER1 참조
+9. **PROFANITY_FILTER1** (비속어 필터 테이블)
+10. **BOARD_NOTICE_SETTING1** (게시판별 공지사항 설정 테이블) - BOARD1 참조
+11. **BOARD_NOTIFICATION1** (알림 테이블) - MEMBER1, BOARD_POST1, BOARD_COMMENT1 참조 (선택사항)
+
+**📝 참고**: 샘플 데이터는 **DB_sample.md** 파일을 참고하세요.
+
 ---
 
 ## 📊 테이블 목록
