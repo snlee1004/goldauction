@@ -27,18 +27,29 @@ function ManagerInfo() {
     }, [navigate]);
 
     // 페이지 포커스 시 데이터 새로고침 (다른 페이지에서 돌아왔을 때 최신 데이터 표시)
+    // 주의: 클릭 시 focus 이벤트가 발생하지 않도록 visibilitychange 이벤트로 변경
     useEffect(() => {
         const managerId = sessionStorage.getItem("managerId");
         if(!managerId) return; // 관리자가 아니면 리턴
         
-        const handleFocus = () => {
-            fetchDashboardData();
+        let lastVisibilityChange = Date.now();
+        
+        const handleVisibilityChange = () => {
+            // 페이지가 보이게 되었을 때만 데이터 새로고침 (다른 탭에서 돌아왔을 때)
+            if(!document.hidden) {
+                const now = Date.now();
+                // 최소 1초 간격으로만 실행 (중복 호출 방지)
+                if(now - lastVisibilityChange > 1000) {
+                    lastVisibilityChange = now;
+                    fetchDashboardData();
+                }
+            }
         };
         
-        window.addEventListener('focus', handleFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
         
         return () => {
-            window.removeEventListener('focus', handleFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []);
 
