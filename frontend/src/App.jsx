@@ -43,6 +43,7 @@ import EventBoardManage from "./board/EventBoardManage";
 import BoardStatistics from "./board/BoardStatistics";
 import NotificationList from "./board/NotificationList";
 import ImageboardProductManage from "./manager/ImageboardProductManage";
+import TransactionStatistics from "./manager/TransactionStatistics";
 
 function App() {
     return (
@@ -131,6 +132,8 @@ function App() {
                                 element={<NotificationList/>} />
                             <Route path="/manager/imageboardProductManage" 
                                 element={<ImageboardProductManage/>} />
+                            <Route path="/statistics/transaction" 
+                                element={<TransactionStatistics/>} />
                         </Routes>
                     </div>
                 </div>

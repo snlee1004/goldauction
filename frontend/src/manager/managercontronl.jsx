@@ -310,7 +310,7 @@ function ManagerInfo() {
                             경매 상품 관리
                         </Link>
                         <Link
-                            to="/chatbot/manage"
+                            to="/statistics/transaction"
                             style={{
                                 textDecoration: "none",
                                 display: "inline-block",
