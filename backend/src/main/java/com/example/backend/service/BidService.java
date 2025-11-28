@@ -48,5 +48,25 @@ public class BidService {
 	public List<Bid> getBidsByBidderId(String bidderId) {
 		return dao.findByBidderId(bidderId);
 	}
+	
+	// 게시글 번호로 낙찰된 입찰 조회
+	public List<Bid> getAwardedBidsByImageboardSeq(int imageboardSeq) {
+		return dao.findAwardedBidsByImageboardSeq(imageboardSeq);
+	}
+	
+	// 게시글 번호로 최고 입찰 금액의 입찰 조회
+	public Bid getTopBidByImageboardSeq(int imageboardSeq) {
+		return dao.findTopBidByImageboardSeq(imageboardSeq);
+	}
+	
+	// 입찰 낙찰 처리
+	public Bid awardBid(int bidSeq) {
+		return dao.awardBid(bidSeq);
+	}
+	
+	// 입찰자 ID로 낙찰된 입찰 목록 조회
+	public List<Bid> getAwardedBidsByBidderId(String bidderId) {
+		return dao.findAwardedBidsByBidderId(bidderId);
+	}
 }
 

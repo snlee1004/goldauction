@@ -26,6 +26,14 @@ function ImageboardWriteForm() {
     const navigate = useNavigate();
     const loginCheckedRef = useRef(false); // 로그인 체크 중복 방지
 
+    // 최소 날짜 계산 (내일 날짜)
+    const getMinDate = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1); // 내일 날짜
+        return tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+    };
+    const minDate = getMinDate(); // 최소 선택 가능 날짜 (내일)
+
     // 로그인 상태 확인 및 재등록 데이터 로드
     useEffect(() => {
         if(loginCheckedRef.current) return; // 이미 체크했으면 리턴
@@ -58,34 +66,74 @@ function ImageboardWriteForm() {
             }
         }
     }, [navigate]);
+    
+    // 컴포넌트 언마운트 시 미리보기 URL 정리
+    useEffect(() => {
+        return () => {
+            imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+        };
+    }, [imagePreviews]);
 
     // 이미지 파일 선택 처리 (최대 8장)
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
-        if(files.length > 8) {
-            alert("최대 8장까지만 업로드 가능합니다.");
+        if(!files || files.length === 0) {
             return;
         }
         
-        const newFiles = files.slice(0, 8);
-        setImageFiles(newFiles);
+        // 기존 파일과 새 파일 합치기
+        const currentFileCount = imageFiles.length;
+        const remainingSlots = 8 - currentFileCount;
         
-        // 미리보기 생성
-        const previews = newFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews(previews);
+        if(remainingSlots <= 0) {
+            alert("최대 8장까지만 업로드 가능합니다.");
+            if(imgRef.current) {
+                imgRef.current.value = "";
+            }
+            return;
+        }
+        
+        // 남은 슬롯만큼만 추가
+        const filesToAdd = files.slice(0, remainingSlots);
+        const newFiles = [...imageFiles, ...filesToAdd];
+        
+        if(newFiles.length > 8) {
+            alert("최대 8장까지만 업로드 가능합니다. " + (newFiles.length - 8) + "장이 제외되었습니다.");
+            const trimmedFiles = newFiles.slice(0, 8);
+            setImageFiles(trimmedFiles);
+            
+            // 기존 미리보기 URL 해제
+            imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+            // 새 미리보기 생성
+            const previews = trimmedFiles.map(file => URL.createObjectURL(file));
+            setImagePreviews(previews);
+        } else {
+            setImageFiles(newFiles);
+            
+            // 기존 미리보기 URL 해제
+            imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+            // 새 미리보기 생성
+            const previews = newFiles.map(file => URL.createObjectURL(file));
+            setImagePreviews(previews);
+        }
+        
+        // 파일 입력 초기화 (다시 선택할 수 있도록)
+        if(imgRef.current) {
+            imgRef.current.value = "";
+        }
     };
 
     // 이미지 삭제
     const handleRemoveImage = (index) => {
+        // 삭제할 미리보기 URL 해제
+        if(imagePreviews[index]) {
+            URL.revokeObjectURL(imagePreviews[index]);
+        }
+        
         const newFiles = imageFiles.filter((_, i) => i !== index);
         const newPreviews = imagePreviews.filter((_, i) => i !== index);
         setImageFiles(newFiles);
         setImagePreviews(newPreviews);
-        
-        // 파일 입력 초기화 후 다시 설정
-        if(imgRef.current) {
-            imgRef.current.value = "";
-        }
     };
 
     // 경매 등록 처리
@@ -96,19 +144,26 @@ function ImageboardWriteForm() {
                                             body: formData
                                         });
             const data = await response.json();
+            console.log("경매 등록 응답:", data); // 디버깅용
+            
             if(response.ok) {
                 if(data.rt === "OK") {
-                    alert("경매 등록 성공");
+                    const msg = data.msg || "경매 등록 성공";
+                    if(data.savedImageCount !== undefined) {
+                        alert(`${msg} (저장된 이미지: ${data.savedImageCount}개)`);
+                    } else {
+                        alert(msg);
+                    }
                     navigate("/imageboard/imageboardList");
                 } else {
-                    alert("경매 등록 실패");
+                    alert(data.msg || "경매 등록 실패");
                 }
             } else {
-                alert("경매 등록에 실패했습니다.");
+                alert(data.msg || "경매 등록에 실패했습니다.");
             }
         } catch(err) {
-            alert("경매 등록 중 오류가 발생했습니다.");
-            console.error(err);
+            console.error("경매 등록 오류:", err);
+            alert("경매 등록 중 오류가 발생했습니다: " + (err.message || "알 수 없는 오류"));
         }
     };
 
@@ -152,26 +207,43 @@ function ImageboardWriteForm() {
         formData.append("imageId", memId);  // 작성자 ID 추가
         
         // 이미지 파일들 추가
+        console.log("=== 이미지 업로드 준비 ===");
         console.log("업로드할 이미지 개수:", imageFiles.length); // 디버깅용
+        if(imageFiles.length === 0) {
+            alert("이미지를 최소 1개 이상 선택해주세요.");
+            return;
+        }
+        
         imageFiles.forEach((file, index) => {
-            console.log(`이미지 ${index + 1}:`, file.name, file.size); // 디버깅용
+            console.log(`이미지 ${index + 1}:`, {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                lastModified: new Date(file.lastModified).toLocaleString()
+            }); // 디버깅용
+            // 같은 키 이름으로 여러 파일 추가 (Spring에서 List로 받을 수 있음)
             formData.append("images", file);
         });
         
         // FormData 내용 확인
-        console.log("FormData 전송 준비 완료");
+        console.log("=== FormData 전송 준비 완료 ===");
+        let imageCount = 0;
         for(let pair of formData.entries()) {
             if(pair[1] instanceof File) {
-                console.log(pair[0] + ": " + pair[1].name);
+                console.log(`파일 ${++imageCount}:`, pair[0], "=", pair[1].name, `(${pair[1].size} bytes)`);
             } else {
-                console.log(pair[0] + ": " + pair[1]);
+                console.log(pair[0] + ":", pair[1]);
             }
         }
+        console.log("총 파일 개수:", imageCount);
         
         fetchWriteData(formData);
     };
 
     const handleReset = () => {
+        // 미리보기 URL 해제
+        imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+        
         setProductName("");
         setCategory("");
         setStartPrice("");
@@ -186,6 +258,13 @@ function ImageboardWriteForm() {
             imgRef.current.value = "";
         }
     };
+    
+    // 컴포넌트 언마운트 시 미리보기 URL 정리
+    useEffect(() => {
+        return () => {
+            imagePreviews.forEach(preview => URL.revokeObjectURL(preview));
+        };
+    }, [imagePreviews]);
 
     return (
         <div className="container" style={{maxWidth: "800px", margin: "auto", padding: "20px", marginTop: "70px", paddingTop: "10px"}}>
@@ -371,13 +450,13 @@ function ImageboardWriteForm() {
                         {/* 날짜 선택 */}
                         <div style={{flex: "1", minWidth: "200px"}}>
                             <label style={{display: "block", marginBottom: "5px", fontSize: "14px", color: "#666"}}>
-                                날짜
+                                날짜 <span style={{color: "#999", fontSize: "12px"}}>(최소 내일부터 선택 가능)</span>
                             </label>
                             <input 
                                 type="date" 
                                 value={auctionEndDate}
                                 onChange={(e) => setAuctionEndDate(e.target.value)}
-                                min={new Date().toISOString().split('T')[0]} // 오늘 이후만 선택 가능
+                                min={minDate} // 내일 이후만 선택 가능 (최소 1일 이후)
                                 style={{
                                     width: "100%",
                                     padding: "10px",

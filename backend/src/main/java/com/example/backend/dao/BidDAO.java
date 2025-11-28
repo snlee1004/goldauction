@@ -59,5 +59,36 @@ public class BidDAO {
 	public List<Bid> findByBidderId(String bidderId) {
 		return repository.findByBidderId(bidderId);
 	}
+	
+	// 게시글 번호로 낙찰된 입찰 조회
+	public List<Bid> findAwardedBidsByImageboardSeq(int imageboardSeq) {
+		return repository.findAwardedBidsByImageboardSeq(imageboardSeq);
+	}
+	
+	// 게시글 번호로 최고 입찰 금액의 입찰 조회
+	public Bid findTopBidByImageboardSeq(int imageboardSeq) {
+		return repository.findTopBidByImageboardSeq(imageboardSeq);
+	}
+	
+	// 입찰 낙찰 처리 (최고 입찰 금액의 입찰을 낙찰 상태로 변경)
+	public Bid awardBid(int bidSeq) {
+		Bid bid = repository.findById(bidSeq).orElse(null);
+		if(bid != null) {
+			BidDTO dto = new BidDTO();
+			dto.setBidSeq(bid.getBidSeq());
+			dto.setImageboardSeq(bid.getImageboardSeq());
+			dto.setBidderId(bid.getBidderId());
+			dto.setBidAmount(bid.getBidAmount());
+			dto.setBidTime(bid.getBidTime());
+			dto.setStatus("낙찰");
+			return repository.save(dto.toEntity());
+		}
+		return null;
+	}
+	
+	// 입찰자 ID로 낙찰된 입찰 목록 조회
+	public List<Bid> findAwardedBidsByBidderId(String bidderId) {
+		return repository.findAwardedBidsByBidderId(bidderId);
+	}
 }
 

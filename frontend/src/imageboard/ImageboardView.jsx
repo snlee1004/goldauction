@@ -14,6 +14,8 @@ function ImageboardView() {
     const [showImagePopup, setShowImagePopup] = useState(false); // 이미지 팝업 표시 여부
     const [writerNickname, setWriterNickname] = useState(""); // 등록자 닉네임
     const [remainingTime, setRemainingTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false }); // 남은 시간 (실시간)
+    const [imageList, setImageList] = useState([]); // 이미지 목록
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0); // 현재 선택된 이미지 인덱스
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -21,12 +23,14 @@ function ImageboardView() {
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const seq = parseInt(queryParams.get("seq"));
-        const pg = parseInt(queryParams.get("pg"));
+        const pgParam = queryParams.get("pg");
+        const pg = pgParam ? parseInt(pgParam) : 1; // pg가 없으면 기본값 1
         setSeq(seq);
-        setPg(pg);
+        setPg(isNaN(pg) || pg < 1 ? 1 : pg); // 유효하지 않은 값이면 1로 설정
         // 상세보기 데이터 가져오기
         if(seq) {
             fetchBoardData(seq);
+            fetchImageList(seq); // 이미지 목록 가져오기
             // 입찰 데이터는 게시글 데이터 로드 후 조회 (약간의 지연을 두어 데이터 일관성 확보)
             setTimeout(() => {
                 fetchBidData(seq);
@@ -70,6 +74,73 @@ function ImageboardView() {
             console.error("등록자 닉네임 조회 오류:", err);
             setWriterNickname(imageid);
         }
+    };
+
+    // 이미지 목록 가져오기
+    const fetchImageList = async (imageboardSeq) => {
+        try {
+            const response = await fetch(`http://localhost:8080/imageboard/images?imageboardSeq=${imageboardSeq}`);
+            const data = await response.json();
+            if(data.rt === "OK" && data.items) {
+                // 이미지 경로 정리 및 정렬 (imageOrder 기준)
+                const sortedImages = data.items
+                    .sort((a, b) => (a.imageOrder || 0) - (b.imageOrder || 0))
+                    .map(img => ({
+                        ...img,
+                        imagePath: img.imagePath || img.image_path
+                    }));
+                setImageList(sortedImages);
+                setSelectedImageIndex(0); // 이미지 목록이 변경되면 첫 번째 이미지로 리셋
+                console.log("이미지 목록:", sortedImages);
+            } else {
+                setImageList([]);
+                setSelectedImageIndex(0);
+            }
+        } catch(err) {
+            console.error("이미지 목록 조회 오류:", err);
+            setImageList([]);
+            setSelectedImageIndex(0);
+        }
+    };
+
+    // 이미지 URL 생성 함수
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return "/placeholder-image.png";
+        
+        // DB에 저장된 경로가 original/파일명 형식인 경우
+        if (imagePath.startsWith("original/")) {
+            return `http://localhost:8080/storage/${imagePath}`;
+        }
+        // 기존 데이터 호환성
+        return `http://localhost:8080/storage/${imagePath}`;
+    };
+
+    // 썸네일 이미지 URL 생성 함수 (thumb 폴더 사용)
+    const getThumbnailUrl = (imagePath) => {
+        if (!imagePath) return "/placeholder-image.png";
+        
+        // original/파일명 형식을 thumb/파일명으로 변환
+        if (imagePath.startsWith("original/")) {
+            const fileName = imagePath.replace("original/", "");
+            return `http://localhost:8080/storage/thumb/${fileName}`;
+        }
+        // 기존 데이터 호환성
+        return `http://localhost:8080/storage/thumb/${imagePath}`;
+    };
+
+    // 현재 표시할 메인 이미지 경로
+    const getCurrentMainImage = () => {
+        // 이미지 목록이 있고 선택된 인덱스가 있으면 해당 이미지 사용
+        if(imageList.length > 0 && selectedImageIndex < imageList.length) {
+            return getImageUrl(imageList[selectedImageIndex].imagePath);
+        }
+        // 이미지 목록이 없으면 기본 image1 사용
+        if (!imageboardData.image1) return "/placeholder-image.png";
+        
+        if (imageboardData.image1.startsWith("original/")) {
+            return `http://localhost:8080/storage/${imageboardData.image1}`;
+        }
+        return `http://localhost:8080/storage/${imageboardData.image1}`;
     };
 
     // 이미지 팝업 열기
@@ -440,7 +511,9 @@ function ImageboardView() {
     };
 
     const handleList = () => {
-        navigate(`/imageboard/imageboardList?pg=${pg}`);
+        // pg가 유효하지 않으면 기본값 1 사용
+        const validPg = (pg && !isNaN(pg) && pg > 0) ? pg : 1;
+        navigate(`/imageboard/imageboardList?pg=${validPg}`);
     };
 
     const handleModify = () => {
@@ -629,29 +702,79 @@ function ImageboardView() {
             {/* 상품 이미지와 정보 테이블 */}
             <div style={{display: "flex", gap: "40px", marginBottom: "30px"}}>
                 {/* 상품 이미지 */}
-                <div style={{flex: "0 0 280px"}}>
-                    <div style={{fontSize: "14px", marginBottom: "10px", color: "#666"}}>
-                        {imageboardData.category || "카테고리"}
-                    </div>
-                    <img 
-                        width="280" 
-                        height="280" 
-                        alt="상품 이미지"
-                        src={(() => {
-                            if (!imageboardData.image1) return "/placeholder-image.png";
+                <div style={{flex: "0 0 280px", display: "flex", gap: "10px"}}>
+                    {/* 왼쪽 썸네일 이미지 박스 (최대 4개) */}
+                    <div style={{display: "flex", flexDirection: "column", gap: "8px", width: "60px"}}>
+                        {(() => {
+                            // 이미지 목록이 있으면 목록 사용, 없으면 기본 이미지 1개만 표시
+                            const displayImages = imageList.length > 0 
+                                ? imageList.slice(0, 4) 
+                                : (imageboardData.image1 ? [{ imagePath: imageboardData.image1 }] : []);
                             
-                            // DB에 저장된 경로가 original/파일명 형식인 경우 (이미 원본 경로)
-                            if (imageboardData.image1.startsWith("original/")) {
-                                return `http://localhost:8080/storage/${imageboardData.image1}`;
-                            }
-                            // 기존 데이터 호환성 (파일명만 있는 경우 - 원본이 storage 루트에 있음)
-                            return `http://localhost:8080/storage/${imageboardData.image1}`;
+                            return displayImages.map((img, index) => (
+                                <div
+                                    key={index}
+                                    onClick={() => setSelectedImageIndex(index)}
+                                    style={{
+                                        width: "60px",
+                                        height: "60px",
+                                        border: selectedImageIndex === index ? "3px solid #007bff" : "1px solid #ddd",
+                                        borderRadius: "4px",
+                                        cursor: "pointer",
+                                        overflow: "hidden",
+                                        backgroundColor: "#f8f9fa",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        transition: "all 0.2s"
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if(selectedImageIndex !== index) {
+                                            e.currentTarget.style.borderColor = "#007bff";
+                                            e.currentTarget.style.opacity = "0.8";
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if(selectedImageIndex !== index) {
+                                            e.currentTarget.style.borderColor = "#ddd";
+                                            e.currentTarget.style.opacity = "1";
+                                        }
+                                    }}
+                                >
+                                    <img
+                                        src={getThumbnailUrl(img.imagePath)}
+                                        alt={`썸네일 ${index + 1}`}
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover"
+                                        }}
+                                        onError={(e) => {
+                                            // 썸네일이 없으면 원본 이미지 사용
+                                            e.target.src = getImageUrl(img.imagePath);
+                                        }}
+                                    />
+                                </div>
+                            ));
                         })()}
-                        style={{border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", width: "280px", height: "280px", objectFit: "cover"}}
-                        onClick={handleImageClick}
-                    />
-                    <div style={{fontSize: "12px", color: "#555", marginTop: "8px", textAlign: "center"}}>
-                        {writerNickname || imageboardData.imageid || "등록자"}
+                    </div>
+                    
+                    {/* 메인 이미지 */}
+                    <div style={{flex: "1"}}>
+                        <div style={{fontSize: "14px", marginBottom: "10px", color: "#666"}}>
+                            {imageboardData.category || "카테고리"}
+                        </div>
+                        <img 
+                            width="280" 
+                            height="280" 
+                            alt="상품 이미지"
+                            src={getCurrentMainImage()}
+                            style={{border: "1px solid #ddd", borderRadius: "4px", cursor: "pointer", width: "280px", height: "280px", objectFit: "cover"}}
+                            onClick={handleImageClick}
+                        />
+                        <div style={{fontSize: "12px", color: "#555", marginTop: "8px", textAlign: "center"}}>
+                            {writerNickname || imageboardData.imageid || "등록자"}
+                        </div>
                     </div>
                 </div>
 
@@ -680,7 +803,7 @@ function ImageboardView() {
                                             fontSize: "13px",
                                             textAlign: "center"
                                         }}>
-                                            본인의 상품은 입찰이 불가능합니다.
+                                            본인의 상품은 입찰 불가능
                                         </div>
                                     ) : (
                                         <form onSubmit={handleBidSubmit} style={{display: "flex", gap: "10px"}}>
@@ -731,7 +854,7 @@ function ImageboardView() {
                                                     fontSize: "13px",
                                                     textAlign: "center"
                                                 }}>
-                                                    본인의 상품은 즉시 구매할 수 없습니다.
+                                                    본인의 상품은 구매불가
                                                 </div>
                                             ) : (
                                                 <button 
@@ -984,23 +1107,28 @@ function ImageboardView() {
                         </button>
                     </>
                 )}
-                {/* 작성자만 판매정보상세 및 삭제 버튼 표시 (판매완료된 경우) */}
-                {isAuthor() && status === "판매완료" && (
+                {/* 판매완료된 경우: 구매자와 판매자 모두 거래 성립 페이지 접근 가능 */}
+                {status === "판매완료" && (
                     <>
                         &nbsp;
                         <button 
-                            className="btn btn-info" 
-                            onClick={() => navigate("/member/memberInfo")}
+                            className="btn btn-success" 
+                            onClick={() => navigate(`/imageboard/transactionComplete?seq=${seq}`)}
                             style={{
-                                backgroundColor: "#17a2b8",
-                                borderColor: "#17a2b8",
+                                backgroundColor: "#28a745",
+                                borderColor: "#28a745",
                                 color: "#fff",
                                 padding: "6px 12px",
                                 fontSize: "13px"
                             }}
                         >
-                            <i className="bi bi-person-circle"></i> 판매정보상세
+                            <i className="bi bi-handshake"></i> 거래 성립 정보
                         </button>
+                    </>
+                )}
+                {/* 작성자만 삭제 버튼 표시 (판매완료된 경우) */}
+                {isAuthor() && status === "판매완료" && (
+                    <>
                         &nbsp;
                         <button 
                             className="btn btn-danger" 

@@ -44,6 +44,7 @@ import BoardStatistics from "./board/BoardStatistics";
 import NotificationList from "./board/NotificationList";
 import ImageboardProductManage from "./manager/ImageboardProductManage";
 import TransactionStatistics from "./manager/TransactionStatistics";
+import TransactionComplete from "./imageboard/TransactionComplete";
 
 function App() {
     return (
@@ -64,6 +65,8 @@ function App() {
                                 element={<ImageboardList/>} />
                             <Route path="/imageboard/imageboardView" 
                                 element={<ImageboardView/>} />
+                            <Route path="/imageboard/transactionComplete" 
+                                element={<TransactionComplete/>} />
                             <Route path="/imageboard/imageboardCanceledList" 
                                 element={<ImageboardCanceledList/>} />
                             <Route path="/imageboard/imageboardCanceledView" 

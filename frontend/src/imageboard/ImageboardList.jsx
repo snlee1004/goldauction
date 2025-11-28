@@ -63,7 +63,8 @@ function ImageboardList() {
             }
         } catch(err) {
             console.error("목록 조회 오류:", err);
-            setError("목록을 불러오는 중 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.");
+            console.error("오류 상세:", err.message, err.stack);
+            setError(`목록을 불러오는 중 오류가 발생했습니다: ${err.message || "알 수 없는 오류"}. 서버가 실행 중인지 확인해주세요.`);
             setImageboardList([]);
         } finally {
             setLoading(false);

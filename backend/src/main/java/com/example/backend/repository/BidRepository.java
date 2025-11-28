@@ -28,5 +28,17 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 	// 입찰자 ID로 입찰 목록 조회 (유효한 입찰만)
 	@Query(value = "select * from BID1 where BIDDER_ID = :bidderId and STATUS = '유효' order by BID_TIME desc", nativeQuery = true)
 	List<Bid> findByBidderId(@Param("bidderId") String bidderId);
+	
+	// 게시글 번호로 낙찰된 입찰 조회 (낙찰 상태)
+	@Query(value = "select * from BID1 where IMAGEBOARD_SEQ = :seq and STATUS = '낙찰' order by BID_AMOUNT desc, BID_TIME desc", nativeQuery = true)
+	List<Bid> findAwardedBidsByImageboardSeq(@Param("seq") int seq);
+	
+	// 게시글 번호로 최고 입찰 금액의 입찰 조회 (유효한 입찰 중)
+	@Query(value = "select * from (select * from BID1 where IMAGEBOARD_SEQ = :seq and STATUS = '유효' order by BID_AMOUNT desc, BID_TIME desc) where rownum = 1", nativeQuery = true)
+	Bid findTopBidByImageboardSeq(@Param("seq") int seq);
+	
+	// 입찰자 ID로 낙찰된 입찰 목록 조회 (낙찰 상태)
+	@Query(value = "select * from BID1 where BIDDER_ID = :bidderId and STATUS = '낙찰' order by BID_TIME desc", nativeQuery = true)
+	List<Bid> findAwardedBidsByBidderId(@Param("bidderId") String bidderId);
 }
 

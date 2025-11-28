@@ -93,13 +93,17 @@ public class ImageboardController {
 						"yyyy-MM-dd'T'HH:mm:ss.SSS"
 					};
 					
+					// 한국 시간대 설정
+					java.util.TimeZone timeZone = java.util.TimeZone.getTimeZone("Asia/Seoul");
+					
 					boolean parsed = false;
 					for(String format : formats) {
 						try {
 							SimpleDateFormat sdf = new SimpleDateFormat(format);
 							sdf.setLenient(false);
+							sdf.setTimeZone(timeZone); // 한국 시간대 설정
 							endDate = sdf.parse(auctionPeriod);
-							System.out.println("날짜/시간 형식 파싱 성공 (" + format + "): " + endDate);
+							System.out.println("날짜/시간 형식 파싱 성공 (" + format + "): " + endDate + " (타임존: Asia/Seoul)");
 							parsed = true;
 							break;
 						} catch(ParseException pe) {
@@ -115,15 +119,17 @@ public class ImageboardController {
 					// 날짜만 있는 경우 (예: "2025-11-25")
 					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 					sdf.setLenient(false);
+					sdf.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Seoul")); // 한국 시간대 설정
 					endDate = sdf.parse(auctionPeriod);
 					// 시간을 23:59:59로 설정
-					java.util.Calendar cal = java.util.Calendar.getInstance();
+					java.util.Calendar cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Seoul"));
 					cal.setTime(endDate);
 					cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
 					cal.set(java.util.Calendar.MINUTE, 59);
 					cal.set(java.util.Calendar.SECOND, 59);
+					cal.set(java.util.Calendar.MILLISECOND, 0);
 					endDate = cal.getTime();
-					System.out.println("날짜 형식 파싱 성공: " + endDate);
+					System.out.println("날짜 형식 파싱 성공: " + endDate + " (타임존: Asia/Seoul)");
 				} else {
 					// "7일후", "14일후" 형식인 경우 (기존 로직 사용)
 					dto.setAuctionPeriod(auctionPeriod);
@@ -161,6 +167,10 @@ public class ImageboardController {
 		dto.setImageQty(1);
 		dto.setLogtime(new Date());
 		
+		// 경매 상태를 명시적으로 "진행중"으로 설정 (등록 직후에는 항상 진행중)
+		dto.setStatus("진행중");
+		System.out.println("경매 등록 - 상태를 '진행중'으로 명시적 설정");
+		
 		File folder = new File(uploadpath);
 		if(!folder.exists()) {
 			folder.mkdirs();
@@ -177,51 +187,132 @@ public class ImageboardController {
 		}
 		
 		// 다중 이미지 저장 (원본 + 썸네일 자동 생성)
+		int savedImageCount = 0; // 실제 저장된 이미지 개수
+		int totalImageCount = 0; // 전체 이미지 개수
 		if(images != null && !images.isEmpty()) {
+			System.out.println("=== 이미지 저장 시작 ===");
 			System.out.println("받은 이미지 개수: " + images.size()); // 디버깅용
 			int order = 1;
+			long baseTimestamp = System.currentTimeMillis(); // 기준 타임스탬프
+			
 			for(MultipartFile file : images) {
 				if(file != null && !file.isEmpty()) {
+					totalImageCount++;
+					System.out.println("이미지 처리 시작 (순서: " + order + ", 크기: " + file.getSize() + " bytes)"); // 디버깅용
 					try {
-						String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+						// 파일명에 고유성 보장 (타임스탬프 + 순서 + UUID + 확장자)
+						String originalFileName = file.getOriginalFilename();
+						if(originalFileName == null || originalFileName.isEmpty()) {
+							originalFileName = "image.jpg";
+						}
+						System.out.println("원본 파일명: " + originalFileName); // 디버깅용
+						
+						// 파일 확장자 추출
+						String extension = ".jpg"; // 기본값
+						int lastDotIndex = originalFileName.lastIndexOf('.');
+						if(lastDotIndex > 0 && lastDotIndex < originalFileName.length() - 1) {
+							extension = originalFileName.substring(lastDotIndex).toLowerCase();
+							// 확장자 검증 (알파벳과 숫자만 허용, 최대 10자)
+							if(!extension.matches("\\.[a-zA-Z0-9]{1,10}")) {
+								extension = ".jpg";
+							}
+						}
+						System.out.println("확장자: " + extension); // 디버깅용
+						
+						// 고유 파일명 생성 (타임스탬프_순서_UUID.확장자)
+						// UUID를 사용하여 완전히 고유한 파일명 보장
+						String uuid = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+						// 파일명을 간단하게 생성 (특수문자 제거)
+						String fileName = baseTimestamp + "_" + order + "_" + uuid + extension;
+						// 파일명에서 특수문자 제거 (안전한 파일명 보장)
+						fileName = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+						System.out.println("생성된 파일명: " + fileName); // 디버깅용
 						
 						// 원본과 썸네일 자동 생성
-						String savedPath = thumbnailUtil.saveImageWithThumbnail(file.getInputStream(), fileName);
-						System.out.println("이미지 저장 완료: " + savedPath + " (순서: " + order + ")"); // 디버깅용
-						
-						// 첫 번째 이미지를 대표 이미지로 설정
-						if(order == 1) {
-							dto.setSeq(imageboard.getSeq());
-							dto.setImage1(savedPath);  // original/파일명 형식으로 저장
-							service.imageboardModify(dto);  // 대표 이미지 업데이트
-							System.out.println("대표 이미지 설정: " + savedPath); // 디버깅용
+						System.out.println("이미지 저장 시작 (순서: " + order + ")");
+						// InputStream을 안전하게 처리
+						java.io.InputStream inputStream = null;
+						try {
+							inputStream = file.getInputStream();
+							String savedPath = thumbnailUtil.saveImageWithThumbnail(inputStream, fileName);
+							System.out.println("이미지 저장 완료: " + savedPath + " (순서: " + order + ")"); // 디버깅용
+							
+							// 첫 번째 이미지를 대표 이미지로 설정
+							if(order == 1) {
+								dto.setSeq(imageboard.getSeq());
+								dto.setImage1(savedPath);  // original/파일명 형식으로 저장
+								Imageboard updatedImageboard = service.imageboardModify(dto);  // 대표 이미지 업데이트
+								if(updatedImageboard != null) {
+									System.out.println("대표 이미지 설정 완료: " + savedPath); // 디버깅용
+								} else {
+									System.err.println("대표 이미지 설정 실패 (순서: " + order + ")");
+								}
+							}
+							
+							// 이미지 정보 저장 (DB에는 original/파일명 형식으로 저장)
+							ImageboardImagesDTO imgDto = new ImageboardImagesDTO();
+							imgDto.setImageboardSeq(imageboard.getSeq());
+							imgDto.setImagePath(savedPath);  // original/파일명 형식
+							imgDto.setImageOrder(order);
+							imgDto.setUploadDate(new Date());
+							ImageboardImages savedImage = imagesService.save(imgDto);
+							if(savedImage != null && savedImage.getImgSeq() > 0) {
+								System.out.println("이미지 정보 저장 완료: seq=" + savedImage.getImgSeq() + ", path=" + savedImage.getImagePath()); // 디버깅용
+								savedImageCount++;
+							} else {
+								System.err.println("이미지 정보 저장 실패 (순서: " + order + ", savedImage: " + savedImage + ")");
+							}
+							
+							order++;
+						} finally {
+							// InputStream 안전하게 닫기
+							if(inputStream != null) {
+								try {
+									inputStream.close();
+								} catch(IOException closeE) {
+									System.err.println("InputStream 닫기 오류: " + closeE.getMessage());
+								}
+							}
 						}
-						
-						// 이미지 정보 저장 (DB에는 original/파일명 형식으로 저장)
-						ImageboardImagesDTO imgDto = new ImageboardImagesDTO();
-						imgDto.setImageboardSeq(imageboard.getSeq());
-						imgDto.setImagePath(savedPath);  // original/파일명 형식
-						imgDto.setImageOrder(order);
-						imgDto.setUploadDate(new Date());
-						ImageboardImages savedImage = imagesService.save(imgDto);
-						System.out.println("이미지 정보 저장 완료: seq=" + savedImage.getImgSeq() + ", path=" + savedImage.getImagePath()); // 디버깅용
-						
-						order++;
-					} catch (IllegalStateException | IOException e) {
-						System.out.println("이미지 저장 오류: " + e.getMessage()); // 디버깅용
+					} catch (IllegalStateException e) {
+						System.err.println("IllegalStateException 발생 (순서: " + order + "): " + e.getMessage());
+						e.printStackTrace();
+						// 개별 이미지 저장 실패해도 다음 이미지 계속 처리
+					} catch (IOException e) {
+						System.err.println("IOException 발생 (순서: " + order + "): " + e.getMessage());
+						e.printStackTrace();
+						// 개별 이미지 저장 실패해도 다음 이미지 계속 처리
+					} catch (Exception e) {
+						System.err.println("예상치 못한 오류 (순서: " + order + "): " + e.getClass().getName() + " - " + e.getMessage());
 						e.printStackTrace();
 					}
 				} else {
 					System.out.println("빈 파일 건너뜀 (순서: " + order + ")"); // 디버깅용
 				}
 			}
-			System.out.println("총 저장된 이미지 개수: " + (order - 1)); // 디버깅용
+			System.out.println("=== 이미지 저장 완료 ===");
+			System.out.println("총 저장된 이미지 개수: " + savedImageCount + " / " + totalImageCount); // 디버깅용
 		} else {
 			System.out.println("이미지가 없거나 비어있음"); // 디버깅용
 		}
 		
 		Map<String, Object> map = new HashMap<String, Object>();
+		// 경매 등록 자체는 성공했으므로 항상 OK 반환
+		// 이미지 저장 결과는 별도로 전달
 		map.put("rt", "OK");
+		if(images != null && !images.isEmpty()) {
+			if(savedImageCount == totalImageCount) {
+				map.put("msg", "경매가 등록되었습니다. (" + savedImageCount + "개 이미지 저장 완료)");
+			} else if(savedImageCount > 0) {
+				map.put("msg", "경매가 등록되었습니다. (" + savedImageCount + "/" + totalImageCount + "개 이미지 저장 완료)");
+			} else {
+				map.put("msg", "경매가 등록되었습니다. (이미지 저장 실패)");
+			}
+			map.put("savedImageCount", savedImageCount);
+			map.put("totalImageCount", totalImageCount);
+		} else {
+			map.put("msg", "경매가 등록되었습니다.");
+		}
 		return map;
 	}
 	// 2. 목록 (카테고리 필터링 지원)
@@ -300,54 +391,103 @@ public class ImageboardController {
 						Date endDate = item.getAuctionEndDate();
 						
 						// 경매 종료일이 있고, 현재 시간이 종료일을 지났으면 상태를 "종료"로 변경
-						if(endDate != null && now.after(endDate)) {
-							// 날짜 비교 (시간 제외)
-							java.util.Calendar endCal = java.util.Calendar.getInstance();
-							endCal.setTime(endDate);
-							endCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-							endCal.set(java.util.Calendar.MINUTE, 0);
-							endCal.set(java.util.Calendar.SECOND, 0);
-							endCal.set(java.util.Calendar.MILLISECOND, 0);
+						// 시간을 포함한 정확한 비교 (시간을 0으로 초기화하지 않음)
+						if(endDate != null) {
+							// 디버깅: 비교 값 출력
+							long nowTime = now.getTime();
+							long endTime = endDate.getTime();
+							long diff = endTime - nowTime;
 							
-							java.util.Calendar nowCal = java.util.Calendar.getInstance();
-							nowCal.setTime(now);
-							nowCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-							nowCal.set(java.util.Calendar.MINUTE, 0);
-							nowCal.set(java.util.Calendar.SECOND, 0);
-							nowCal.set(java.util.Calendar.MILLISECOND, 0);
+							// 경매 등록 직후 체크 (등록 후 1분 이내면 상태 체크 건너뛰기)
+							Date logtime = item.getLogtime();
+							boolean isRecentlyCreated = false;
+							if(logtime != null) {
+								long timeSinceCreation = nowTime - logtime.getTime();
+								if(timeSinceCreation < 60000) { // 1분(60000ms) 이내
+									isRecentlyCreated = true;
+									System.out.println("경매 등록 직후 (seq: " + item.getSeq() + ", 등록 후 " + (timeSinceCreation / 1000) + "초) - 상태 체크 건너뛰기");
+								}
+							}
 							
-							// 종료일이 지났으면 상태를 "종료"로 변경
-							if(nowCal.after(endCal) || nowCal.equals(endCal)) {
-								currentStatus = "종료";
-								System.out.println("경매 종료 감지 (seq: " + item.getSeq() + ") - 상태를 '종료'로 변경");
+							if(!isRecentlyCreated) {
+								System.out.println("경매 상태 체크 (seq: " + item.getSeq() + ", 현재: " + now + " (" + nowTime + "), 종료일: " + endDate + " (" + endTime + "), 차이: " + diff + "ms)");
+								
+								// 현재 시간이 종료 시간보다 늦거나 같으면 종료
+								// 차이가 0보다 작거나 같으면 종료 (밀리초 단위 정확한 비교)
+								if(diff <= 0) {
+									currentStatus = "종료";
+									System.out.println("경매 종료 감지 (seq: " + item.getSeq() + ") - 상태를 '종료'로 변경");
 								
 								// DB에도 상태 업데이트 (비동기로 처리하거나 별도로 처리 가능)
 								try {
 									// 상태가 "진행중"인 경우에만 DB 업데이트
 									if(item.getStatus() != null && item.getStatus().equals("진행중")) {
-										ImageboardDTO updateDto = new ImageboardDTO();
-										updateDto.setSeq(item.getSeq());
-										updateDto.setImageId(item.getImageid());
-										updateDto.setImageName(item.getImagename());
-										updateDto.setImagePrice(item.getImageprice());
-										updateDto.setImageQty(item.getImageqty());
-										updateDto.setImageContent(item.getImagecontent());
-										updateDto.setImage1(item.getImage1());
-										updateDto.setCategory(item.getCategory());
-										updateDto.setAuctionPeriod(item.getAuctionPeriod());
-										updateDto.setTransactionMethod(item.getTransactionMethod());
-										updateDto.setAuctionStartDate(item.getAuctionStartDate());
-										updateDto.setAuctionEndDate(item.getAuctionEndDate());
-										updateDto.setStatus("종료");
-										updateDto.setLogtime(item.getLogtime());
-										service.imageboardModify(updateDto);
-										System.out.println("DB 상태 업데이트 완료 (seq: " + item.getSeq() + ")");
+										// 입찰이 있는지 확인 (예외 처리)
+										try {
+											int bidCount = bidService.getBidCountByImageboardSeq(item.getSeq());
+											if(bidCount > 0) {
+												// 최고 입찰 금액의 입찰 조회 (예외 처리)
+												try {
+													com.example.backend.entity.Bid topBid = bidService.getTopBidByImageboardSeq(item.getSeq());
+													if(topBid != null) {
+														// 최고 입찰자를 낙찰 처리 (예외 처리)
+														try {
+															bidService.awardBid(topBid.getBidSeq());
+															System.out.println("자동 낙찰 처리 완료 (bidSeq: " + topBid.getBidSeq() + ", bidderId: " + topBid.getBidderId() + ")");
+															// 경매 상태를 "판매완료"로 변경
+															currentStatus = "판매완료";
+														} catch(Exception bidE) {
+															System.err.println("낙찰 처리 실패 (bidSeq: " + topBid.getBidSeq() + "): " + bidE.getMessage());
+															bidE.printStackTrace();
+															// 낙찰 실패해도 상태는 "종료"로 유지
+														}
+													}
+												} catch(Exception topBidE) {
+													System.err.println("최고 입찰 조회 실패 (seq: " + item.getSeq() + "): " + topBidE.getMessage());
+													topBidE.printStackTrace();
+													// 최고 입찰 조회 실패해도 계속 진행
+												}
+											}
+										} catch(Exception bidCountE) {
+											System.err.println("입찰 수 조회 실패 (seq: " + item.getSeq() + "): " + bidCountE.getMessage());
+											bidCountE.printStackTrace();
+											// 입찰 수 조회 실패해도 계속 진행
+										}
+										
+										// 상태 업데이트 (예외 처리)
+										try {
+											ImageboardDTO updateDto = new ImageboardDTO();
+											updateDto.setSeq(item.getSeq());
+											updateDto.setImageId(item.getImageid());
+											updateDto.setImageName(item.getImagename());
+											updateDto.setImagePrice(item.getImageprice());
+											updateDto.setImageQty(item.getImageqty());
+											updateDto.setImageContent(item.getImagecontent());
+											updateDto.setImage1(item.getImage1());
+											updateDto.setCategory(item.getCategory());
+											updateDto.setAuctionPeriod(item.getAuctionPeriod());
+											updateDto.setTransactionMethod(item.getTransactionMethod());
+											updateDto.setAuctionStartDate(item.getAuctionStartDate());
+											updateDto.setAuctionEndDate(item.getAuctionEndDate());
+											updateDto.setStatus(currentStatus);
+											updateDto.setLogtime(item.getLogtime());
+											service.imageboardModify(updateDto);
+											System.out.println("DB 상태 업데이트 완료 (seq: " + item.getSeq() + ", status: " + currentStatus + ")");
+										} catch(Exception updateE) {
+											System.err.println("상태 업데이트 실패 (seq: " + item.getSeq() + "): " + updateE.getMessage());
+											updateE.printStackTrace();
+											// 상태 업데이트 실패해도 반환값은 "종료"로 설정
+										}
 									}
 								} catch(Exception e) {
 									System.err.println("DB 상태 업데이트 실패 (seq: " + item.getSeq() + "): " + e.getMessage());
+									e.printStackTrace();
 									// DB 업데이트 실패해도 반환값은 "종료"로 설정
 								}
+							} else {
+								System.out.println("경매 진행 중 (seq: " + item.getSeq() + ", 남은 시간: " + (diff / 1000) + "초)");
 							}
+							} // if(!isRecentlyCreated) 블록 닫기
 						}
 					}
 					
@@ -628,31 +768,51 @@ public class ImageboardController {
 				Date endDate = imageboard.getAuctionEndDate();
 				
 				// 경매 종료일이 있고, 현재 시간이 종료일을 지났으면 상태를 "종료"로 변경
-				if(endDate != null && now.after(endDate)) {
-					// 날짜 비교 (시간 제외)
-					java.util.Calendar endCal = java.util.Calendar.getInstance();
-					endCal.setTime(endDate);
-					endCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-					endCal.set(java.util.Calendar.MINUTE, 0);
-					endCal.set(java.util.Calendar.SECOND, 0);
-					endCal.set(java.util.Calendar.MILLISECOND, 0);
+				// 시간을 포함한 정확한 비교 (시간을 0으로 초기화하지 않음)
+				if(endDate != null) {
+					// 디버깅: 비교 값 출력
+					long nowTime = now.getTime();
+					long endTime = endDate.getTime();
+					long diff = endTime - nowTime;
 					
-					java.util.Calendar nowCal = java.util.Calendar.getInstance();
-					nowCal.setTime(now);
-					nowCal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-					nowCal.set(java.util.Calendar.MINUTE, 0);
-					nowCal.set(java.util.Calendar.SECOND, 0);
-					nowCal.set(java.util.Calendar.MILLISECOND, 0);
+					// 경매 등록 직후 체크 (등록 후 1분 이내면 상태 체크 건너뛰기)
+					Date logtime = imageboard.getLogtime();
+					boolean isRecentlyCreated = false;
+					if(logtime != null) {
+						long timeSinceCreation = nowTime - logtime.getTime();
+						if(timeSinceCreation < 60000) { // 1분(60000ms) 이내
+							isRecentlyCreated = true;
+							System.out.println("경매 등록 직후 (seq: " + seq + ", 등록 후 " + (timeSinceCreation / 1000) + "초) - 상태 체크 건너뛰기");
+						}
+					}
 					
-					// 종료일이 지났으면 상태를 "종료"로 변경
-					if(nowCal.after(endCal) || nowCal.equals(endCal)) {
-						currentStatus = "종료";
-						System.out.println("경매 종료 감지 (seq: " + seq + ") - 상태를 '종료'로 변경");
+					if(!isRecentlyCreated) {
+						System.out.println("경매 상태 체크 (seq: " + seq + ", 현재: " + now + " (" + nowTime + "), 종료일: " + endDate + " (" + endTime + "), 차이: " + diff + "ms)");
+						
+						// 현재 시간이 종료 시간보다 늦거나 같으면 종료
+						// 차이가 0보다 작거나 같으면 종료 (밀리초 단위 정확한 비교)
+						if(diff <= 0) {
+							currentStatus = "종료";
+							System.out.println("경매 종료 감지 (seq: " + seq + ") - 상태를 '종료'로 변경");
 						
 						// DB에도 상태 업데이트
 						try {
 							// 상태가 "진행중"인 경우에만 DB 업데이트
 							if(imageboard.getStatus() != null && imageboard.getStatus().equals("진행중")) {
+								// 입찰이 있는지 확인
+								int bidCount = bidService.getBidCountByImageboardSeq(seq);
+								if(bidCount > 0) {
+									// 최고 입찰 금액의 입찰 조회
+									com.example.backend.entity.Bid topBid = bidService.getTopBidByImageboardSeq(seq);
+									if(topBid != null) {
+										// 최고 입찰자를 낙찰 처리
+										bidService.awardBid(topBid.getBidSeq());
+										System.out.println("자동 낙찰 처리 완료 (bidSeq: " + topBid.getBidSeq() + ", bidderId: " + topBid.getBidderId() + ")");
+										// 경매 상태를 "판매완료"로 변경
+										currentStatus = "판매완료";
+									}
+								}
+								
 								ImageboardDTO updateDto = new ImageboardDTO();
 								updateDto.setSeq(imageboard.getSeq());
 								updateDto.setImageId(imageboard.getImageid());
@@ -666,20 +826,24 @@ public class ImageboardController {
 								updateDto.setTransactionMethod(imageboard.getTransactionMethod());
 								updateDto.setAuctionStartDate(imageboard.getAuctionStartDate());
 								updateDto.setAuctionEndDate(imageboard.getAuctionEndDate());
-								updateDto.setStatus("종료");
+								updateDto.setStatus(currentStatus);
 								updateDto.setLogtime(imageboard.getLogtime());
 								service.imageboardModify(updateDto);
-								System.out.println("DB 상태 업데이트 완료 (seq: " + seq + ")");
+								System.out.println("DB 상태 업데이트 완료 (seq: " + seq + ", status: " + currentStatus + ")");
 								
 								// 업데이트된 데이터 다시 조회
 								imageboard = service.imageboardView(seq);
 							}
 						} catch(Exception e) {
 							System.err.println("DB 상태 업데이트 실패 (seq: " + seq + "): " + e.getMessage());
+							e.printStackTrace();
 							// DB 업데이트 실패해도 반환값은 "종료"로 설정
 							imageboard.setStatus("종료");
 						}
+					} else {
+						System.out.println("경매 진행 중 (seq: " + seq + ", 남은 시간: " + (diff / 1000) + "초)");
 					}
+					} // if(!isRecentlyCreated) 블록 닫기
 				}
 			}
 			

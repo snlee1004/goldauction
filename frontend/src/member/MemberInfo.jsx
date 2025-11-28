@@ -7,6 +7,7 @@ function MemberInfo() {
     const [completedList, setCompletedList] = useState([]); // 판매 완료/종료
     const [canceledList, setCanceledList] = useState([]); // 포기한 경매
     const [bidParticipatedList, setBidParticipatedList] = useState([]); // 입찰 참여한 경매
+    const [purchasedList, setPurchasedList] = useState([]); // 구매완료 (낙찰된 경매)
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     
@@ -26,6 +27,7 @@ function MemberInfo() {
         fetchMemberData(memId);
         fetchAuctionList(memId);
         fetchBidParticipatedList(memId);
+        fetchPurchasedList(memId);
     }, [navigate]);
 
     // 회원 정보 조회
@@ -64,6 +66,29 @@ function MemberInfo() {
         } catch(err) {
             console.error("입찰 참여 경매 목록 조회 오류:", err);
             setBidParticipatedList([]);
+        }
+    };
+
+    // 구매완료 (낙찰된 경매) 목록 조회
+    const fetchPurchasedList = async (memId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/bid/awardedAuctionsByBidder?bidderId=${encodeURIComponent(memId)}`);
+            
+            if(!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("구매완료 경매 목록 조회 응답:", data);
+            
+            if(data.rt === "OK") {
+                setPurchasedList(data.items || []);
+            } else {
+                setPurchasedList([]);
+            }
+        } catch(err) {
+            console.error("구매완료 경매 목록 조회 오류:", err);
+            setPurchasedList([]);
         }
     };
 
@@ -387,6 +412,78 @@ function MemberInfo() {
                         </>
                     );
                 })()}
+            </div>
+
+            {/* 구매완료 (낙찰된 경매) 목록 */}
+            <div style={{marginBottom: "30px"}}>
+                <h4 style={{marginBottom: "15px", color: "#28a745", fontSize: "16px", fontWeight: "bold"}}>구매완료 ({purchasedList.length}건)</h4>
+                {purchasedList.length === 0 ? (
+                    <div style={{padding: "20px", textAlign: "center", color: "#666", border: "1px solid #ccc", borderRadius: "4px"}}>
+                        구매완료된 경매가 없습니다.
+                    </div>
+                ) : (
+                    <div style={{border: "2px solid #ccc", borderRadius: "8px", overflow: "hidden"}}>
+                        <div style={{maxHeight: "220px", overflowY: "auto"}}>
+                            <table style={{margin: 0, width: "100%"}}>
+                                <thead style={{position: "sticky", top: 0, backgroundColor: "#E8F5E9", zIndex: 1}}>
+                                    <tr>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "15px"}}>상품코드</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "15px"}}>상품명</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "15px"}}>낙찰 금액</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "15px"}}>상태</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "15px"}}>종료일</th>
+                                        <th style={{padding: "10px", fontWeight: "bold", textAlign: "center", fontSize: "15px"}}>거래정보</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {purchasedList.map((item, index) => (
+                                        <tr 
+                                            key={item.seq} 
+                                            style={{
+                                                cursor: "pointer",
+                                                backgroundColor: index % 2 === 0 ? "#f8f9fa" : "#ffffff"
+                                            }} 
+                                            onClick={() => handleViewAuction(item.seq, item.status)}
+                                        >
+                                            <td style={{padding: "10px", textAlign: "center", fontSize: "15px"}}>{item.seq}</td>
+                                            <td style={{padding: "10px", textAlign: "center", fontSize: "15px"}}>{item.imagename}</td>
+                                            <td style={{padding: "10px", textAlign: "center", fontSize: "15px", color: "#28a745", fontWeight: "bold"}}>
+                                                ₩ {item.awardedAmount?.toLocaleString() || 0}
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center", fontSize: "15px"}}>
+                                                <span style={getStatusStyle(item.status)}>
+                                                    {getStatusText(item.status)}
+                                                </span>
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center", fontSize: "15px"}}>
+                                                {item.auctionEndDate ? new Date(item.auctionEndDate).toLocaleDateString() : "-"}
+                                            </td>
+                                            <td style={{padding: "10px", textAlign: "center", fontSize: "15px"}}>
+                                                <button
+                                                    className="btn btn-sm btn-success"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/imageboard/transactionComplete?seq=${item.seq}`);
+                                                    }}
+                                                    style={{
+                                                        padding: "4px 8px",
+                                                        fontSize: "12px",
+                                                        backgroundColor: "#28a745",
+                                                        borderColor: "#28a745",
+                                                        color: "#fff"
+                                                    }}
+                                                >
+                                                    <i className="bi bi-handshake" style={{marginRight: "3px"}}></i>
+                                                    거래정보
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* 판매 완료/종료된 경매 목록 */}
