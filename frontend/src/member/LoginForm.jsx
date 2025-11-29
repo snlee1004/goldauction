@@ -14,7 +14,7 @@ function LoginForm() {
     // 로그인 처리
     const fetchLoginData = async (loginData) => {
         try {
-            const response = await fetch("http://localhost:8080/member/login",
+            const response = await fetch("/member/login",
                                         {   method: "POST",
                                             headers: {
                                                 "Content-Type": "application/json"

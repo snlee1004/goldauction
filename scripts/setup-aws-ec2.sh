@@ -9,7 +9,13 @@ echo "=== AWS EC2 초기 설정 ==="
 
 # 시스템 업데이트
 echo "시스템 업데이트 중..."
-sudo apt update && sudo apt upgrade -y
+# DEBIAN_FRONTEND=noninteractive로 다이얼로그 자동 처리
+export DEBIAN_FRONTEND=noninteractive
+sudo apt update
+sudo apt upgrade -y
+# 오래된 라이브러리를 사용하는 서비스 자동 재시작 설정
+sudo apt-get -y install needrestart || true
+# needrestart가 없으면 기본 동작으로 진행
 
 # 필수 패키지 설치
 echo "필수 패키지 설치 중..."

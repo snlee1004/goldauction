@@ -15,7 +15,7 @@
 
 ### AWS EC2 서버 정보
 - **서버 IP**: `3.34.28.145`
-- **EC2 사용자명**: `jadelee` (일반적으로 `ubuntu`이지만 이 인스턴스는 `jadelee`로 설정됨)
+- **EC2 사용자명**: `ubuntu` (Ubuntu 기본 사용자명)
 - **인스턴스 이름**: `goldauction`
 - **인스턴스 ID**: `i-03b5445a1c75016f3`
 - **SSH 키 파일**: `C:\Users\elosy\Downloads\goldauction-key.pem
@@ -68,55 +68,84 @@
 
 ### 3. EC2 접속 (Windows 환경)
 
+> **⚠️ 중요 구분:**
+> - **로컬 컴퓨터 (Windows)**: 아래 명령어들을 실행하는 곳
+> - **AWS EC2 서버 (Ubuntu)**: 접속 후 명령어를 실행하는 곳
+> - **Git Bash**: Windows에 설치하는 프로그램 (EC2에는 설치 안 됨)
+
 #### 방법 1: PowerShell 사용 (권장)
 
-**1단계: PowerShell 열기**
-- Windows 키 + X → "Windows PowerShell" 또는 "터미널" 선택
+**📍 실행 위치: 로컬 컴퓨터 (Windows)**
 
-**2단계: 키 파일 위치로 이동**
+**1단계: PowerShell 열기 (로컬 컴퓨터)**
+- Windows 키 + X → "Windows PowerShell" 또는 "터미널" 선택
+- **이것은 여러분의 Windows 컴퓨터입니다!**
+
+**2단계: 키 파일 위치로 이동 (로컬 컴퓨터)**
 ```powershell
-# Downloads 폴더로 이동
+# 로컬 컴퓨터의 Downloads 폴더로 이동
 cd C:\Users\elosy\Downloads
 ```
 
-**3단계: SSH 키 권한 설정 (Windows에서는 선택사항)**
+**3단계: SSH 키 권한 설정 (로컬 컴퓨터, 선택사항)**
 ```powershell
 # Windows에서는 chmod가 없지만, 키 파일의 보안 속성 확인
 # 파일 우클릭 → 속성 → 보안 → 고급 → 상속 비활성화 → 권한 편집
 ```
 
-**4단계: EC2 접속**
+**4단계: EC2 접속 (로컬 컴퓨터에서 실행)**
 ```powershell
-# 실제 사용 예시 (위에서 제공된 정보 사용)
+# 로컬 컴퓨터에서 실행 → AWS EC2 서버로 접속
 ssh -i goldauction-key.pem ubuntu@3.34.28.145
 ```
 
 **접속 성공 시:**
 ```
 Welcome to Ubuntu 22.04 LTS...
-jadelee@ip-xxx-xxx-xxx-xxx:~$
+ubuntu@ip-xxx-xxx-xxx-xxx:~$  ← 이제 AWS EC2 서버에 접속된 상태!
 ```
+
+> **접속 후**: 프롬프트가 `ubuntu@ip-xxx-xxx-xxx-xxx:~$`로 바뀌면 **AWS EC2 서버**에 접속된 것입니다.
 
 #### 방법 2: Git Bash 사용
 
-**1단계: Git Bash 열기**
-- Git이 설치되어 있다면 Git Bash 사용 가능
+> **📍 Git Bash는 Windows 로컬 컴퓨터에 설치하는 프로그램입니다!**
+> - AWS EC2에는 Git Bash가 **설치되어 있지 않습니다**
+> - EC2는 Ubuntu Linux이므로 기본적으로 **bash**가 있습니다
+> - 아래 명령어는 모두 **로컬 컴퓨터 (Windows)**에서 실행합니다
 
-**2단계: 키 파일 위치로 이동**
+**1단계: Git Bash 설치 및 열기 (로컬 컴퓨터)**
+- Git이 설치되어 있지 않다면: https://git-scm.com/downloads 에서 다운로드
+- Git Bash 열기: 시작 메뉴 → Git → Git Bash
+- **이것은 여러분의 Windows 컴퓨터입니다!**
+
+**2단계: 키 파일 위치로 이동 (로컬 컴퓨터)**
 ```bash
+# 로컬 컴퓨터의 Downloads 폴더로 이동
 cd /c/Users/elosy/Downloads
 ```
 
-**3단계: SSH 키 권한 설정**
+**3단계: SSH 키 권한 설정 (로컬 컴퓨터)**
 ```bash
+# 로컬 컴퓨터에서 키 파일 권한 설정
 # Git Bash에서는 chmod 사용 가능
-chmod 400 dteam.pem
+chmod 400 goldauction-key.pem
 ```
 
-**4단계: EC2 접속**
+**4단계: EC2 접속 (로컬 컴퓨터에서 실행)**
 ```bash
-ssh -i dteam.pem jadelee@3.38.207.91
+# 로컬 컴퓨터에서 실행 → AWS EC2 서버로 접속
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 ```
+
+**접속 성공 시:**
+```
+Welcome to Ubuntu 22.04 LTS...
+ubuntu@ip-xxx-xxx-xxx-xxx:~$  ← 이제 AWS EC2 서버에 접속된 상태!
+```
+
+> **접속 후**: 프롬프트가 `ubuntu@ip-xxx-xxx-xxx-xxx:~$`로 바뀌면 **AWS EC2 서버**에 접속된 것입니다.
+> 이제부터 입력하는 명령어는 **AWS EC2 서버**에서 실행됩니다.
 
 #### 방법 3: Windows Terminal 사용
 
@@ -126,7 +155,7 @@ ssh -i dteam.pem jadelee@3.38.207.91
 **2단계: 명령어 실행**
 ```powershell
 cd C:\Users\elosy\Downloads
-ssh -i dteam.pem jadelee@3.38.207.91
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 ```
 
 #### 접속 문제 해결
@@ -144,20 +173,20 @@ ssh -i dteam.pem jadelee@3.38.207.91
 **1단계: 올바른 사용자명 확인 및 사용**
 ```powershell
 # ❌ 잘못된 사용자명 (시도하지 마세요)
-# ssh -i dteam.pem ubuntu@3.38.207.91
-# ssh -i dteam.pem ec2-user@3.38.207.91
+# ssh -i goldauction-key.pem jadelee@3.34.28.145
+# ssh -i goldauction-key.pem ec2-user@3.34.28.145
 
 # ✅ 올바른 사용자명 사용
-ssh -i dteam.pem jadelee@3.38.207.91
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 ```
 
 **2단계: 키 파일 존재 확인**
 ```powershell
 # 키 파일이 있는지 확인
-Test-Path C:\Users\elosy\Downloads\dteam.pem
+Test-Path C:\Users\elosy\Downloads\goldauction-key.pem
 
 # 파일 크기 확인 (0이면 안 됨)
-(Get-Item C:\Users\elosy\Downloads\dteam.pem).Length
+(Get-Item C:\Users\elosy\Downloads\goldauction-key.pem).Length
 ```
 
 **3단계: 키 파일 권한 설정 (Windows)**
@@ -166,11 +195,11 @@ Test-Path C:\Users\elosy\Downloads\dteam.pem
 # 키 파일의 권한을 현재 사용자만 읽을 수 있도록 설정
 
 # 방법 1: icacls 사용 (관리자 권한 필요)
-icacls "C:\Users\elosy\Downloads\dteam.pem" /inheritance:r
-icacls "C:\Users\elosy\Downloads\dteam.pem" /grant:r "$env:USERNAME:(R)"
+icacls "C:\Users\elosy\Downloads\goldauction-key.pem" /inheritance:r
+icacls "C:\Users\elosy\Downloads\goldauction-key.pem" /grant:r "$env:USERNAME:(R)"
 
 # 방법 2: 파일 속성에서 수동 설정
-# 1. dteam.pem 파일 우클릭 → 속성
+# 1. goldauction-key.pem 파일 우클릭 → 속성
 # 2. 보안 탭 → 고급
 # 3. "상속 사용 안 함" 클릭 → "이 개체의 모든 상속된 사용 권한 제거" 선택
 # 4. 추가 → 주체 선택 → 현재 사용자 입력 → 확인
@@ -184,16 +213,16 @@ icacls "C:\Users\elosy\Downloads\dteam.pem" /grant:r "$env:USERNAME:(R)"
 pwd
 
 # 절대 경로 사용 (따옴표 필수)
-ssh -i "C:\Users\elosy\Downloads\dteam.pem" jadelee@3.38.207.91
+ssh -i "C:\Users\elosy\Downloads\goldauction-key.pem" ubuntu@3.34.28.145
 ```
 
 **5단계: 상세 디버그 모드로 접속 시도**
 ```powershell
 # -v 옵션으로 상세 로그 확인
-ssh -v -i "C:\Users\elosy\Downloads\dteam.pem" jadelee@3.38.207.91
+ssh -v -i "C:\Users\elosy\Downloads\goldauction-key.pem" ubuntu@3.34.28.145
 
 # 더 상세한 로그가 필요하면 -vv 또는 -vvv 사용
-ssh -vv -i "C:\Users\elosy\Downloads\dteam.pem" jadelee@3.38.207.91
+ssh -vv -i "C:\Users\elosy\Downloads\goldauction-key.pem" ubuntu@3.34.28.145
 ```
 
 **6단계: Git Bash 사용 (권장)**
@@ -204,19 +233,19 @@ PowerShell에서 안 되면 Git Bash를 사용하세요:
 cd /c/Users/elosy/Downloads
 
 # 키 파일 권한 설정
-chmod 400 dteam.pem
+chmod 400 goldauction-key.pem
 
 # 접속 시도
-ssh -i dteam.pem jadelee@3.38.207.91
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 
 # 상세 로그와 함께
-ssh -v -i dteam.pem jadelee@3.38.207.91
+ssh -v -i goldauction-key.pem ubuntu@3.34.28.145
 ```
 
 **7단계: 키 파일 형식 확인**
 ```powershell
 # 키 파일 내용 확인 (처음 몇 줄)
-Get-Content C:\Users\elosy\Downloads\dteam.pem -Head 5
+Get-Content C:\Users\elosy\Downloads\goldauction-key.pem -Head 5
 
 # 올바른 형식:
 # -----BEGIN RSA PRIVATE KEY-----
@@ -267,8 +296,8 @@ AWS EC2에서 키 페어는 다음과 같이 작동합니다:
    ```
 
 2. **키 페어 이름 확인:**
-   - 키 파일명이 `dteam.pem`이면 키 페어 이름은 보통 `dteam` 또는 `dteam-key`
-   - 인스턴스의 Key pair name이 `dteam`이면 → ✅ 사용 가능
+   - 키 파일명이 `goldauction-key.pem`이면 키 페어 이름은 보통 `goldauction-key`
+   - 인스턴스의 Key pair name이 `goldauction-key`이면 → ✅ 사용 가능
    - 인스턴스의 Key pair name이 다른 이름이면 → ❌ 사용 불가능
 
 **해결 방법:**
@@ -287,7 +316,7 @@ AWS EC2에서 키 페어는 다음과 같이 작동합니다:
 **방법 2: 기존 키 페어로 새 인스턴스 재생성**
 ```
 1. 현재 인스턴스 중지 (Stop)
-2. 새 인스턴스 생성 시 기존 키 페어(dteam) 선택
+2. 새 인스턴스 생성 시 기존 키 페어(goldauction-key) 선택
 3. 같은 설정으로 인스턴스 생성
 ```
 
@@ -316,62 +345,113 @@ AWS EC2에서 키 페어는 다음과 같이 작동합니다:
 aws ec2 describe-instances --instance-ids i-0a09eddc30b23e255 --query 'Reservations[0].Instances[0].KeyName' --output text
 
 # 출력 예시:
-# dteam  → 기존 키 사용 가능
-# goldauction-key → 다른 키 필요
+# goldauction-key → 기존 키 사용 가능
+# 다른 이름 → 다른 키 필요
 ```
 
 **문제 2: "WARNING: UNPROTECTED PRIVATE KEY FILE!" 오류**
 ```powershell
 # PowerShell에서 실행 (관리자 권한)
-icacls "C:\Users\elosy\Downloads\dteam.pem" /inheritance:r
-icacls "C:\Users\elosy\Downloads\dteam.pem" /grant:r "$env:USERNAME:R"
+icacls "C:\Users\elosy\Downloads\goldauction-key.pem" /inheritance:r
+icacls "C:\Users\elosy\Downloads\goldauction-key.pem" /grant:r "$env:USERNAME:R"
 ```
 
 **문제 3: 사용자명이 맞지 않을 때**
 
-> **중요**: 이 EC2 인스턴스의 사용자명은 `jadelee`입니다. `ubuntu`나 `ec2-user`는 사용하지 마세요!
+> **중요**: 이 EC2 인스턴스의 사용자명은 `ubuntu`입니다. (Ubuntu 기본 사용자명)
 
 ```powershell
 # ❌ 잘못된 사용자명 (작동하지 않음)
-# ssh -i dteam.pem ubuntu@3.38.207.91
-# ssh -i dteam.pem ec2-user@3.38.207.91
+# ssh -i goldauction-key.pem jadelee@3.34.28.145
+# ssh -i goldauction-key.pem ec2-user@3.34.28.145
 
 # ✅ 올바른 사용자명
-ssh -i dteam.pem jadelee@3.38.207.91
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 ```
 
 **사용자명 확인 방법:**
-- AWS Console → EC2 → Instances → goldauction-server → Details → User data 확인
-- 또는 인스턴스 생성 시 설정한 사용자명 확인
-- 이 인스턴스는 `jadelee`로 설정되어 있음
+- AWS Console → EC2 → Instances → goldauction → Details → AMI 확인
+- Ubuntu AMI인 경우 기본 사용자명은 `ubuntu`
+- Amazon Linux AMI인 경우 기본 사용자명은 `ec2-user`
+- 이 인스턴스는 Ubuntu이므로 `ubuntu` 사용
 
-#### 접속 후 확인 사항
+#### 접속 후 확인 사항 (AWS EC2 서버에서 실행)
+
+> **📍 이 명령어들은 AWS EC2 서버에 접속한 후 실행합니다!**
+> 프롬프트가 `ubuntu@ip-xxx-xxx-xxx-xxx:~$`인 상태에서 실행하세요.
 
 ```bash
-# 현재 사용자 확인
+# 현재 사용자 확인 (AWS EC2 서버에서)
 whoami
-# 출력: jadelee
+# 출력: ubuntu
 
-# 현재 위치 확인
+# 현재 위치 확인 (AWS EC2 서버에서)
 pwd
-# 출력: /home/jadelee
+# 출력: /home/ubuntu
 
-# 시스템 정보 확인
+# 시스템 정보 확인 (AWS EC2 서버에서)
 uname -a
 # Ubuntu 정보 출력
 
-# 디스크 사용량 확인
+# 디스크 사용량 확인 (AWS EC2 서버에서)
 df -h
 ```
 
-#### 접속 종료
+#### 접속 종료 (AWS EC2 서버에서 실행)
 
 ```bash
-# SSH 세션 종료
+# AWS EC2 서버에서 로컬 컴퓨터로 돌아가기
 exit
 
 # 또는 Ctrl + D
+# 프롬프트가 다시 Windows PowerShell 또는 Git Bash로 돌아갑니다
 ```
+
+---
+
+## 📍 명령어 실행 위치 구분 가이드
+
+### 로컬 컴퓨터 (Windows)에서 실행하는 명령어
+
+**표시 방법**: 프롬프트가 다음과 같을 때
+- PowerShell: `PS C:\Users\elosy\Downloads>`
+- Git Bash: `user@computer MINGW64 ~/Downloads $`
+- CMD: `C:\Users\elosy\Downloads>`
+
+**예시:**
+```powershell
+# 로컬 컴퓨터에서 실행
+cd C:\Users\elosy\Downloads
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
+```
+
+### AWS EC2 서버에서 실행하는 명령어
+
+**표시 방법**: 프롬프트가 다음과 같을 때
+- `ubuntu@ip-xxx-xxx-xxx-xxx:~$`
+- `jadelee@ip-xxx-xxx-xxx-xxx:~$`
+
+**예시:**
+```bash
+# AWS EC2 서버에 접속한 후 실행
+whoami
+pwd
+sudo apt update
+```
+
+### 구분 방법
+
+1. **접속 전**: 로컬 컴퓨터 (Windows)
+   - 프롬프트: `PS C:\Users\elosy\Downloads>`
+   - 명령어: `ssh -i goldauction-key.pem ubuntu@3.34.28.145`
+
+2. **접속 후**: AWS EC2 서버 (Ubuntu)
+   - 프롬프트: `ubuntu@ip-xxx-xxx-xxx-xxx:~$`
+   - 명령어: `whoami`, `pwd`, `sudo apt update` 등
+
+3. **접속 종료**: `exit` 입력
+   - 다시 로컬 컴퓨터로 돌아옴
+   - 프롬프트: `PS C:\Users\elosy\Downloads>`
 
 ---
 
@@ -379,9 +459,22 @@ exit
 
 ### 1. 프로젝트 클론
 
+> **📍 이 명령어들은 AWS EC2 서버에 접속한 후 실행합니다!**
+> 프롬프트가 `ubuntu@ip-xxx-xxx-xxx-xxx:~$`인 상태에서 실행하세요.
+
+**1단계: 로컬 컴퓨터에서 EC2 접속**
+```powershell
+# 로컬 컴퓨터 (Windows PowerShell)에서 실행
+cd C:\Users\elosy\Downloads
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
+```
+
+**2단계: EC2 서버에서 프로젝트 클론**
 ```bash
-# EC2에 SSH 접속 후
-git clone https://github.com/your-username/goldauction.git
+# AWS EC2 서버에 접속한 후 (프롬프트: ubuntu@ip-xxx-xxx-xxx-xxx:~$)
+# 이제부터는 AWS EC2 서버에서 실행하는 명령어입니다!
+
+git clone https://github.com/snlee1004/goldauction.git
 cd goldauction
 
 # 초기 설정 스크립트 실행
@@ -389,13 +482,45 @@ chmod +x scripts/setup-aws-ec2.sh
 sudo ./scripts/setup-aws-ec2.sh
 ```
 
+> **⚠️ 중요: "Daemons using outdated libraries" 다이얼로그가 나타나는 경우**
+> 
+> 스크립트 실행 중 다음과 같은 다이얼로그가 나타날 수 있습니다:
+> ```
+> Which services should be restarted?
+> [] networkd-dispatcher.service
+> [*] packagekit.service
+> [*] unattended-upgrades.service
+> ```
+> 
+> **처리 방법:**
+> 1. **기본 선택된 서비스로 진행 (권장)**
+>    - 화살표 키(↑↓)로 이동
+>    - 스페이스바로 선택/해제
+>    - 기본 선택된 것들(`packagekit.service`)로 **Ok** 선택 (Tab 키로 이동 후 Enter)
+> 
+> 2. **모든 서비스 재시작 (안전)**
+>    - 모든 서비스를 선택하고 **Ok** 클릭
+>    - 오래된 라이브러리를 사용하는 서비스를 재시작하여 보안 업데이트 적용
+> 
+> 3. **나중에 처리**
+>    - **Cancel** 선택
+>    - 스크립트는 계속 진행되지만, 나중에 수동으로 서비스 재시작 필요
+>    ```bash
+>    sudo systemctl restart packagekit.service
+>    sudo systemctl restart networkd-dispatcher.service
+>    sudo systemctl restart unattended-upgrades.service
+>    ```
+> 
+> **권장**: 기본 선택된 서비스로 **Ok**를 선택하세요. 이는 시스템 보안 업데이트를 적용하는 정상적인 과정입니다.
+
 ### 2. application.properties 설정
 
 #### 실제 데이터베이스 정보를 사용한 설정
 
 **1단계: 설정 파일 생성**
 ```bash
-# EC2에 접속한 후
+# AWS EC2 서버에 접속한 후 실행
+# 프롬프트: ubuntu@ip-xxx-xxx-xxx-xxx:~$
 sudo mkdir -p /opt/goldauction/backend
 sudo nano /opt/goldauction/backend/application.properties
 ```
@@ -440,24 +565,218 @@ logging.level.org.hibernate=WARN
 **4단계: 파일 권한 설정**
 ```bash
 # 파일 소유권 변경
-sudo chown jadelee:jadelee /opt/goldauction/backend/application.properties
+sudo chown ubuntu:ubuntu /opt/goldauction/backend/application.properties
 
 # 읽기 권한 확인
 cat /opt/goldauction/backend/application.properties
 ```
 
+---
+
+### ⚠️ 중요: GitHub 인증 정보 보안
+
+**Personal Access Token은 절대 문서나 코드에 포함하지 마세요!**
+
+**안전한 Git 인증 방법:**
+
+#### 방법 1: SSH 키 사용 (권장)
+
+**1단계: 로컬에서 SSH 키 생성 (이미 있다면 생략)**
+```bash
+# Git Bash에서
+ssh-keygen -t ed25519 -C "ec2-goldauction" -f ~/.ssh/goldauction-ec2
+```
+
+**2단계: 공개키를 GitHub에 추가**
+1. GitHub → Settings → SSH and GPG keys → New SSH key
+2. `cat ~/.ssh/goldauction-ec2.pub` 내용 복사하여 추가
+
+**3단계: EC2에서 SSH 키 사용**
+```bash
+# EC2에 접속한 후
+# SSH 키를 EC2에 복사 (로컬에서)
+scp -i goldauction-key.pem ~/.ssh/goldauction-ec2 ubuntu@3.34.28.145:~/.ssh/id_ed25519
+
+# EC2에서
+chmod 600 ~/.ssh/id_ed25519
+git config --global url."git@github.com:".insteadOf "https://github.com/"
+```
+
+#### 방법 2: Personal Access Token 사용 (임시)
+
+**EC2에서만 사용하고 즉시 삭제:**
+
+```bash
+# EC2에 접속한 후
+git clone https://github.com/snlee1004/goldauction.git
+# 사용자명: snlee1004
+# 비밀번호: Personal Access Token 입력
+# ⚠️ 토큰은 화면에 표시되지 않으므로 정확히 입력
+
+# 사용 후 토큰은 GitHub에서 즉시 삭제 권장
+```
+
+#### 방법 3: Git Credential Helper 사용
+
+```bash
+# EC2에서
+git config --global credential.helper store
+git clone https://github.com/snlee1004/goldauction.git
+# 한 번만 인증 정보 입력하면 ~/.git-credentials에 저장됨
+# ⚠️ 이 파일은 보안에 주의 (읽기 권한만 설정)
+chmod 600 ~/.git-credentials
+```
+
 #### 데이터베이스 연결 테스트
 
 **EC2에서 Oracle DB 연결 테스트:**
-```bash
-# Oracle JDBC 드라이버가 있는지 확인 (나중에 애플리케이션에서 확인)
-# 또는 간단한 연결 테스트 스크립트 작성
 
+**1단계: 네트워크 연결 확인 (포트 접근 가능 여부)**
+```bash
 # telnet으로 포트 확인 (1522 포트)
 telnet adb.ap-chuncheon-1.oraclecloud.com 1522
 
 # 또는 nc (netcat) 사용
 nc -zv adb.ap-chuncheon-1.oraclecloud.com 1522
+```
+
+**예상 결과:**
+```
+Trying 146.56.121.170...
+Connected to adb.ap-chuncheon-1.oci.oraclecloud.com.
+Escape character is '^]'.
+Connection closed by foreign host.
+```
+
+> **✅ 이것은 정상입니다!**
+> - "Connected" 메시지가 나타나면 **네트워크 연결은 성공**한 것입니다
+> - "Connection closed by foreign host"는 Oracle DB가 SSL/TLS 연결을 요구하기 때문입니다
+> - telnet은 일반 텍스트 연결만 가능하므로 서버가 연결을 종료합니다
+> - 실제 애플리케이션에서는 JDBC 드라이버가 SSL/TLS 연결을 자동으로 처리합니다
+
+**2단계: 실제 애플리케이션에서 연결 테스트**
+
+애플리케이션이 실행되면 Spring Boot가 자동으로 데이터베이스 연결을 시도합니다:
+
+**서비스 파일 확인:**
+```bash
+# 서비스 파일이 있는지 확인
+ls -la /etc/systemd/system/goldauction-backend.service
+
+# 서비스 파일이 없으면 생성 필요 (아래 참조)
+```
+
+**서비스 파일이 없는 경우 (수동 생성):**
+```bash
+# Spring Boot 서비스 파일 생성
+sudo tee /etc/systemd/system/goldauction-backend.service > /dev/null <<'EOF'
+[Unit]
+Description=GoldAuction Spring Boot Application
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/goldauction/backend
+ExecStart=/usr/bin/java -jar -Dspring.profiles.active=prod /opt/goldauction/backend/app.jar
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# systemd 재로드
+sudo systemctl daemon-reload
+
+# 서비스 활성화 (부팅 시 자동 시작)
+sudo systemctl enable goldauction-backend
+
+# 서비스 상태 확인
+sudo systemctl status goldauction-backend
+```
+
+**서비스 상태 확인:**
+```bash
+# 서비스가 실행 중인지 확인
+sudo systemctl status goldauction-backend
+
+# JAR 파일 존재 확인 (중요!)
+ls -lh /opt/goldauction/backend/app.jar
+
+# JAR 파일이 없으면 서비스 시작하지 마세요!
+# JAR 파일이 있으면 시작
+sudo systemctl start goldauction-backend
+```
+
+**⚠️ JAR 파일이 없는 경우:**
+```bash
+# 서비스 중지 (재시작 반복 방지)
+sudo systemctl stop goldauction-backend
+sudo systemctl disable goldauction-backend
+
+# 배포 후 다시 활성화
+# sudo systemctl enable goldauction-backend
+# sudo systemctl start goldauction-backend
+```
+
+**로그 확인 (빠른 방법):**
+```bash
+# 최근 50줄만 확인 (빠름)
+sudo journalctl -u goldauction-backend -n 50 --no-pager
+
+# 또는 최근 1분간의 로그만 확인
+sudo journalctl -u goldauction-backend --since "1 minute ago" --no-pager
+```
+
+**실시간 로그 확인 (필요시):**
+```bash
+# 실시간 로그 (Ctrl+C로 종료)
+sudo journalctl -u goldauction-backend -f
+
+# 연결 성공 시:
+# "HikariPool-1 - Starting..."
+# "HikariPool-1 - Start completed."
+
+# 연결 실패 시:
+# "Connection refused" 또는 "ORA-XXXXX" 오류 메시지
+```
+
+**서비스가 실행되지 않은 경우:**
+```bash
+# 서비스 파일 확인
+cat /etc/systemd/system/goldauction-backend.service
+
+# JAR 파일 존재 확인
+ls -lh /opt/goldauction/backend/app.jar
+
+# JAR 파일이 없으면 배포 필요
+# GitHub Actions로 배포하거나 수동으로 복사
+```
+
+**3단계: 연결 문제 해결**
+
+**문제 1: "Connection refused" 오류**
+```bash
+# Oracle Cloud Security List 확인 필요
+# Oracle Cloud Console → Networking → Virtual Cloud Networks
+# → Security Lists → Ingress Rules
+# → EC2 IP (3.34.28.145)에서 1522 포트 허용 추가
+```
+
+**문제 2: "ORA-12541: TNS:no listener" 오류**
+```bash
+# TNS 연결 문자열 확인
+# application.properties의 spring.datasource.url 확인
+# 포트가 1522인지 확인 (SSL/TLS 포트)
+```
+
+**문제 3: "ORA-01017: invalid username/password" 오류**
+```bash
+# application.properties의 사용자명/비밀번호 확인
+# Oracle Cloud Console에서 DB 사용자 정보 확인
 ```
 
 #### 설정 파일 검증
@@ -485,7 +804,109 @@ grep "spring.datasource" /opt/goldauction/backend/application.properties
 
 ---
 
-## 🔧 GitHub Actions 설정
+## 🚀 빠른 테스트 배포 (GitHub Actions 없이)
+
+> **테스트 목적이라면 이 방법이 더 간단합니다!**  
+> GitHub Secrets 설정 없이 바로 배포할 수 있습니다.
+
+### 방법 1: EC2에서 직접 빌드 (가장 간단)
+
+**1단계: EC2에 접속**
+```bash
+# 로컬 컴퓨터에서
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
+```
+
+**2단계: 프로젝트 클론 (아직 안 했다면)**
+```bash
+cd ~
+git clone https://github.com/snlee1004/goldauction.git
+cd goldauction
+```
+
+**3단계: Backend 빌드**
+```bash
+cd backend
+chmod +x ./gradlew
+./gradlew bootJar
+```
+
+**4단계: JAR 파일 배포**
+```bash
+# JAR 파일 복사
+sudo cp build/libs/*.jar /opt/goldauction/backend/app.jar
+sudo chown ubuntu:ubuntu /opt/goldauction/backend/app.jar
+
+# 서비스 시작
+sudo systemctl enable goldauction-backend
+sudo systemctl start goldauction-backend
+sudo systemctl status goldauction-backend
+```
+
+**5단계: Frontend 빌드 (선택사항)**
+
+**Node.js/npm이 설치되어 있지 않은 경우:**
+```bash
+# Node.js 20.x 설치
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 설치 확인
+node -v
+npm -v
+```
+
+**Frontend 빌드:**
+```bash
+cd ~/goldauction/frontend
+npm install
+npm run build
+
+# Frontend 파일 복사
+sudo rm -rf /opt/goldauction/frontend/*
+sudo cp -r dist/* /opt/goldauction/frontend/
+sudo chown -R ubuntu:ubuntu /opt/goldauction/frontend
+
+# Nginx 재시작
+sudo systemctl reload nginx
+```
+
+### 방법 2: 로컬에서 빌드 후 전송
+
+**1단계: 로컬에서 Backend 빌드**
+```powershell
+# PowerShell 또는 Git Bash
+cd backend
+./gradlew bootJar
+```
+
+**2단계: JAR 파일을 EC2로 전송**
+```powershell
+# PowerShell에서
+scp -i C:\Users\elosy\Downloads\goldauction-key.pem backend\build\libs\*.jar ubuntu@3.34.28.145:/tmp/app.jar
+```
+
+**3단계: EC2에서 배포**
+```bash
+# EC2에 접속
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
+
+# JAR 파일 배포
+sudo mv /tmp/app.jar /opt/goldauction/backend/app.jar
+sudo chown ubuntu:ubuntu /opt/goldauction/backend/app.jar
+
+# 서비스 시작
+sudo systemctl enable goldauction-backend
+sudo systemctl start goldauction-backend
+sudo systemctl status goldauction-backend
+```
+
+---
+
+## 🔧 GitHub Actions 자동 배포 (선택사항)
+
+> **참고**: 프로덕션 환경이나 자동 배포가 필요할 때만 설정하세요.  
+> 테스트 목적이라면 위의 "빠른 테스트 배포" 방법을 사용하세요.
 
 ### 1. GitHub Secrets 설정
 
@@ -495,8 +916,8 @@ grep "spring.datasource" /opt/goldauction/backend/application.properties
 
 | Secret 이름 | 설명 | 실제 값 (예시) |
 |------------|------|----------------|
-| `AWS_HOST` | EC2의 Public IP | `3.38.207.91` |
-| `AWS_USERNAME` | SSH 사용자명 | `jadelee` |
+| `AWS_HOST` | EC2의 Public IP | `3.34.28.145` |
+| `AWS_USERNAME` | SSH 사용자명 | `ubuntu` |
 | `AWS_SSH_KEY` | SSH 개인키 (전체 내용) | `-----BEGIN RSA PRIVATE KEY-----...` (아래 참고) |
 | `AWS_PORT` | SSH 포트 (선택사항) | `22` (기본값) |
 
@@ -510,7 +931,7 @@ grep "spring.datasource" /opt/goldauction/backend/application.properties
 cd C:\Users\elosy\Downloads
 
 # 키 파일 내용 확인 (전체 내용 복사)
-Get-Content dteam.pem
+Get-Content goldauction-key.pem
 ```
 
 **2단계: GitHub Secret에 추가**
@@ -524,8 +945,8 @@ Get-Content dteam.pem
 5. **Add secret** 클릭
 
 **3단계: 나머지 Secrets 추가**
-- `AWS_HOST`: `3.38.207.91`
-- `AWS_USERNAME`: `jadelee`
+- `AWS_HOST`: `3.34.28.145`
+- `AWS_USERNAME`: `ubuntu`
 - `AWS_PORT`: `22` (선택사항)
 
 #### 방법 2: 새 SSH 키 생성 (권장, 보안상 더 안전)
@@ -545,7 +966,7 @@ ls -la github-actions*
 **2단계: 공개키를 EC2에 추가**
 ```bash
 # EC2에 접속 (기존 키 사용)
-ssh -i C:/Users/elosy/Downloads/dteam.pem jadelee@3.38.207.91
+ssh -i C:/Users/elosy/Downloads/goldauction-key.pem ubuntu@3.34.28.145
 
 # EC2에서 authorized_keys 파일 편집
 nano ~/.ssh/authorized_keys
@@ -564,7 +985,7 @@ exit
 **3단계: 새 키로 접속 테스트**
 ```bash
 # Git Bash에서
-ssh -i ~/.ssh/github-actions jadelee@3.38.207.91
+ssh -i ~/.ssh/github-actions ubuntu@3.34.28.145
 
 # 접속 성공하면 새 키가 작동하는 것
 exit
@@ -582,16 +1003,16 @@ cat ~/.ssh/github-actions
 
 **PowerShell:**
 ```powershell
-Get-Content C:\Users\elosy\Downloads\dteam.pem
+Get-Content C:\Users\elosy\Downloads\goldauction-key.pem
 ```
 
 **Git Bash:**
 ```bash
-cat /c/Users/elosy/Downloads/dteam.pem
+cat /c/Users/elosy/Downloads/goldauction-key.pem
 ```
 
 **Windows 메모장:**
-1. `dteam.pem` 파일 우클릭 → **연결 프로그램** → **메모장**
+1. `goldauction-key.pem` 파일 우클릭 → **연결 프로그램** → **메모장**
 2. 전체 내용 복사 (Ctrl + A → Ctrl + C)
 
 **EC2에 공개키 추가 (실제 사용 예시):**
@@ -602,7 +1023,7 @@ cat /c/Users/elosy/Downloads/dteam.pem
 ```powershell
 # PowerShell에서
 cd C:\Users\elosy\Downloads
-ssh -i dteam.pem jadelee@3.38.207.91
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 ```
 
 **2단계: EC2에서 authorized_keys 확인**
@@ -639,12 +1060,105 @@ chmod 600 ~/.ssh/authorized_keys
 exit
 
 # Windows에서 새 키로 접속 테스트 (새 키를 생성한 경우)
-ssh -i ~/.ssh/github-actions jadelee@3.38.207.91
+ssh -i ~/.ssh/github-actions ubuntu@3.34.28.145
 ```
 
 ---
 
-## 🚀 자동 배포 실행
+## 📦 필수 패키지 설치 확인
+
+### Node.js/npm 설치 (Frontend 빌드용)
+
+**npm이 설치되어 있지 않은 경우:**
+```bash
+# Node.js 20.x 설치 (npm 포함)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 설치 확인
+node -v   # v20.x.x 형태로 표시되어야 함
+npm -v    # 10.x.x 형태로 표시되어야 함
+```
+
+**설치 후 Frontend 빌드:**
+```bash
+cd ~/goldauction/frontend
+npm install
+npm run build
+
+# Frontend 파일 배포
+sudo rm -rf /opt/goldauction/frontend/*
+sudo cp -r dist/* /opt/goldauction/frontend/
+sudo chown -R ubuntu:ubuntu /opt/goldauction/frontend
+
+# Nginx 재시작
+sudo systemctl reload nginx
+```
+
+---
+
+## ✅ 배포 성공 확인
+
+### 서비스 상태 확인
+
+**서비스가 정상 실행 중인지 확인:**
+```bash
+sudo systemctl status goldauction-backend
+```
+
+**성공 상태:**
+```
+Active: active (running)  ← 이것이 보이면 성공!
+```
+
+**추가 확인 단계:**
+
+**1단계: 애플리케이션 로그 확인**
+```bash
+# 최근 로그 확인 (애플리케이션 시작 여부 확인)
+sudo journalctl -u goldauction-backend -n 50 --no-pager
+
+# 정상 시작 시 다음과 같은 메시지가 보여야 함:
+# - "Started BackendApplication"
+# - "HikariPool-1 - Starting..."
+# - "HikariPool-1 - Start completed."
+```
+
+**2단계: 포트 확인**
+```bash
+# 8080 포트가 열려있는지 확인
+sudo lsof -i :8080
+
+# 또는
+netstat -tlnp | grep 8080
+```
+
+**3단계: API 테스트**
+```bash
+# 로컬에서 테스트 (EC2에서)
+curl http://localhost:8080/api/health
+
+# 또는 외부에서 테스트 (로컬 컴퓨터에서)
+curl http://3.34.28.145:8080/api/health
+```
+
+**4단계: 웹 브라우저에서 확인**
+```
+http://3.34.28.145
+```
+
+**문제가 있는 경우:**
+```bash
+# 로그에서 오류 확인
+sudo journalctl -u goldauction-backend -n 100 --no-pager | grep -i error
+
+# 데이터베이스 연결 오류 확인
+sudo journalctl -u goldauction-backend -n 100 --no-pager | grep -i "ORA\|database\|connection"
+```
+
+---
+
+## 🚀 자동 배포 실행 (GitHub Actions)
 
 ### 1. 코드 Push
 
@@ -665,7 +1179,7 @@ git push origin main
 
 ```bash
 # EC2에 SSH 접속
-ssh -i ~/your-key.pem ubuntu@<EC2_IP>
+ssh -i goldauction-key.pem ubuntu@3.34.28.145
 
 # Backend 서비스 상태 확인
 sudo systemctl status goldauction-backend
@@ -681,7 +1195,7 @@ sudo journalctl -u goldauction-backend -f
 
 브라우저에서 EC2 Public IP로 접속:
 ```
-http://<EC2_PUBLIC_IP>
+http://3.34.28.145
 ```
 
 ---
@@ -718,21 +1232,164 @@ http://<EC2_PUBLIC_IP>
 # Security Group 확인
 # - SSH (22) 포트가 My IP에서 허용되어 있는지 확인
 
-# 키 파일 권한 확인
-chmod 400 ~/your-key.pem
+# 키 파일 권한 확인 (로컬 컴퓨터에서)
+chmod 400 goldauction-key.pem
 ```
 
 ### Backend 서비스 오류
 
+**1단계: 서비스 파일 확인**
 ```bash
-# 서비스 로그 확인
-sudo journalctl -u goldauction-backend -n 100
+# 서비스 파일 존재 확인
+ls -la /etc/systemd/system/goldauction-backend.service
 
+# 서비스 파일이 없으면 생성 (아래 참조)
+```
+
+**서비스 파일이 없는 경우:**
+```bash
+# Spring Boot 서비스 파일 수동 생성
+sudo tee /etc/systemd/system/goldauction-backend.service > /dev/null <<'EOF'
+[Unit]
+Description=GoldAuction Spring Boot Application
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/goldauction/backend
+ExecStart=/usr/bin/java -jar -Dspring.profiles.active=prod /opt/goldauction/backend/app.jar
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# systemd 재로드
+sudo systemctl daemon-reload
+
+# 서비스 활성화
+sudo systemctl enable goldauction-backend
+```
+
+**2단계: 서비스 상태 확인 (빠른 확인)**
+```bash
+# 서비스 상태 확인
+sudo systemctl status goldauction-backend
+
+# 실행 중이 아니면 시작 (JAR 파일이 있어야 함)
+sudo systemctl start goldauction-backend
+
+# 부팅 시 자동 시작 설정
+sudo systemctl enable goldauction-backend
+```
+
+**3단계: 최근 로그 확인 (빠른 방법)**
+```bash
+# 최근 100줄만 확인 (빠름, 권장)
+sudo journalctl -u goldauction-backend -n 100 --no-pager
+
+# 최근 5분간의 로그만 확인
+sudo journalctl -u goldauction-backend --since "5 minutes ago" --no-pager
+
+# 오류만 필터링하여 확인
+sudo journalctl -u goldauction-backend -n 100 --no-pager | grep -i error
+```
+
+**3단계: 실시간 로그 확인 (필요시)**
+```bash
+# 실시간 로그 (Ctrl+C로 종료)
+sudo journalctl -u goldauction-backend -f
+```
+
+**4단계: 서비스 재시작**
+```bash
 # 서비스 재시작
 sudo systemctl restart goldauction-backend
 
-# 포트 사용 확인
+# 재시작 후 상태 확인
+sudo systemctl status goldauction-backend
+```
+
+**5단계: 포트 및 프로세스 확인**
+```bash
+# 8080 포트 사용 확인
 sudo lsof -i :8080
+
+# Java 프로세스 확인
+ps aux | grep java
+
+# JAR 파일 존재 확인
+ls -lh /opt/goldauction/backend/app.jar
+```
+
+**⚠️ JAR 파일이 없는 경우 (현재 상황):**
+
+**오류 메시지:**
+```
+Error: Unable to access jarfile /opt/goldauction/backend/app.jar
+```
+
+**해결 방법:**
+
+**1단계: 서비스 일시 중지 (재시작 반복 방지)**
+```bash
+# 서비스 중지 (JAR 파일이 없으면 계속 실패하므로 중지)
+sudo systemctl stop goldauction-backend
+
+# 서비스 비활성화 (부팅 시 자동 시작 방지)
+sudo systemctl disable goldauction-backend
+```
+
+**2단계: JAR 파일 배포**
+
+**방법 A: GitHub Actions로 자동 배포 (권장)**
+1. GitHub Secrets 설정 확인 (AWS_HOST, AWS_USERNAME, AWS_SSH_KEY)
+2. GitHub에서 main 브랜치에 push하거나 Actions 탭에서 수동 실행
+3. 배포 완료 후 서비스 시작:
+   ```bash
+   sudo systemctl enable goldauction-backend
+   sudo systemctl start goldauction-backend
+   ```
+
+**방법 B: 로컬에서 수동 배포**
+```bash
+# 로컬 컴퓨터에서 (Windows PowerShell 또는 Git Bash)
+# 1. Backend 빌드
+cd backend
+./gradlew bootJar
+
+# 2. JAR 파일을 EC2로 전송
+scp -i goldauction-key.pem backend/build/libs/*.jar ubuntu@3.34.28.145:/tmp/app.jar
+
+# EC2에서 실행:
+sudo mv /tmp/app.jar /opt/goldauction/backend/app.jar
+sudo chown ubuntu:ubuntu /opt/goldauction/backend/app.jar
+sudo systemctl enable goldauction-backend
+sudo systemctl start goldauction-backend
+```
+
+**방법 C: EC2에서 직접 빌드 (임시 방법)**
+```bash
+# EC2에 접속한 후
+cd ~/goldauction
+
+# Backend 빌드
+cd backend
+chmod +x ./gradlew
+./gradlew bootJar
+
+# JAR 파일 복사
+sudo cp build/libs/*.jar /opt/goldauction/backend/app.jar
+sudo chown ubuntu:ubuntu /opt/goldauction/backend/app.jar
+
+# 서비스 시작
+sudo systemctl enable goldauction-backend
+sudo systemctl start goldauction-backend
+sudo systemctl status goldauction-backend
 ```
 
 ### Nginx 502 Bad Gateway
@@ -750,12 +1407,45 @@ sudo nginx -t
 
 ### 데이터베이스 연결 오류
 
+**1단계: 네트워크 연결 확인**
 ```bash
-# Oracle DB 연결 테스트
-# EC2에서 Oracle DB로의 네트워크 연결 확인 필요
+# EC2에서 Oracle DB 포트 접근 확인
+telnet adb.ap-chuncheon-1.oraclecloud.com 1522
 
-# Security Group 확인
-# - Oracle Cloud의 Security List에서 EC2 IP 허용
+# "Connected" 메시지가 나타나면 네트워크 연결은 정상
+# "Connection closed"는 정상 (SSL/TLS 요구 때문)
+```
+
+**2단계: Oracle Cloud Security List 확인**
+```bash
+# Oracle Cloud Console에서 확인 필요:
+# 1. Oracle Cloud Console → Networking → Virtual Cloud Networks
+# 2. 해당 VCN 선택 → Security Lists
+# 3. Ingress Rules 확인:
+#    - Source: EC2 Public IP (3.34.28.145) 또는 CIDR
+#    - Destination Port: 1522
+#    - Protocol: TCP
+# 4. 없으면 Add Ingress Rule 추가
+```
+
+**3단계: 애플리케이션 로그 확인**
+```bash
+# Backend 서비스 로그에서 상세 오류 확인
+sudo journalctl -u goldauction-backend -n 100
+
+# 일반적인 오류:
+# - ORA-12541: TNS:no listener → 포트/호스트 확인
+# - ORA-01017: invalid username/password → 인증 정보 확인
+# - ORA-12170: TNS:Connect timeout → 네트워크/방화벽 확인
+```
+
+**4단계: application.properties 확인**
+```bash
+# 설정 파일 확인
+cat /opt/goldauction/backend/application.properties | grep spring.datasource
+
+# TNS 연결 문자열 형식 확인
+# SSL/TLS 연결이 올바르게 설정되어 있는지 확인
 ```
 
 ---
@@ -829,6 +1519,103 @@ AWS EC2
 Nginx (Frontend) + Spring Boot (Backend)
     ↓
 Oracle Cloud Database
+```
+
+---
+
+## 🚀 백엔드/프론트엔드 시작 방법
+
+### 백엔드 시작/중지/재시작
+
+```bash
+# 백엔드 시작
+sudo systemctl start goldauction-backend
+
+# 백엔드 중지
+sudo systemctl stop goldauction-backend
+
+# 백엔드 재시작
+sudo systemctl restart goldauction-backend
+
+# 백엔드 상태 확인
+sudo systemctl status goldauction-backend
+
+# 백엔드 로그 확인 (최근 50줄)
+sudo journalctl -u goldauction-backend -n 50 --no-pager
+
+# 백엔드 실시간 로그 확인 (Ctrl+C로 종료)
+sudo journalctl -u goldauction-backend -f
+```
+
+### 프론트엔드 (Nginx) 시작/중지/재시작
+
+```bash
+# Nginx 시작
+sudo systemctl start nginx
+
+# Nginx 중지
+sudo systemctl stop nginx
+
+# Nginx 재시작
+sudo systemctl restart nginx
+
+# Nginx 상태 확인
+sudo systemctl status nginx
+
+# Nginx 설정 테스트
+sudo nginx -t
+
+# Nginx 설정 변경 후 재시작 (권장)
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 전체 서비스 상태 확인
+
+```bash
+# 백엔드와 Nginx 모두 확인
+sudo systemctl status goldauction-backend nginx
+
+# 포트 확인
+sudo lsof -i :8080  # 백엔드 (8080 포트)
+sudo lsof -i :80    # Nginx (80 포트)
+
+# 웹사이트 접속 테스트
+curl http://localhost:8080  # 백엔드 직접 접속
+curl http://localhost        # Nginx를 통한 접속
+```
+
+### 서버 재시작 후 자동 시작 확인
+
+```bash
+# 백엔드 자동 시작 활성화
+sudo systemctl enable goldauction-backend
+
+# Nginx 자동 시작 활성화
+sudo systemctl enable nginx
+
+# 자동 시작 설정 확인
+sudo systemctl is-enabled goldauction-backend
+sudo systemctl is-enabled nginx
+```
+
+### 문제 해결
+
+**백엔드가 시작되지 않는 경우:**
+```bash
+# JAR 파일 확인
+ls -lh /opt/goldauction/backend/app.jar
+
+# 로그에서 오류 확인
+sudo journalctl -u goldauction-backend -n 100 --no-pager | grep -i error
+```
+
+**Nginx가 시작되지 않는 경우:**
+```bash
+# 설정 파일 문법 확인
+sudo nginx -t
+
+# 에러 로그 확인
+sudo tail -n 50 /var/log/nginx/error.log
 ```
 
 ---
