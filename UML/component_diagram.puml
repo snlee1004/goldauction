@@ -7,46 +7,26 @@ skinparam component {
     FontSize 12
 }
 
-package "Frontend Layer" {
+package "Frontend Layer (React + Vite)" {
     [React Application] as ReactApp
-    component [Imageboard Components] as ImageboardComp
-    component [Member Components] as MemberComp
-    component [Board Components] as BoardComp
-    component [Admin Components] as AdminComp
-    component [Common Components] as CommonComp
+    component [경매 컴포넌트\n- 상품 등록/조회/수정\n- 입찰/거래] as ImageboardComp
+    component [회원 컴포넌트\n- 로그인/가입\n- 정보 관리] as MemberComp
+    component [게시판 컴포넌트\n- 게시글/댓글\n- 이벤트/주문] as BoardComp
+    component [관리자 컴포넌트\n- 회원/상품 관리\n- 통계/설정] as ManagerComp
+    component [공통 컴포넌트\n- 메인/헤더/푸터\n- 팝업/차트] as CommonComp
+    component [Script Layer\n- API 호출\n- 유효성 검사] as ScriptComp
 }
 
-package "Backend Layer" {
+package "Backend Layer (Spring Boot)" {
     [Spring Boot Application] as SpringApp
-    component [ImageboardController] as ImageboardCtrl
-    component [MemberController] as MemberCtrl
-    component [BoardController] as BoardCtrl
-    component [BidController] as BidCtrl
-    component [AdminController] as AdminCtrl
-    component [TransactionStatisticsController] as StatsCtrl
-    
-    component [ImageboardService] as ImageboardSvc
-    component [MemberService] as MemberSvc
-    component [BoardService] as BoardSvc
-    component [BidService] as BidSvc
-    component [TransactionStatisticsService] as StatsSvc
-    
-    component [ImageboardDAO] as ImageboardDAO
-    component [MemberDAO] as MemberDAO
-    component [BoardDAO] as BoardDAO
-    component [BidDAO] as BidDAO
-    component [TransactionStatisticsDAO] as StatsDAO
+    component [Controller Layer\n- REST API\n- 19개 컨트롤러] as ControllerLayer
+    component [Service Layer\n- 비즈니스 로직\n- 18개 서비스] as ServiceLayer
+    component [DAO Layer\n- 데이터 접근\n- 12개 DAO] as DAOLayer
 }
 
-package "Database Layer" {
-    database "Oracle DB" {
-        [IMAGEBOARD1] as ImageboardTable
-        [BID1] as BidTable
-        [MEMBER1] as MemberTable
-        [BOARD1] as BoardTable
-        [BOARD_POST1] as BoardPostTable
-        [EVENT_PRODUCT1] as EventProductTable
-        [MANAGER1] as ManagerTable
+package "Database Layer (Oracle)" {
+    database "Oracle Database" {
+        [19개 테이블\n- 경매/입찰\n- 회원/게시판\n- 이벤트/주문\n- 관리자/설정] as OracleDB
     }
 }
 
@@ -54,60 +34,46 @@ package "Database Layer" {
 ReactApp --> ImageboardComp
 ReactApp --> MemberComp
 ReactApp --> BoardComp
-ReactApp --> AdminComp
+ReactApp --> ManagerComp
 ReactApp --> CommonComp
+ImageboardComp --> ScriptComp
+MemberComp --> ScriptComp
+BoardComp --> ScriptComp
 
 ' Frontend to Backend
-ImageboardComp --> ImageboardCtrl : HTTP/REST
-MemberComp --> MemberCtrl : HTTP/REST
-BoardComp --> BoardCtrl : HTTP/REST
-AdminComp --> AdminCtrl : HTTP/REST
-AdminComp --> StatsCtrl : HTTP/REST
+ImageboardComp --> ControllerLayer : HTTP/REST
+MemberComp --> ControllerLayer : HTTP/REST
+BoardComp --> ControllerLayer : HTTP/REST
+ManagerComp --> ControllerLayer : HTTP/REST
+CommonComp --> ControllerLayer : HTTP/REST
 
-' Controller to Service
-ImageboardCtrl --> ImageboardSvc
-MemberCtrl --> MemberSvc
-BoardCtrl --> BoardSvc
-BidCtrl --> BidSvc
-AdminCtrl --> MemberSvc
-StatsCtrl --> StatsSvc
-
-' Service to DAO
-ImageboardSvc --> ImageboardDAO
-MemberSvc --> MemberDAO
-BoardSvc --> BoardDAO
-BidSvc --> BidDAO
-StatsSvc --> StatsDAO
-
-' DAO to Database
-ImageboardDAO --> ImageboardTable : JDBC/JPA
-BidDAO --> BidTable : JDBC/JPA
-MemberDAO --> MemberTable : JDBC/JPA
-BoardDAO --> BoardTable : JDBC/JPA
-BoardDAO --> BoardPostTable : JDBC/JPA
-BoardDAO --> EventProductTable : JDBC/JPA
-MemberDAO --> ManagerTable : JDBC/JPA
+' Backend 내부 연결
+ControllerLayer --> ServiceLayer
+ServiceLayer --> DAOLayer
+DAOLayer --> OracleDB : JDBC/JPA
 
 note right of ReactApp
-  React + Vite
+  **프론트엔드**
+  - React + Vite
   - 컴포넌트 기반 UI
   - React Router
   - Bootstrap
 end note
 
 note right of SpringApp
-  Spring Boot 3
+  **백엔드**
+  - Spring Boot 4.0
   - RESTful API
   - JPA/Hibernate
   - Java 17+
 end note
 
-note right of "Oracle DB"
-  Oracle Database
+note right of OracleDB
+  **데이터베이스**
+  - Oracle DB 19c
   - 19개 테이블
   - 시퀀스 기반 PK
   - 인덱스 최적화
 end note
 
 @enduml
-

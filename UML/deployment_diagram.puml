@@ -8,88 +8,74 @@ skinparam node {
 }
 
 node "Client Browser" {
-    [React Application] as ReactApp
-    [User Interface] as UI
+    [React Application\nReact + Vite] as ReactApp
 }
 
-node "Web Server" {
-    [Nginx] as Nginx
-    note right of Nginx
-      Reverse Proxy
-      Static File Serving
-    end note
-}
-
-node "Application Server" {
-    [Spring Boot Application] as SpringApp
-    [REST API] as RESTAPI
-    [Business Logic] as BusinessLogic
-}
-
-node "Database Server" {
-    database "Oracle Database" {
-        [IMAGEBOARD1] as ImageboardDB
-        [BID1] as BidDB
-        [MEMBER1] as MemberDB
-        [BOARD1] as BoardDB
-        [EVENT_PRODUCT1] as EventProductDB
-        [MANAGER1] as ManagerDB
+node "AWS Cloud" {
+    node "EC2 Instance" {
+        [Nginx\nReverse Proxy] as Nginx
+        [Spring Boot 4.0\nREST API] as SpringApp
+        [File Handler] as FileHandler
     }
-    note right of "Oracle Database"
-      Oracle DB 19c
-      - 19개 테이블
-      - 인덱스 최적화
-      - 트랜잭션 관리
-    end note
+    database "S3 Storage\n(선택사항)" {
+        [File Storage\n- 이미지/썸네일\n- CSS/차트 파일] as S3Storage
+    }
 }
 
-node "File Storage" {
-    [Image Storage] as ImageStorage
-    [CSS Files] as CSSFiles
-    [Chart Files] as ChartFiles
+node "Oracle Cloud" {
+    database "Oracle Database 19c" {
+        [19개 테이블\n- 경매/입찰\n- 회원/게시판\n- 이벤트/주문\n- 관리자/설정] as OracleDB
+    }
 }
 
 ' 연결
 ReactApp --> Nginx : HTTP/HTTPS
-UI --> ReactApp
-
 Nginx --> SpringApp : HTTP/REST
-Nginx --> ImageStorage : Static Files
-Nginx --> CSSFiles : Static Files
-Nginx --> ChartFiles : Static Files
+Nginx --> S3Storage : Static Files (선택)
+SpringApp --> OracleDB : JDBC/JPA
+SpringApp --> FileHandler
+FileHandler --> S3Storage : Upload/Download (선택)
 
-SpringApp --> RESTAPI
-SpringApp --> BusinessLogic
-RESTAPI --> BusinessLogic
-
-BusinessLogic --> ImageboardDB : JDBC/JPA
-BusinessLogic --> BidDB : JDBC/JPA
-BusinessLogic --> MemberDB : JDBC/JPA
-BusinessLogic --> BoardDB : JDBC/JPA
-BusinessLogic --> EventProductDB : JDBC/JPA
-BusinessLogic --> ManagerDB : JDBC/JPA
-
-SpringApp --> ImageStorage : File Upload/Download
-
-note top of "Client Browser"
-  사용자 브라우저
-  - Chrome, Firefox, Safari
-  - 모바일/태블릿/PC 지원
+note right of ReactApp
+  **프론트엔드**
+  - React + Vite
+  - React Router
+  - Bootstrap
+  - 컴포넌트 기반 UI
 end note
 
-note top of "Web Server"
-  웹 서버
+note right of Nginx
+  **웹 서버**
   - Nginx Reverse Proxy
   - 정적 파일 서빙
+  - SSL/TLS (Let's Encrypt)
   - 로드 밸런싱
 end note
 
-note top of "Application Server"
-  애플리케이션 서버
-  - Spring Boot 3
+note right of SpringApp
+  **백엔드**
+  - Spring Boot 4.0
   - Java 17+
   - RESTful API
+  - JPA/Hibernate
+  - 파일 업로드 처리
+end note
+
+note right of OracleDB
+  **데이터베이스**
+  - Oracle DB 19c
+  - 19개 테이블
+  - 시퀀스 기반 PK
+  - 인덱스 최적화
+  - 오라클 클라우드 호스팅
+end note
+
+note bottom of "AWS Cloud"
+  **AWS 서비스**
+  - EC2: t2.micro (Free Tier)
+  - Elastic IP: 고정 IP
+  - Security Group: 방화벽
+  - CloudWatch: 모니터링
 end note
 
 @enduml
-

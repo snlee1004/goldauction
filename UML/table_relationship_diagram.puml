@@ -24,6 +24,9 @@ entity "MEMBER1\n(회원)" as Member {
     TEL
     ADDR
     IS_SUSPENDED
+    SUSPEND_START_DATE
+    SUSPEND_END_DATE
+    SUSPEND_REASON
 }
 
 entity "IMAGEBOARD1\n(경매 상품)" as Imageboard {
@@ -37,6 +40,16 @@ entity "IMAGEBOARD1\n(경매 상품)" as Imageboard {
     STATUS
     AUCTION_START_DATE
     AUCTION_END_DATE
+    TRANSACTION_METHOD
+}
+
+entity "IMAGEBOARD_IMAGES1\n(경매 이미지)" as ImageboardImages {
+    * IMG_SEQ <<PK>>
+    --
+    IMAGEBOARD_SEQ <<FK>>
+    IMAGE_PATH
+    IMAGE_ORDER
+    UPLOAD_DATE
 }
 
 entity "BID1\n(입찰)" as Bid {
@@ -56,6 +69,8 @@ entity "BOARD1\n(게시판)" as Board {
     BOARD_TYPE
     BOARD_CATEGORY
     IS_ACTIVE
+    DISPLAY_ORDER
+    NOTICE_DISPLAY_COUNT
 }
 
 entity "BOARD_POST1\n(게시글)" as BoardPost {
@@ -67,9 +82,34 @@ entity "BOARD_POST1\n(게시글)" as BoardPost {
     POST_CONTENT
     VIEW_COUNT
     IS_NOTICE
+    LIKE_COUNT
+    IS_HIDDEN
+    IS_DELETED
 }
 
-entity "EVENT_PRODUCT1\n(공구이벤트)" as EventProduct {
+entity "BOARD_COMMENT1\n(댓글)" as BoardComment {
+    * COMMENT_SEQ <<PK>>
+    --
+    POST_SEQ <<FK>>
+    MEMBER_ID <<FK>>
+    COMMENT_CONTENT
+    PARENT_COMMENT_SEQ
+    IS_HIDDEN
+    IS_DELETED
+}
+
+entity "BOARD_NOTIFICATION1\n(알림)" as BoardNotification {
+    * NOTIFICATION_SEQ <<PK>>
+    --
+    MEMBER_ID <<FK>>
+    NOTIFICATION_TYPE
+    RELATED_POST_SEQ <<FK>>
+    RELATED_COMMENT_SEQ <<FK>>
+    NOTIFICATION_CONTENT
+    IS_READ
+}
+
+entity "EVENT_PRODUCT1\n(공구이벤트 상품)" as EventProduct {
     * PRODUCT_SEQ <<PK>>
     --
     BOARD_SEQ <<FK>>
@@ -77,6 +117,8 @@ entity "EVENT_PRODUCT1\n(공구이벤트)" as EventProduct {
     SALE_PRICE
     STOCK_QUANTITY
     EVENT_STATUS
+    ORIGINAL_PRICE
+    SOLD_QUANTITY
 }
 
 entity "EVENT_ORDER1\n(주문)" as EventOrder {
@@ -87,6 +129,7 @@ entity "EVENT_ORDER1\n(주문)" as EventOrder {
     ORDER_QUANTITY
     ORDER_PRICE
     ORDER_STATUS
+    DELIVERY_ADDRESS
 }
 
 entity "MANAGER1\n(관리자)" as Manager {
@@ -95,25 +138,65 @@ entity "MANAGER1\n(관리자)" as Manager {
     MANAGER_NAME
     MANAGER_PWD
     MANAGER_ROLE
+    MANAGER_EMAIL
+    LAST_LOGIN
+}
+
+entity "POPUP1\n(팝업)" as Popup {
+    * POPUP_SEQ <<PK>>
+    --
+    POPUP_TITLE
+    POPUP_CONTENT
+    IS_VISIBLE
+    POPUP_TYPE
+    START_DATE
+    END_DATE
+}
+
+entity "CSS_SET1\n(CSS 스타일셋)" as CssSet {
+    * SET_SEQ <<PK>>
+    --
+    SET_NAME
+    SET_DESCRIPTION
+    IS_ACTIVE
+    CREATED_DATE
+}
+
+entity "PROFANITY_FILTER1\n(비속어 필터)" as ProfanityFilter {
+    * FILTER_SEQ <<PK>>
+    --
+    FILTER_WORD
+    REPLACEMENT_WORD
+    IS_ACTIVE
 }
 
 ' 핵심 관계 정의
 Member ||--o{ Imageboard : "등록\n(1:N)"
 Member ||--o{ Bid : "입찰\n(1:N)"
+Member ||--o{ BoardPost : "작성\n(1:N)"
+Member ||--o{ BoardComment : "작성\n(1:N)"
+Member ||--o{ BoardNotification : "알림\n(1:N)"
+Member ||--o{ EventOrder : "주문\n(1:N)"
+
+Imageboard ||--o{ ImageboardImages : "이미지\n(1:N)"
 Imageboard ||--o{ Bid : "입찰내역\n(1:N)"
 
 Board ||--o{ BoardPost : "게시글\n(1:N)"
-Member ||--o{ BoardPost : "작성\n(1:N)"
-
 Board ||--o{ EventProduct : "상품\n(1:N)"
+
+BoardPost ||--o{ BoardComment : "댓글\n(1:N)"
+BoardPost ||--o{ BoardNotification : "알림\n(1:N)"
+
 EventProduct ||--o{ EventOrder : "주문\n(1:N)"
-Member ||--o{ EventOrder : "주문\n(1:N)"
+
+BoardComment ||--o{ BoardNotification : "알림\n(1:N)"
 
 note right of Member
   **회원 테이블**
   - 회원 가입/로그인
   - 계정 정지 관리
   - 닉네임 표시
+  - 정지 기간 관리
 end note
 
 note right of Imageboard
@@ -122,6 +205,7 @@ note right of Imageboard
   - 경매 기간 설정
   - 거래 방식 선택
   - 상태 관리
+  - 최고 입찰가 추적
 end note
 
 note right of Bid
@@ -129,6 +213,7 @@ note right of Bid
   - 실시간 입찰
   - 입찰 이력 관리
   - 최고 입찰 금액 추적
+  - 입찰 상태 관리
 end note
 
 note bottom of Board
@@ -136,7 +221,15 @@ note bottom of Board
   - 일반 게시판
   - 공구이벤트 게시판
   - 게시판 타입 관리
+  - 표시 순서 관리
+end note
+
+note bottom of EventProduct
+  **공구이벤트 상품**
+  - 이벤트 상품 관리
+  - 재고 관리
+  - 판매 수량 추적
+  - 이벤트 상태 관리
 end note
 
 @enduml
-

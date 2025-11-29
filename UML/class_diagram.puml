@@ -42,6 +42,14 @@ package "Entity Layer" {
         -Date logtime
     }
 
+    class ImageboardImages {
+        -int imgSeq
+        -int imageboardSeq
+        -String imagePath
+        -int imageOrder
+        -Date uploadDate
+    }
+
     class Bid {
         -int bidSeq
         -int imageboardSeq
@@ -80,6 +88,29 @@ package "Entity Layer" {
         -Date updatedDate
     }
 
+    class BoardComment {
+        -Long commentSeq
+        -Long postSeq
+        -String memberId
+        -String commentContent
+        -Long parentCommentSeq
+        -String isHidden
+        -String isDeleted
+        -Date createdDate
+        -Date updatedDate
+    }
+
+    class BoardNotification {
+        -Long notificationSeq
+        -String memberId
+        -String notificationType
+        -Long relatedPostSeq
+        -Long relatedCommentSeq
+        -String notificationContent
+        -String isRead
+        -Date createdDate
+    }
+
     class EventProduct {
         -Long productSeq
         -Long boardSeq
@@ -97,6 +128,19 @@ package "Entity Layer" {
         -Date updatedDate
     }
 
+    class EventOrder {
+        -Long orderSeq
+        -Long productSeq
+        -String memberId
+        -Integer orderQuantity
+        -Long orderPrice
+        -String orderStatus
+        -String deliveryAddress
+        -String deliveryPhone
+        -Date createdDate
+        -Date updatedDate
+    }
+
     class Manager {
         -String managerId
         -String managerName
@@ -106,6 +150,35 @@ package "Entity Layer" {
         -String managerRole
         -Date logtime
         -Date lastLogin
+    }
+
+    class Popup {
+        -int popupSeq
+        -String popupTitle
+        -String popupContent
+        -String backgroundImage
+        -String isVisible
+        -String popupType
+        -Date startDate
+        -Date endDate
+        -Date logtime
+    }
+
+    class CssSet {
+        -Integer setSeq
+        -String setName
+        -String setDescription
+        -String isActive
+        -Date createdDate
+        -Date modifiedDate
+    }
+
+    class ProfanityFilter {
+        -Long filterSeq
+        -String filterWord
+        -String replacementWord
+        -String isActive
+        -Date createdDate
     }
 }
 
@@ -125,6 +198,7 @@ package "DTO Layer" {
         -Date auctionEndDate
         -String status
         -Date logtime
+        +toEntity()
     }
 
     class MemberDTO {
@@ -140,6 +214,7 @@ package "DTO Layer" {
         -String tel3
         -String addr
         -Date logtime
+        +toEntity()
     }
 
     class BidDTO {
@@ -149,6 +224,41 @@ package "DTO Layer" {
         -int bidAmount
         -Date bidTime
         -String status
+        +toEntity()
+    }
+
+    class BoardDTO {
+        -Long boardSeq
+        -String boardName
+        -String boardDescription
+        -String boardType
+        -String boardCategory
+        -String isActive
+        -Integer displayOrder
+        -Integer noticeDisplayCount
+        +toEntity()
+    }
+
+    class BoardPostDTO {
+        -Long postSeq
+        -Long boardSeq
+        -String memberId
+        -String postTitle
+        -String postContent
+        -String isNotice
+        -Integer noticeOrder
+        +toEntity()
+    }
+
+    class EventProductDTO {
+        -Long productSeq
+        -Long boardSeq
+        -String productName
+        -String productDescription
+        -Long originalPrice
+        -Long salePrice
+        -Integer stockQuantity
+        +toEntity()
     }
 }
 
@@ -160,6 +270,13 @@ package "Service Layer" {
         +imageboardView()
         +imageboardModify()
         +imageboardDelete()
+        +updateStatus()
+    }
+
+    class ImageboardImagesService {
+        +saveImages()
+        +getImagesByImageboardSeq()
+        +deleteImages()
     }
 
     class MemberService {
@@ -176,6 +293,8 @@ package "Service Layer" {
         +bidList()
         +bidCancel()
         +getMaxBidAmount()
+        +getTopBid()
+        +awardBid()
     }
 
     class BoardService {
@@ -185,12 +304,72 @@ package "Service Layer" {
         +boardDelete()
     }
 
+    class BoardPostService {
+        +postWrite()
+        +postList()
+        +postView()
+        +postModify()
+        +postDelete()
+    }
+
+    class BoardCommentService {
+        +commentWrite()
+        +commentList()
+        +commentModify()
+        +commentDelete()
+    }
+
+    class BoardNotificationService {
+        +createNotification()
+        +getNotifications()
+        +markAsRead()
+    }
+
     class EventProductService {
         +productCreate()
         +productList()
         +productView()
         +productModify()
         +productDelete()
+    }
+
+    class EventOrderService {
+        +orderCreate()
+        +orderList()
+        +orderCancel()
+    }
+
+    class ManagerService {
+        +login()
+        +memberList()
+        +memberModify()
+        +memberSuspend()
+    }
+
+    class TransactionStatisticsService {
+        +getTransactionCountByStatus()
+        +getTransactionCountByCategory()
+        +getTransactionCountByPeriod()
+    }
+
+    class ProfanityFilterService {
+        +filterContent()
+        +addFilterWord()
+        +removeFilterWord()
+    }
+
+    class PopupService {
+        +popupList()
+        +popupCreate()
+        +popupModify()
+        +popupDelete()
+    }
+
+    class CssSetService {
+        +cssSetList()
+        +cssSetCreate()
+        +cssSetModify()
+        +cssSetDelete()
     }
 }
 
@@ -224,38 +403,199 @@ package "Controller Layer" {
         +boardDelete()
     }
 
+    class BoardPostController {
+        +postWrite()
+        +postList()
+        +postView()
+        +postModify()
+        +postDelete()
+    }
+
+    class BoardCommentController {
+        +commentWrite()
+        +commentList()
+        +commentModify()
+        +commentDelete()
+    }
+
+    class BoardNotificationController {
+        +getNotifications()
+        +markAsRead()
+    }
+
+    class EventProductController {
+        +productCreate()
+        +productList()
+        +productView()
+        +productModify()
+    }
+
+    class EventOrderController {
+        +orderCreate()
+        +orderList()
+        +orderCancel()
+    }
+
     class ManagerController {
         +login()
         +memberList()
         +memberModify()
         +memberSuspend()
     }
+
+    class TransactionStatisticsController {
+        +getStatistics()
+        +getCategoryStatistics()
+        +getPeriodStatistics()
+    }
+
+    class ProfanityFilterController {
+        +filterList()
+        +filterAdd()
+        +filterDelete()
+    }
+
+    class PopupController {
+        +popupList()
+        +popupCreate()
+        +popupModify()
+    }
+
+    class CssController {
+        +cssSetList()
+        +cssSetCreate()
+        +cssSetModify()
+    }
+
+    class ChartController {
+        +chartSetList()
+        +chartSetCreate()
+        +chartSetModify()
+    }
+
+    class NewsController {
+        +getGoldNews()
+        +getGoldPrice()
+    }
+}
+
+' DAO 클래스 정의
+package "DAO Layer" {
+    class ImageboardDAO {
+        +imageboardWrite()
+        +imageboardList()
+        +imageboardView()
+        +imageboardModify()
+        +imageboardDelete()
+    }
+
+    class ImageboardImagesDAO {
+        +saveImages()
+        +getImagesByImageboardSeq()
+        +deleteImages()
+    }
+
+    class MemberDAO {
+        +memberWrite()
+        +memberView()
+        +memberModify()
+        +login()
+    }
+
+    class BidDAO {
+        +save()
+        +findByImageboardSeq()
+        +findMaxBidAmountByImageboardSeq()
+        +cancelBid()
+    }
+
+    class BoardDAO {
+        +write()
+        +getBoardList()
+        +getBoard()
+        +modify()
+        +delete()
+    }
+
+    class BoardPostDAO {
+        +write()
+        +getPostList()
+        +getPost()
+        +modify()
+        +delete()
+    }
+
+    class BoardCommentDAO {
+        +write()
+        +getCommentList()
+        +modify()
+        +delete()
+    }
+
+    class TransactionStatisticsDAO {
+        +getTransactionCountByStatus()
+        +getTransactionCountByCategory()
+        +getTransactionCountByPeriod()
+    }
 }
 
 ' 관계 정의
 Member "1" --> "*" Imageboard : 작성
 Member "1" --> "*" Bid : 입찰
+Member "1" --> "*" BoardPost : 작성
+Member "1" --> "*" BoardComment : 작성
+Member "1" --> "*" BoardNotification : 알림
+Member "1" --> "*" EventOrder : 주문
+
+Imageboard "1" --> "*" ImageboardImages : 이미지
 Imageboard "1" --> "*" Bid : 입찰내역
+
 Board "1" --> "*" BoardPost : 게시글
 Board "1" --> "*" EventProduct : 상품
-Member "1" --> "*" BoardPost : 작성
+
+BoardPost "1" --> "*" BoardComment : 댓글
+BoardPost "1" --> "*" BoardNotification : 알림
+
+EventProduct "1" --> "*" EventOrder : 주문
 
 ImageboardService --> Imageboard : 사용
+ImageboardService --> ImageboardDAO : 호출
+ImageboardImagesService --> ImageboardImages : 사용
 MemberService --> Member : 사용
 BidService --> Bid : 사용
 BidService --> Imageboard : 참조
 BoardService --> Board : 사용
+BoardPostService --> BoardPost : 사용
+BoardCommentService --> BoardComment : 사용
+BoardNotificationService --> BoardNotification : 사용
 EventProductService --> EventProduct : 사용
+EventOrderService --> EventOrder : 사용
+ManagerService --> Manager : 사용
+TransactionStatisticsService --> TransactionStatisticsDAO : 호출
+ProfanityFilterService --> ProfanityFilter : 사용
+PopupService --> Popup : 사용
+CssSetService --> CssSet : 사용
 
 ImageboardController --> ImageboardService : 호출
 MemberController --> MemberService : 호출
 BidController --> BidService : 호출
 BoardController --> BoardService : 호출
-ManagerController --> MemberService : 호출
+BoardPostController --> BoardPostService : 호출
+BoardCommentController --> BoardCommentService : 호출
+BoardNotificationController --> BoardNotificationService : 호출
+EventProductController --> EventProductService : 호출
+EventOrderController --> EventOrderService : 호출
+ManagerController --> ManagerService : 호출
+TransactionStatisticsController --> TransactionStatisticsService : 호출
+ProfanityFilterController --> ProfanityFilterService : 호출
+PopupController --> PopupService : 호출
+CssController --> CssSetService : 호출
 
 ImageboardService ..> ImageboardDTO : 변환
 MemberService ..> MemberDTO : 변환
 BidService ..> BidDTO : 변환
+BoardService ..> BoardDTO : 변환
+BoardPostService ..> BoardPostDTO : 변환
+EventProductService ..> EventProductDTO : 변환
 
 @enduml
-

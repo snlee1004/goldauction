@@ -44,12 +44,12 @@ entity "IMAGEBOARD1" as Imageboard {
 }
 
 entity "IMAGEBOARD_IMAGES1" as ImageboardImages {
-    * IMAGE_SEQ : NUMBER <<PK>>
+    * IMG_SEQ : NUMBER <<PK>>
     --
     * IMAGEBOARD_SEQ : NUMBER <<FK>>
     * IMAGE_PATH : VARCHAR2(500)
-    * IS_MAIN : VARCHAR2(1)
-    * DISPLAY_ORDER : NUMBER
+    * IMAGE_ORDER : NUMBER
+    * UPLOAD_DATE : DATE
 }
 
 entity "BID1" as Bid {
@@ -98,10 +98,24 @@ entity "BOARD_COMMENT1" as BoardComment {
     --
     * POST_SEQ : NUMBER <<FK>>
     * MEMBER_ID : VARCHAR2(20) <<FK>>
-    * COMMENT_CONTENT : VARCHAR2(1000)
+    * COMMENT_CONTENT : CLOB
+    * PARENT_COMMENT_SEQ : NUMBER
+    * IS_HIDDEN : VARCHAR2(1)
     * IS_DELETED : VARCHAR2(1)
     * CREATED_DATE : DATE
     * UPDATED_DATE : DATE
+}
+
+entity "BOARD_NOTIFICATION1" as BoardNotification {
+    * NOTIFICATION_SEQ : NUMBER <<PK>>
+    --
+    * MEMBER_ID : VARCHAR2(20) <<FK>>
+    * NOTIFICATION_TYPE : VARCHAR2(20)
+    * RELATED_POST_SEQ : NUMBER <<FK>>
+    * RELATED_COMMENT_SEQ : NUMBER <<FK>>
+    * NOTIFICATION_CONTENT : VARCHAR2(500)
+    * IS_READ : VARCHAR2(1)
+    * CREATED_DATE : DATE
 }
 
 entity "EVENT_PRODUCT1" as EventProduct {
@@ -130,7 +144,10 @@ entity "EVENT_ORDER1" as EventOrder {
     * ORDER_QUANTITY : NUMBER
     * ORDER_PRICE : NUMBER
     * ORDER_STATUS : VARCHAR2(20)
+    * DELIVERY_ADDRESS : VARCHAR2(500)
+    * DELIVERY_PHONE : VARCHAR2(50)
     * CREATED_DATE : DATE
+    * UPDATED_DATE : DATE
 }
 
 entity "MANAGER1" as Manager {
@@ -145,22 +162,57 @@ entity "MANAGER1" as Manager {
     * LAST_LOGIN : DATE
 }
 
+entity "POPUP1" as Popup {
+    * POPUP_SEQ : NUMBER <<PK>>
+    --
+    * POPUP_TITLE : VARCHAR2(200)
+    * POPUP_CONTENT : CLOB
+    * BACKGROUND_IMAGE : VARCHAR2(500)
+    * IS_VISIBLE : VARCHAR2(1)
+    * POPUP_TYPE : VARCHAR2(20)
+    * START_DATE : DATE
+    * END_DATE : DATE
+    * LOGTIME : DATE
+}
+
+entity "CSS_SET1" as CssSet {
+    * SET_SEQ : NUMBER <<PK>>
+    --
+    * SET_NAME : VARCHAR2(100)
+    * SET_DESCRIPTION : VARCHAR2(500)
+    * IS_ACTIVE : VARCHAR2(1)
+    * CREATED_DATE : DATE
+    * MODIFIED_DATE : DATE
+}
+
+entity "PROFANITY_FILTER1" as ProfanityFilter {
+    * FILTER_SEQ : NUMBER <<PK>>
+    --
+    * FILTER_WORD : VARCHAR2(100)
+    * REPLACEMENT_WORD : VARCHAR2(100)
+    * IS_ACTIVE : VARCHAR2(1)
+    * CREATED_DATE : DATE
+}
+
 ' 관계 정의
-Member ||--o{ Imageboard : "등록"
-Member ||--o{ Bid : "입찰"
-Member ||--o{ BoardPost : "작성"
-Member ||--o{ BoardComment : "작성"
-Member ||--o{ EventOrder : "주문"
+Member ||--o{ Imageboard : "등록\n(1:N)"
+Member ||--o{ Bid : "입찰\n(1:N)"
+Member ||--o{ BoardPost : "작성\n(1:N)"
+Member ||--o{ BoardComment : "작성\n(1:N)"
+Member ||--o{ BoardNotification : "알림\n(1:N)"
+Member ||--o{ EventOrder : "주문\n(1:N)"
 
-Imageboard ||--o{ ImageboardImages : "이미지"
-Imageboard ||--o{ Bid : "입찰내역"
+Imageboard ||--o{ ImageboardImages : "이미지\n(1:N)"
+Imageboard ||--o{ Bid : "입찰내역\n(1:N)"
 
-Board ||--o{ BoardPost : "게시글"
-Board ||--o{ EventProduct : "상품"
+Board ||--o{ BoardPost : "게시글\n(1:N)"
+Board ||--o{ EventProduct : "상품\n(1:N)"
 
-BoardPost ||--o{ BoardComment : "댓글"
+BoardPost ||--o{ BoardComment : "댓글\n(1:N)"
+BoardPost ||--o{ BoardNotification : "알림\n(1:N)"
 
-EventProduct ||--o{ EventOrder : "주문"
+EventProduct ||--o{ EventOrder : "주문\n(1:N)"
+
+BoardComment ||--o{ BoardNotification : "알림\n(1:N)"
 
 @enduml
-
